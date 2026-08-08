@@ -682,8 +682,9 @@ function renderPrices(){
         extra = ' <i>sin precio normal</i>';
       }
       var isBest = eff(p)!==null && p===withP[0] && withP.length>1;
+      var esNuevo = p.nuevo && daysAgo(p.nuevo)!==null && daysAgo(p.nuevo)<=14;
       return '<span class="shop'+(isBest?" best":"")+'"'+stale+' data-editprice="'+p.id+'">'+
-        esc(p.shop)+' <b>'+main+'</b>'+extra+' <i>'+age+(p.src==="ticket"?" 🧾":"")+'</i></span>';
+        esc(p.shop)+' <b>'+main+'</b>'+extra+' <i>'+(esNuevo?"🆕 ":"")+age+(p.src==="ticket"?" 🧾":"")+'</i></span>';
     }).join("");
     var save2 = "";
     if(withP.length>1){
@@ -787,15 +788,24 @@ function saveTicket(t){
   if(ex){ ex.e.name = "Compra "+(t.shop||""); ex.e.amount = t.total; ex.e.date = t.date; ex.e.cat = t.cat||"Comida"; }
   else m.expenses.push({id:uid(), name:"Compra "+(t.shop||""), amount:t.total, date:t.date, cat:t.cat||"Comida", ticket:t.id});
   // precios
+  /* qué líneas son productos que no estaban en el catálogo */
+  var nuevos = [], repetidos = 0;
   (t.lines||[]).forEach(function(l){
     var q = l.qty>0 ? l.qty : 1;
     if(!l.name || !(l.price>0)) return;
+    var n = matchNorm(norm(l.name));
+    var yaEstaba = S.prices.some(function(p){ return p.norm===n; });
     var u = l.price/q;
     // si la línea va marcada como oferta, entra como oferta y no toca el precio normal
     if(l.off) addPrice(l.name, t.shop, null, l.unit||"", t.date, "ticket", u);
     else addPrice(l.name, t.shop, u, l.unit||"", t.date, "ticket", null);
+    var nn = matchNorm(norm(l.name));
+    var rec = S.prices.filter(function(p){ return p.norm===nn && p.shop===t.shop; })[0];
+    if(yaEstaba) repetidos++;
+    else { if(rec) rec.nuevo = t.date; nuevos.push({id: rec ? rec.id : null, name: l.name.trim()}); }
   });
   save();
+  return {nuevos:nuevos, repetidos:repetidos};
 }
 function delTicket(id){
   S.tickets = S.tickets.filter(function(t){ return t.id!==id; });
@@ -1297,10 +1307,37 @@ function ticketEditor(t){
       lines: lines.filter(function(l){ return l.name && l.name.trim(); })
     };
     if(!obj.total){ toast("Pon el total del ticket"); return; }
-    saveTicket(obj); closeSheet(); render();
-    toast("Ticket guardado · gasto y precios actualizados");
+    var res = saveTicket(obj);
+    render();
+    if(res.nuevos.length) avisaNuevos(res, obj.shop);
+    else { closeSheet(); toast("Ticket guardado · "+res.repetidos+(res.repetidos===1?" precio actualizado":" precios actualizados")); }
   };
   drawLines();
+}
+/* resumen tras guardar un ticket: qué productos no estaban en el catálogo.
+   Se pueden renombrar aquí mismo, que es cuando te acuerdas de qué eran. */
+function avisaNuevos(res, shop){
+  var html = '<h3>🆕 '+res.nuevos.length+' producto'+(res.nuevos.length>1?'s':'')+' nuevo'+(res.nuevos.length>1?'s':'')+'</h3>'+
+    '<div class="mini">No estaban en el catálogo y ya se han añadido con su precio de '+esc(shop)+
+    '. Si el ticket los abrevia raro, córrigelos ahora y quedarán bien guardados.</div>';
+  res.nuevos.forEach(function(n,i){
+    html += '<label>Producto '+(i+1)+'</label><input data-nuevo="'+(n.id||'')+'" value="'+esc(n.name)+'">';
+  });
+  if(res.repetidos) html += '<div class="mini" style="margin-top:12px">Además se han actualizado '+res.repetidos+' precios que ya conocías.</div>';
+  html += '<div class="btns"><button class="b-no" id="n_ok">Están bien</button><button class="b-ok" id="n_save">Guardar nombres</button></div>';
+  openSheet(html);
+  document.getElementById("n_ok").onclick = function(){ closeSheet(); render(); toast("Ticket guardado"); };
+  document.getElementById("n_save").onclick = function(){
+    var cambios = 0;
+    Array.prototype.forEach.call(sheet.querySelectorAll("[data-nuevo]"), function(inp){
+      var id = inp.dataset.nuevo, v = inp.value.trim();
+      if(!id || !v) return;
+      var p = S.prices.filter(function(x){ return x.id===id; })[0];
+      if(p && p.prod !== v){ p.prod = v; p.norm = norm(v); cambios++; }
+    });
+    save(); closeSheet(); render();
+    toast(cambios ? cambios+" nombres corregidos" : "Ticket guardado");
+  };
 }
 function openTicketText(){
   openSheet('<h3>📝 Pegar ticket</h3>'+
