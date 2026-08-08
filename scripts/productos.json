@@ -1,0 +1,18 @@
+{
+  "_comentario": "Lista de productos que se rastrean cada lunes. Añade o quita los que quieras. 'url' es la página del comparador con los precios por supermercado.",
+  "productos": [
+    { "prod": "Pechuga de pollo", "unit": "kg", "url": "https://radarsuper.com/precios/pechuga-de-pollo" },
+    { "prod": "Huevos docena M", "unit": "12 ud", "url": "https://radarsuper.com/precios/huevos" },
+    { "prod": "Leche entera brick", "unit": "1L", "url": "https://radarsuper.com/precios/leche-entera" },
+    { "prod": "Pan de molde blanco", "unit": "820g", "url": "https://radarsuper.com/precios/pan-de-molde" },
+    { "prod": "Arroz redondo", "unit": "1kg", "url": "https://radarsuper.com/precios/arroz" },
+    { "prod": "Espaguetis", "unit": "1kg", "url": "https://radarsuper.com/precios/espaguetis" },
+    { "prod": "Aceite de oliva virgen extra", "unit": "1L", "url": "https://radarsuper.com/precios/aceite-de-oliva-virgen-extra" },
+    { "prod": "Atún en aceite pack latas", "unit": "900g", "url": "https://radarsuper.com/precios/atun-en-lata" },
+    { "prod": "Patatas malla 3kg", "unit": "3kg", "url": "https://radarsuper.com/precios/patatas" },
+    { "prod": "Plátano de Canarias", "unit": "kg", "url": "https://radarsuper.com/precios/platanos" },
+    { "prod": "Tomate frito 390g", "unit": "390g", "url": "https://radarsuper.com/precios/tomate-frito" },
+    { "prod": "Café molido natural 500g", "unit": "500g", "url": "https://radarsuper.com/precios/cafe-molido" },
+    { "prod": "Papel higiénico", "unit": "12 rollos", "url": "https://radarsuper.com/precios/papel-higienico" }
+  ]
+}
