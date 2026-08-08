@@ -234,7 +234,8 @@
       <div class="card">
         <h2>Lista de la compra <span class="sum" id="listCount"></span></h2>
         <div class="quick">
-          <input id="qName" placeholder="Pechuga de pollo, leche…" autocomplete="off">
+          <input id="qName" placeholder="Escribe y elige del catálogo…" autocomplete="off" list="prodList">
+          <datalist id="prodList"></datalist>
           <button id="qAdd">+</button>
         </div>
         <ul class="list" id="lList" style="margin-top:10px"></ul>
@@ -695,7 +696,24 @@ function renderPrices(){
 }
 
 /* =========== LISTA DE LA COMPRA =========== */
+/* autocompletado con los productos del catálogo: escribes "tomate" y te salen
+   "Tomate rama", "Tomate pera"… así el nombre casa con el precio guardado */
+var _dlStamp = -1;
+function llenaSugerencias(){
+  if(_dlStamp === S.prices.length) return;
+  _dlStamp = S.prices.length;
+  var dl = document.getElementById("prodList");
+  if(!dl) return;
+  var vistos = {}, out = [];
+  S.prices.forEach(function(p){
+    if(vistos[p.norm]) return;
+    vistos[p.norm] = 1;
+    out.push('<option value="'+esc(p.prod)+'">');
+  });
+  dl.innerHTML = out.join("");
+}
 function renderList(){
+  llenaSugerencias();
   var ul = document.getElementById("lList");
   var pend = S.shoplist.filter(function(i){ return !i.done; });
   document.getElementById("listCount").textContent = pend.length ? pend.length+" pendientes" : "";
