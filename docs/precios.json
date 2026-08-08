@@ -1,0 +1,378 @@
+{
+ "fecha": "2026-08-07",
+ "generado": "2026-08-07T00:00:00.000Z",
+ "fuentes": [
+  "https://radarsuper.com/",
+  "https://preciosdelsuper.es/"
+ ],
+ "items": [
+  {
+   "prod": "Aceite de oliva virgen extra",
+   "unit": "1L",
+   "shop": "Alcampo",
+   "price": 4.94,
+   "offer": null,
+   "fecha": "2026-08-07"
+  },
+  {
+   "prod": "Aceite de oliva virgen extra",
+   "unit": "1L",
+   "shop": "Mercadona",
+   "price": 4.95,
+   "offer": null,
+   "fecha": "2026-08-07"
+  },
+  {
+   "prod": "Arena para gatos absorbente",
+   "unit": "5kg",
+   "shop": "Dia",
+   "price": null,
+   "offer": 1.5,
+   "fecha": "2026-08-07"
+  },
+  {
+   "prod": "Arroz redondo",
+   "unit": "1kg",
+   "shop": "Alcampo",
+   "price": 1.09,
+   "offer": null,
+   "fecha": "2026-08-07"
+  },
+  {
+   "prod": "Arroz redondo",
+   "unit": "1kg",
+   "shop": "Mercadona",
+   "price": 1.2,
+   "offer": null,
+   "fecha": "2026-08-07"
+  },
+  {
+   "prod": "Atún en aceite pack latas",
+   "unit": "950g",
+   "shop": "Carrefour",
+   "price": 7.15,
+   "offer": null,
+   "fecha": "2026-08-07"
+  },
+  {
+   "prod": "Atún en aceite pack latas",
+   "unit": "900g",
+   "shop": "Mercadona",
+   "price": 6.5,
+   "offer": null,
+   "fecha": "2026-08-07"
+  },
+  {
+   "prod": "Café molido natural 250g",
+   "unit": "250g",
+   "shop": "Carrefour",
+   "price": 2.27,
+   "offer": null,
+   "fecha": "2026-08-07"
+  },
+  {
+   "prod": "Café molido natural 500g",
+   "unit": "500g",
+   "shop": "Carrefour",
+   "price": 4.49,
+   "offer": null,
+   "fecha": "2026-08-07"
+  },
+  {
+   "prod": "Café molido natural 500g",
+   "unit": "500g",
+   "shop": "Dia",
+   "price": 4.7,
+   "offer": null,
+   "fecha": "2026-08-07"
+  },
+  {
+   "prod": "Café molido natural 500g",
+   "unit": "500g",
+   "shop": "Mercadona",
+   "price": 4.5,
+   "offer": null,
+   "fecha": "2026-08-07"
+  },
+  {
+   "prod": "Espaguetis",
+   "unit": "1kg",
+   "shop": "Alcampo",
+   "price": 1.15,
+   "offer": null,
+   "fecha": "2026-08-07"
+  },
+  {
+   "prod": "Espaguetis",
+   "unit": "1kg",
+   "shop": "Carrefour",
+   "price": 1.2,
+   "offer": null,
+   "fecha": "2026-08-07"
+  },
+  {
+   "prod": "Espaguetis",
+   "unit": "1kg",
+   "shop": "Dia",
+   "price": 1.15,
+   "offer": null,
+   "fecha": "2026-08-07"
+  },
+  {
+   "prod": "Espaguetis",
+   "unit": "1kg",
+   "shop": "Mercadona",
+   "price": 1.15,
+   "offer": null,
+   "fecha": "2026-08-07"
+  },
+  {
+   "prod": "Huevos docena L",
+   "unit": "12 ud",
+   "shop": "Alcampo",
+   "price": 2.95,
+   "offer": null,
+   "fecha": "2026-08-07"
+  },
+  {
+   "prod": "Huevos docena L",
+   "unit": "12 ud",
+   "shop": "Consum",
+   "price": 3.05,
+   "offer": null,
+   "fecha": "2026-08-07"
+  },
+  {
+   "prod": "Huevos docena M",
+   "unit": "12 ud",
+   "shop": "Alcampo",
+   "price": 2.99,
+   "offer": null,
+   "fecha": "2026-08-07"
+  },
+  {
+   "prod": "Huevos docena M",
+   "unit": "12 ud",
+   "shop": "Carrefour",
+   "price": 2.99,
+   "offer": null,
+   "fecha": "2026-08-07"
+  },
+  {
+   "prod": "Leche entera brick",
+   "unit": "1L",
+   "shop": "Alcampo",
+   "price": 0.96,
+   "offer": null,
+   "fecha": "2026-08-07"
+  },
+  {
+   "prod": "Leche entera brick",
+   "unit": "1L",
+   "shop": "Carrefour",
+   "price": 0.96,
+   "offer": null,
+   "fecha": "2026-08-07"
+  },
+  {
+   "prod": "Leche entera brick",
+   "unit": "1L",
+   "shop": "Dia",
+   "price": 0.96,
+   "offer": null,
+   "fecha": "2026-08-07"
+  },
+  {
+   "prod": "Leche entera brick",
+   "unit": "1L",
+   "shop": "Mercadona",
+   "price": 0.96,
+   "offer": null,
+   "fecha": "2026-08-07"
+  },
+  {
+   "prod": "Pan de molde blanco",
+   "unit": "800g",
+   "shop": "Alcampo",
+   "price": 1.12,
+   "offer": null,
+   "fecha": "2026-08-07"
+  },
+  {
+   "prod": "Pan de molde blanco",
+   "unit": "820g",
+   "shop": "Carrefour",
+   "price": 1.15,
+   "offer": null,
+   "fecha": "2026-08-07"
+  },
+  {
+   "prod": "Pan de molde blanco",
+   "unit": "820g",
+   "shop": "Dia",
+   "price": 1.15,
+   "offer": null,
+   "fecha": "2026-08-07"
+  },
+  {
+   "prod": "Pan de molde blanco",
+   "unit": "820g",
+   "shop": "Mercadona",
+   "price": 1.15,
+   "offer": null,
+   "fecha": "2026-08-07"
+  },
+  {
+   "prod": "Papel higiénico",
+   "unit": "12 rollos",
+   "shop": "Carrefour",
+   "price": 2.25,
+   "offer": null,
+   "fecha": "2026-08-07"
+  },
+  {
+   "prod": "Papel higiénico",
+   "unit": "12 rollos",
+   "shop": "Dia",
+   "price": 2.35,
+   "offer": null,
+   "fecha": "2026-08-07"
+  },
+  {
+   "prod": "Patatas malla 3kg",
+   "unit": "3kg",
+   "shop": "Alcampo",
+   "price": 4.64,
+   "offer": null,
+   "fecha": "2026-08-07"
+  },
+  {
+   "prod": "Patatas malla 3kg",
+   "unit": "3kg",
+   "shop": "Carrefour",
+   "price": 4.65,
+   "offer": null,
+   "fecha": "2026-08-07"
+  },
+  {
+   "prod": "Patatas malla 3kg",
+   "unit": "3kg",
+   "shop": "Mercadona",
+   "price": 4.65,
+   "offer": null,
+   "fecha": "2026-08-07"
+  },
+  {
+   "prod": "Patatas malla 5kg",
+   "unit": "5kg",
+   "shop": "Alcampo",
+   "price": 5.58,
+   "offer": null,
+   "fecha": "2026-08-07"
+  },
+  {
+   "prod": "Patatas malla 5kg",
+   "unit": "5kg",
+   "shop": "Carrefour",
+   "price": 5.59,
+   "offer": null,
+   "fecha": "2026-08-07"
+  },
+  {
+   "prod": "Patatas malla 5kg",
+   "unit": "5kg",
+   "shop": "Mercadona",
+   "price": 4.75,
+   "offer": null,
+   "fecha": "2026-08-07"
+  },
+  {
+   "prod": "Pechuga de pollo",
+   "unit": "kg",
+   "shop": "Dia",
+   "price": 6.49,
+   "offer": null,
+   "fecha": "2026-08-07"
+  },
+  {
+   "prod": "Pechuga de pollo",
+   "unit": "kg",
+   "shop": "Mercadona",
+   "price": 7.31,
+   "offer": null,
+   "fecha": "2026-08-07"
+  },
+  {
+   "prod": "Plátano de Canarias",
+   "unit": "kg",
+   "shop": "Alcampo",
+   "price": 3.56,
+   "offer": null,
+   "fecha": "2026-08-07"
+  },
+  {
+   "prod": "Plátano de Canarias",
+   "unit": "kg",
+   "shop": "Dia",
+   "price": 2.9,
+   "offer": null,
+   "fecha": "2026-08-07"
+  },
+  {
+   "prod": "Plátano de Canarias",
+   "unit": "kg",
+   "shop": "Mercadona",
+   "price": 2.93,
+   "offer": null,
+   "fecha": "2026-08-07"
+  },
+  {
+   "prod": "Tomate frito 390g",
+   "unit": "390g",
+   "shop": "Alcampo",
+   "price": 0.49,
+   "offer": null,
+   "fecha": "2026-08-07"
+  },
+  {
+   "prod": "Tomate frito 390g",
+   "unit": "390g",
+   "shop": "Carrefour",
+   "price": 0.62,
+   "offer": null,
+   "fecha": "2026-08-07"
+  },
+  {
+   "prod": "Tomate frito 550g",
+   "unit": "550g",
+   "shop": "Alcampo",
+   "price": 0.82,
+   "offer": null,
+   "fecha": "2026-08-07"
+  },
+  {
+   "prod": "Tomate frito 550g",
+   "unit": "550g",
+   "shop": "Carrefour",
+   "price": 0.83,
+   "offer": null,
+   "fecha": "2026-08-07"
+  },
+  {
+   "prod": "Tomate frito 550g",
+   "unit": "550g",
+   "shop": "Dia",
+   "price": 0.69,
+   "offer": null,
+   "fecha": "2026-08-07"
+  },
+  {
+   "prod": "Tomate frito 550g",
+   "unit": "560g",
+   "shop": "Mercadona",
+   "price": 0.9,
+   "offer": null,
+   "fecha": "2026-08-07"
+  }
+ ]
+}
