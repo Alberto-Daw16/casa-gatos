@@ -20,15 +20,6 @@
   {
    "prod": "Aceite de oliva virgen extra",
    "unit": "1L",
-   "shop": "Ahorramás",
-   "price": 20,
-   "offer": null,
-   "fecha": "2026-08-08",
-   "url": "https://radarsuper.com/precios/aceite-de-oliva-virgen-extra"
-  },
-  {
-   "prod": "Aceite de oliva virgen extra",
-   "unit": "1L",
    "shop": "Alcampo",
    "price": 4.89,
    "offer": null,
@@ -161,24 +152,6 @@
   {
    "prod": "Café molido natural 500g",
    "unit": "500g",
-   "shop": "Ahorramás",
-   "price": 10,
-   "offer": null,
-   "fecha": "2026-08-08",
-   "url": "https://radarsuper.com/precios/cafe-molido"
-  },
-  {
-   "prod": "Café molido natural 500g",
-   "unit": "500g",
-   "shop": "Alcampo",
-   "price": 2.18,
-   "offer": null,
-   "fecha": "2026-08-08",
-   "url": "https://radarsuper.com/precios/cafe-molido"
-  },
-  {
-   "prod": "Café molido natural 500g",
-   "unit": "500g",
    "shop": "Carrefour",
    "price": 4.49,
    "offer": null,
@@ -189,10 +162,9 @@
    "prod": "Café molido natural 500g",
    "unit": "500g",
    "shop": "Dia",
-   "price": 9.4,
+   "price": 4.7,
    "offer": null,
-   "fecha": "2026-08-08",
-   "url": "https://radarsuper.com/precios/cafe-molido"
+   "fecha": "2026-08-07"
   },
   {
    "prod": "Café molido natural 500g",
@@ -267,38 +239,18 @@
   {
    "prod": "Huevos docena M",
    "unit": "12 ud",
-   "shop": "Ahorramás",
-   "price": 0.28,
-   "offer": null,
-   "fecha": "2026-08-08",
-   "url": "https://radarsuper.com/precios/huevos"
-  },
-  {
-   "prod": "Huevos docena M",
-   "unit": "12 ud",
    "shop": "Alcampo",
-   "price": 0.23,
+   "price": 2.99,
    "offer": null,
-   "fecha": "2026-08-08",
-   "url": "https://radarsuper.com/precios/huevos"
+   "fecha": "2026-08-07"
   },
   {
    "prod": "Huevos docena M",
    "unit": "12 ud",
    "shop": "Carrefour",
-   "price": 0.22,
+   "price": 2.99,
    "offer": null,
-   "fecha": "2026-08-08",
-   "url": "https://radarsuper.com/precios/huevos"
-  },
-  {
-   "prod": "Huevos docena M",
-   "unit": "12 ud",
-   "shop": "Dia",
-   "price": 0.22,
-   "offer": null,
-   "fecha": "2026-08-08",
-   "url": "https://radarsuper.com/precios/huevos"
+   "fecha": "2026-08-07"
   },
   {
    "prod": "Huevos docena M",
@@ -308,15 +260,6 @@
    "offer": null,
    "fecha": "2026-08-08",
    "url": "https://radarsuper.com/precios/huevos"
-  },
-  {
-   "prod": "Leche entera brick",
-   "unit": "1L",
-   "shop": "Ahorramás",
-   "price": 11.75,
-   "offer": null,
-   "fecha": "2026-08-08",
-   "url": "https://radarsuper.com/precios/leche-entera"
   },
   {
    "prod": "Leche entera brick",
@@ -439,28 +382,17 @@
    "prod": "Patatas malla 3kg",
    "unit": "3kg",
    "shop": "Alcampo",
-   "price": 1.95,
+   "price": 4.64,
    "offer": null,
-   "fecha": "2026-08-08",
-   "url": "https://radarsuper.com/precios/patatas"
+   "fecha": "2026-08-07"
   },
   {
    "prod": "Patatas malla 3kg",
    "unit": "3kg",
    "shop": "Carrefour",
-   "price": 0.99,
+   "price": 4.65,
    "offer": null,
-   "fecha": "2026-08-08",
-   "url": "https://radarsuper.com/precios/patatas"
-  },
-  {
-   "prod": "Patatas malla 3kg",
-   "unit": "3kg",
-   "shop": "Dia",
-   "price": 1.85,
-   "offer": null,
-   "fecha": "2026-08-08",
-   "url": "https://radarsuper.com/precios/patatas"
+   "fecha": "2026-08-07"
   },
   {
    "prod": "Patatas malla 3kg",
@@ -498,15 +430,6 @@
   {
    "prod": "Pechuga de pollo",
    "unit": "kg",
-   "shop": "Ahorramás",
-   "price": 3.96,
-   "offer": null,
-   "fecha": "2026-08-08",
-   "url": "https://radarsuper.com/precios/pechuga-de-pollo"
-  },
-  {
-   "prod": "Pechuga de pollo",
-   "unit": "kg",
    "shop": "Alcampo",
    "price": 11.2,
    "offer": null,
@@ -535,10 +458,9 @@
    "prod": "Pechuga de pollo",
    "unit": "kg",
    "shop": "Mercadona",
-   "price": 3.8,
+   "price": 7.31,
    "offer": null,
-   "fecha": "2026-08-08",
-   "url": "https://radarsuper.com/precios/pechuga-de-pollo"
+   "fecha": "2026-08-07"
   },
   {
    "prod": "Plátano de Canarias",
@@ -580,10 +502,9 @@
    "prod": "Plátano de Canarias",
    "unit": "kg",
    "shop": "Mercadona",
-   "price": 0.29,
+   "price": 2.93,
    "offer": null,
-   "fecha": "2026-08-08",
-   "url": "https://radarsuper.com/precios/platanos"
+   "fecha": "2026-08-07"
   },
   {
    "prod": "Tomate frito 390g",
