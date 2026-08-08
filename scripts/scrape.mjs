@@ -188,7 +188,12 @@ async function rastrea(prod) {
     if (cands.length) {
       const res = consolida(cands);
       log("   ✓ " + nombre + ": " + res.map((r) => r.shop + " " + r.price.toFixed(2)).join(", "));
-      return res.map((r) => ({ ...r, prod: prod.prod, unit: prod.unit, url: prod.url, fecha: HOY }));
+      const enRango = res.filter((r) => (!prod.min || r.price >= prod.min) && (!prod.max || r.price <= prod.max));
+      const fuera = res.length - enRango.length;
+      if (fuera) log("   ⚠ descartados " + fuera + " precios fuera del rango " + prod.min + "-" + prod.max + " €: " +
+        res.filter((r) => !enRango.includes(r)).map((r) => r.shop + " " + r.price).join(", "));
+      if (!enRango.length) { log("   – " + nombre + ": todo fuera de rango"); continue; }
+      return enRango.map((r) => ({ ...r, prod: prod.prod, unit: prod.unit, url: prod.url, fecha: HOY }));
     }
     log("   – " + nombre + ": nada");
   }
