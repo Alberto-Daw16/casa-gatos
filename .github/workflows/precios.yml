@@ -1,0 +1,36 @@
+name: Actualizar precios
+
+on:
+  schedule:
+    # lunes a las 06:00 UTC (08:00 en España en verano, 07:00 en invierno)
+    - cron: "0 6 * * 1"
+  workflow_dispatch:        # botón para lanzarlo a mano desde la pestaña Actions
+
+permissions:
+  contents: write
+
+jobs:
+  precios:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Rastrear precios
+        run: node scripts/scrape.mjs
+        continue-on-error: true      # si la web cambia, no rompemos nada
+
+      - name: Guardar cambios
+        run: |
+          if git diff --quiet docs/precios.json; then
+            echo "Sin cambios en los precios."
+          else
+            git config user.name  "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add docs/precios.json
+            git commit -m "Precios $(date +%d/%m/%Y)"
+            git push
+          fi
