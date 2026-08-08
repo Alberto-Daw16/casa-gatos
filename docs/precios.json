@@ -1,26 +1,66 @@
 {
- "fecha": "2026-08-07",
- "generado": "2026-08-07T00:00:00.000Z",
+ "fecha": "2026-08-08",
+ "generado": "2026-08-08T20:14:24.638Z",
  "fuentes": [
-  "https://radarsuper.com/",
-  "https://preciosdelsuper.es/"
+  "https://radarsuper.com/precios/aceite-de-oliva-virgen-extra",
+  "https://radarsuper.com/precios/arroz",
+  "https://radarsuper.com/precios/atun-en-lata",
+  "https://radarsuper.com/precios/cafe-molido",
+  "https://radarsuper.com/precios/espaguetis",
+  "https://radarsuper.com/precios/huevos",
+  "https://radarsuper.com/precios/leche-entera",
+  "https://radarsuper.com/precios/pan-de-molde",
+  "https://radarsuper.com/precios/papel-higienico",
+  "https://radarsuper.com/precios/patatas",
+  "https://radarsuper.com/precios/pechuga-de-pollo",
+  "https://radarsuper.com/precios/platanos",
+  "https://radarsuper.com/precios/tomate-frito"
  ],
  "items": [
   {
    "prod": "Aceite de oliva virgen extra",
    "unit": "1L",
-   "shop": "Alcampo",
-   "price": 4.94,
+   "shop": "Ahorramás",
+   "price": 20,
    "offer": null,
-   "fecha": "2026-08-07"
+   "fecha": "2026-08-08",
+   "url": "https://radarsuper.com/precios/aceite-de-oliva-virgen-extra"
+  },
+  {
+   "prod": "Aceite de oliva virgen extra",
+   "unit": "1L",
+   "shop": "Alcampo",
+   "price": 4.89,
+   "offer": null,
+   "fecha": "2026-08-08",
+   "url": "https://radarsuper.com/precios/aceite-de-oliva-virgen-extra"
+  },
+  {
+   "prod": "Aceite de oliva virgen extra",
+   "unit": "1L",
+   "shop": "Carrefour",
+   "price": 4.47,
+   "offer": null,
+   "fecha": "2026-08-08",
+   "url": "https://radarsuper.com/precios/aceite-de-oliva-virgen-extra"
+  },
+  {
+   "prod": "Aceite de oliva virgen extra",
+   "unit": "1L",
+   "shop": "Dia",
+   "price": 4.75,
+   "offer": null,
+   "fecha": "2026-08-08",
+   "url": "https://radarsuper.com/precios/aceite-de-oliva-virgen-extra"
   },
   {
    "prod": "Aceite de oliva virgen extra",
    "unit": "1L",
    "shop": "Mercadona",
-   "price": 4.95,
+   "price": 4,
    "offer": null,
-   "fecha": "2026-08-07"
+   "fecha": "2026-08-08",
+   "url": "https://radarsuper.com/precios/aceite-de-oliva-virgen-extra"
   },
   {
    "prod": "Arena para gatos absorbente",
@@ -33,6 +73,15 @@
   {
    "prod": "Arroz redondo",
    "unit": "1kg",
+   "shop": "Ahorramás",
+   "price": 1.2,
+   "offer": null,
+   "fecha": "2026-08-08",
+   "url": "https://radarsuper.com/precios/arroz"
+  },
+  {
+   "prod": "Arroz redondo",
+   "unit": "1kg",
    "shop": "Alcampo",
    "price": 1.09,
    "offer": null,
@@ -41,26 +90,65 @@
   {
    "prod": "Arroz redondo",
    "unit": "1kg",
+   "shop": "Carrefour",
+   "price": 1.09,
+   "offer": null,
+   "fecha": "2026-08-08",
+   "url": "https://radarsuper.com/precios/arroz"
+  },
+  {
+   "prod": "Arroz redondo",
+   "unit": "1kg",
+   "shop": "Dia",
+   "price": 1.2,
+   "offer": null,
+   "fecha": "2026-08-08",
+   "url": "https://radarsuper.com/precios/arroz"
+  },
+  {
+   "prod": "Arroz redondo",
+   "unit": "1kg",
    "shop": "Mercadona",
    "price": 1.2,
    "offer": null,
-   "fecha": "2026-08-07"
+   "fecha": "2026-08-08",
+   "url": "https://radarsuper.com/precios/arroz"
   },
   {
    "prod": "Atún en aceite pack latas",
-   "unit": "950g",
-   "shop": "Carrefour",
-   "price": 7.15,
+   "unit": "900g",
+   "shop": "Ahorramás",
+   "price": 10,
    "offer": null,
-   "fecha": "2026-08-07"
+   "fecha": "2026-08-08",
+   "url": "https://radarsuper.com/precios/atun-en-lata"
+  },
+  {
+   "prod": "Atún en aceite pack latas",
+   "unit": "900g",
+   "shop": "Carrefour",
+   "price": 9.98,
+   "offer": null,
+   "fecha": "2026-08-08",
+   "url": "https://radarsuper.com/precios/atun-en-lata"
+  },
+  {
+   "prod": "Atún en aceite pack latas",
+   "unit": "900g",
+   "shop": "Dia",
+   "price": 8.13,
+   "offer": null,
+   "fecha": "2026-08-08",
+   "url": "https://radarsuper.com/precios/atun-en-lata"
   },
   {
    "prod": "Atún en aceite pack latas",
    "unit": "900g",
    "shop": "Mercadona",
-   "price": 6.5,
+   "price": 4.2,
    "offer": null,
-   "fecha": "2026-08-07"
+   "fecha": "2026-08-08",
+   "url": "https://radarsuper.com/precios/atun-en-lata"
   },
   {
    "prod": "Café molido natural 250g",
@@ -73,18 +161,38 @@
   {
    "prod": "Café molido natural 500g",
    "unit": "500g",
+   "shop": "Ahorramás",
+   "price": 10,
+   "offer": null,
+   "fecha": "2026-08-08",
+   "url": "https://radarsuper.com/precios/cafe-molido"
+  },
+  {
+   "prod": "Café molido natural 500g",
+   "unit": "500g",
+   "shop": "Alcampo",
+   "price": 2.18,
+   "offer": null,
+   "fecha": "2026-08-08",
+   "url": "https://radarsuper.com/precios/cafe-molido"
+  },
+  {
+   "prod": "Café molido natural 500g",
+   "unit": "500g",
    "shop": "Carrefour",
    "price": 4.49,
    "offer": null,
-   "fecha": "2026-08-07"
+   "fecha": "2026-08-08",
+   "url": "https://radarsuper.com/precios/cafe-molido"
   },
   {
    "prod": "Café molido natural 500g",
    "unit": "500g",
    "shop": "Dia",
-   "price": 4.7,
+   "price": 9.4,
    "offer": null,
-   "fecha": "2026-08-07"
+   "fecha": "2026-08-08",
+   "url": "https://radarsuper.com/precios/cafe-molido"
   },
   {
    "prod": "Café molido natural 500g",
@@ -92,7 +200,17 @@
    "shop": "Mercadona",
    "price": 4.5,
    "offer": null,
-   "fecha": "2026-08-07"
+   "fecha": "2026-08-08",
+   "url": "https://radarsuper.com/precios/cafe-molido"
+  },
+  {
+   "prod": "Espaguetis",
+   "unit": "1kg",
+   "shop": "Ahorramás",
+   "price": 1.15,
+   "offer": null,
+   "fecha": "2026-08-08",
+   "url": "https://radarsuper.com/precios/espaguetis"
   },
   {
    "prod": "Espaguetis",
@@ -100,7 +218,8 @@
    "shop": "Alcampo",
    "price": 1.15,
    "offer": null,
-   "fecha": "2026-08-07"
+   "fecha": "2026-08-08",
+   "url": "https://radarsuper.com/precios/espaguetis"
   },
   {
    "prod": "Espaguetis",
@@ -108,7 +227,8 @@
    "shop": "Carrefour",
    "price": 1.2,
    "offer": null,
-   "fecha": "2026-08-07"
+   "fecha": "2026-08-08",
+   "url": "https://radarsuper.com/precios/espaguetis"
   },
   {
    "prod": "Espaguetis",
@@ -116,15 +236,17 @@
    "shop": "Dia",
    "price": 1.15,
    "offer": null,
-   "fecha": "2026-08-07"
+   "fecha": "2026-08-08",
+   "url": "https://radarsuper.com/precios/espaguetis"
   },
   {
    "prod": "Espaguetis",
    "unit": "1kg",
    "shop": "Mercadona",
-   "price": 1.15,
+   "price": 0.8,
    "offer": null,
-   "fecha": "2026-08-07"
+   "fecha": "2026-08-08",
+   "url": "https://radarsuper.com/precios/espaguetis"
   },
   {
    "prod": "Huevos docena L",
@@ -145,18 +267,56 @@
   {
    "prod": "Huevos docena M",
    "unit": "12 ud",
-   "shop": "Alcampo",
-   "price": 2.99,
+   "shop": "Ahorramás",
+   "price": 0.28,
    "offer": null,
-   "fecha": "2026-08-07"
+   "fecha": "2026-08-08",
+   "url": "https://radarsuper.com/precios/huevos"
+  },
+  {
+   "prod": "Huevos docena M",
+   "unit": "12 ud",
+   "shop": "Alcampo",
+   "price": 0.23,
+   "offer": null,
+   "fecha": "2026-08-08",
+   "url": "https://radarsuper.com/precios/huevos"
   },
   {
    "prod": "Huevos docena M",
    "unit": "12 ud",
    "shop": "Carrefour",
-   "price": 2.99,
+   "price": 0.22,
    "offer": null,
-   "fecha": "2026-08-07"
+   "fecha": "2026-08-08",
+   "url": "https://radarsuper.com/precios/huevos"
+  },
+  {
+   "prod": "Huevos docena M",
+   "unit": "12 ud",
+   "shop": "Dia",
+   "price": 0.22,
+   "offer": null,
+   "fecha": "2026-08-08",
+   "url": "https://radarsuper.com/precios/huevos"
+  },
+  {
+   "prod": "Huevos docena M",
+   "unit": "12 ud",
+   "shop": "Mercadona",
+   "price": 2.85,
+   "offer": null,
+   "fecha": "2026-08-08",
+   "url": "https://radarsuper.com/precios/huevos"
+  },
+  {
+   "prod": "Leche entera brick",
+   "unit": "1L",
+   "shop": "Ahorramás",
+   "price": 11.75,
+   "offer": null,
+   "fecha": "2026-08-08",
+   "url": "https://radarsuper.com/precios/leche-entera"
   },
   {
    "prod": "Leche entera brick",
@@ -164,15 +324,17 @@
    "shop": "Alcampo",
    "price": 0.96,
    "offer": null,
-   "fecha": "2026-08-07"
+   "fecha": "2026-08-08",
+   "url": "https://radarsuper.com/precios/leche-entera"
   },
   {
    "prod": "Leche entera brick",
    "unit": "1L",
    "shop": "Carrefour",
-   "price": 0.96,
+   "price": 0.94,
    "offer": null,
-   "fecha": "2026-08-07"
+   "fecha": "2026-08-08",
+   "url": "https://radarsuper.com/precios/leche-entera"
   },
   {
    "prod": "Leche entera brick",
@@ -180,7 +342,8 @@
    "shop": "Dia",
    "price": 0.96,
    "offer": null,
-   "fecha": "2026-08-07"
+   "fecha": "2026-08-08",
+   "url": "https://radarsuper.com/precios/leche-entera"
   },
   {
    "prod": "Leche entera brick",
@@ -188,15 +351,26 @@
    "shop": "Mercadona",
    "price": 0.96,
    "offer": null,
-   "fecha": "2026-08-07"
+   "fecha": "2026-08-08",
+   "url": "https://radarsuper.com/precios/leche-entera"
   },
   {
    "prod": "Pan de molde blanco",
-   "unit": "800g",
+   "unit": "820g",
+   "shop": "Ahorramás",
+   "price": 1.15,
+   "offer": null,
+   "fecha": "2026-08-08",
+   "url": "https://radarsuper.com/precios/pan-de-molde"
+  },
+  {
+   "prod": "Pan de molde blanco",
+   "unit": "820g",
    "shop": "Alcampo",
-   "price": 1.12,
+   "price": 1.39,
    "offer": null,
-   "fecha": "2026-08-07"
+   "fecha": "2026-08-08",
+   "url": "https://radarsuper.com/precios/pan-de-molde"
   },
   {
    "prod": "Pan de molde blanco",
@@ -204,15 +378,17 @@
    "shop": "Carrefour",
    "price": 1.15,
    "offer": null,
-   "fecha": "2026-08-07"
+   "fecha": "2026-08-08",
+   "url": "https://radarsuper.com/precios/pan-de-molde"
   },
   {
    "prod": "Pan de molde blanco",
    "unit": "820g",
    "shop": "Dia",
-   "price": 1.15,
+   "price": 1.4,
    "offer": null,
-   "fecha": "2026-08-07"
+   "fecha": "2026-08-08",
+   "url": "https://radarsuper.com/precios/pan-de-molde"
   },
   {
    "prod": "Pan de molde blanco",
@@ -220,47 +396,80 @@
    "shop": "Mercadona",
    "price": 1.15,
    "offer": null,
-   "fecha": "2026-08-07"
+   "fecha": "2026-08-08",
+   "url": "https://radarsuper.com/precios/pan-de-molde"
   },
   {
    "prod": "Papel higiénico",
    "unit": "12 rollos",
    "shop": "Carrefour",
-   "price": 2.25,
+   "price": 3.25,
    "offer": null,
-   "fecha": "2026-08-07"
+   "fecha": "2026-08-08",
+   "url": "https://radarsuper.com/precios/papel-higienico"
   },
   {
    "prod": "Papel higiénico",
    "unit": "12 rollos",
    "shop": "Dia",
+   "price": 2.65,
+   "offer": null,
+   "fecha": "2026-08-08",
+   "url": "https://radarsuper.com/precios/papel-higienico"
+  },
+  {
+   "prod": "Papel higiénico",
+   "unit": "12 rollos",
+   "shop": "Mercadona",
    "price": 2.35,
    "offer": null,
-   "fecha": "2026-08-07"
+   "fecha": "2026-08-08",
+   "url": "https://radarsuper.com/precios/papel-higienico"
+  },
+  {
+   "prod": "Patatas malla 3kg",
+   "unit": "3kg",
+   "shop": "Ahorramás",
+   "price": 4.65,
+   "offer": null,
+   "fecha": "2026-08-08",
+   "url": "https://radarsuper.com/precios/patatas"
   },
   {
    "prod": "Patatas malla 3kg",
    "unit": "3kg",
    "shop": "Alcampo",
-   "price": 4.64,
+   "price": 1.95,
    "offer": null,
-   "fecha": "2026-08-07"
+   "fecha": "2026-08-08",
+   "url": "https://radarsuper.com/precios/patatas"
   },
   {
    "prod": "Patatas malla 3kg",
    "unit": "3kg",
    "shop": "Carrefour",
-   "price": 4.65,
+   "price": 0.99,
    "offer": null,
-   "fecha": "2026-08-07"
+   "fecha": "2026-08-08",
+   "url": "https://radarsuper.com/precios/patatas"
+  },
+  {
+   "prod": "Patatas malla 3kg",
+   "unit": "3kg",
+   "shop": "Dia",
+   "price": 1.85,
+   "offer": null,
+   "fecha": "2026-08-08",
+   "url": "https://radarsuper.com/precios/patatas"
   },
   {
    "prod": "Patatas malla 3kg",
    "unit": "3kg",
    "shop": "Mercadona",
-   "price": 4.65,
+   "price": 4.75,
    "offer": null,
-   "fecha": "2026-08-07"
+   "fecha": "2026-08-08",
+   "url": "https://radarsuper.com/precios/patatas"
   },
   {
    "prod": "Patatas malla 5kg",
@@ -289,58 +498,137 @@
   {
    "prod": "Pechuga de pollo",
    "unit": "kg",
+   "shop": "Ahorramás",
+   "price": 3.96,
+   "offer": null,
+   "fecha": "2026-08-08",
+   "url": "https://radarsuper.com/precios/pechuga-de-pollo"
+  },
+  {
+   "prod": "Pechuga de pollo",
+   "unit": "kg",
+   "shop": "Alcampo",
+   "price": 11.2,
+   "offer": null,
+   "fecha": "2026-08-08",
+   "url": "https://radarsuper.com/precios/pechuga-de-pollo"
+  },
+  {
+   "prod": "Pechuga de pollo",
+   "unit": "kg",
+   "shop": "Carrefour",
+   "price": 7.38,
+   "offer": null,
+   "fecha": "2026-08-08",
+   "url": "https://radarsuper.com/precios/pechuga-de-pollo"
+  },
+  {
+   "prod": "Pechuga de pollo",
+   "unit": "kg",
    "shop": "Dia",
    "price": 6.49,
    "offer": null,
-   "fecha": "2026-08-07"
+   "fecha": "2026-08-08",
+   "url": "https://radarsuper.com/precios/pechuga-de-pollo"
   },
   {
    "prod": "Pechuga de pollo",
    "unit": "kg",
    "shop": "Mercadona",
-   "price": 7.31,
+   "price": 3.8,
    "offer": null,
-   "fecha": "2026-08-07"
+   "fecha": "2026-08-08",
+   "url": "https://radarsuper.com/precios/pechuga-de-pollo"
+  },
+  {
+   "prod": "Plátano de Canarias",
+   "unit": "kg",
+   "shop": "Ahorramás",
+   "price": 1.55,
+   "offer": null,
+   "fecha": "2026-08-08",
+   "url": "https://radarsuper.com/precios/platanos"
   },
   {
    "prod": "Plátano de Canarias",
    "unit": "kg",
    "shop": "Alcampo",
-   "price": 3.56,
+   "price": 2.84,
    "offer": null,
-   "fecha": "2026-08-07"
+   "fecha": "2026-08-08",
+   "url": "https://radarsuper.com/precios/platanos"
+  },
+  {
+   "prod": "Plátano de Canarias",
+   "unit": "kg",
+   "shop": "Carrefour",
+   "price": 2.25,
+   "offer": null,
+   "fecha": "2026-08-08",
+   "url": "https://radarsuper.com/precios/platanos"
   },
   {
    "prod": "Plátano de Canarias",
    "unit": "kg",
    "shop": "Dia",
-   "price": 2.9,
+   "price": 2.89,
    "offer": null,
-   "fecha": "2026-08-07"
+   "fecha": "2026-08-08",
+   "url": "https://radarsuper.com/precios/platanos"
   },
   {
    "prod": "Plátano de Canarias",
    "unit": "kg",
    "shop": "Mercadona",
-   "price": 2.93,
+   "price": 0.29,
    "offer": null,
-   "fecha": "2026-08-07"
+   "fecha": "2026-08-08",
+   "url": "https://radarsuper.com/precios/platanos"
+  },
+  {
+   "prod": "Tomate frito 390g",
+   "unit": "390g",
+   "shop": "Ahorramás",
+   "price": 0.88,
+   "offer": null,
+   "fecha": "2026-08-08",
+   "url": "https://radarsuper.com/precios/tomate-frito"
   },
   {
    "prod": "Tomate frito 390g",
    "unit": "390g",
    "shop": "Alcampo",
-   "price": 0.49,
+   "price": 1.44,
    "offer": null,
-   "fecha": "2026-08-07"
+   "fecha": "2026-08-08",
+   "url": "https://radarsuper.com/precios/tomate-frito"
   },
   {
    "prod": "Tomate frito 390g",
    "unit": "390g",
    "shop": "Carrefour",
-   "price": 0.62,
+   "price": 1.13,
    "offer": null,
-   "fecha": "2026-08-07"
+   "fecha": "2026-08-08",
+   "url": "https://radarsuper.com/precios/tomate-frito"
+  },
+  {
+   "prod": "Tomate frito 390g",
+   "unit": "390g",
+   "shop": "Dia",
+   "price": 1.62,
+   "offer": null,
+   "fecha": "2026-08-08",
+   "url": "https://radarsuper.com/precios/tomate-frito"
+  },
+  {
+   "prod": "Tomate frito 390g",
+   "unit": "390g",
+   "shop": "Mercadona",
+   "price": 1.13,
+   "offer": null,
+   "fecha": "2026-08-08",
+   "url": "https://radarsuper.com/precios/tomate-frito"
   },
   {
    "prod": "Tomate frito 550g",
