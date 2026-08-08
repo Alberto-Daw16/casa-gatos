@@ -312,6 +312,14 @@
       <button class="add" id="shopAdd">+ Añadir supermercado</button>
     </div>
     <div class="card">
+      <h2>Sincronizar entre los dos <span class="sum" id="nubeInfo" style="font-size:12px;color:var(--dim)"></span></h2>
+      <label>URL de sincronización (con la clave)</label>
+      <input id="setSync" placeholder="https://…workers.dev/?k=vuestra-clave" autocomplete="off">
+      <button class="add" id="btnSync" style="color:var(--green)">🔄 Sincronizar ahora</button>
+      <div class="mini">La misma URL en los dos móviles y listo: gastos, tickets, lista y cuidados se juntan solos.
+        Se sube en cuanto dejas de tocar, y al abrir la app se baja lo del otro. Quien no tenga la URL no entra.</div>
+    </div>
+    <div class="card">
       <h2>Catálogo en la nube</h2>
       <label>URL del precios.json</label>
       <input id="setUrl" placeholder="https://usuario.github.io/casa-gatos-precios/precios.json" autocomplete="off">
@@ -420,7 +428,8 @@ var DEF = {
   recurring:{expenses:[],incomes:[]},
   months:{}, care:{}, prices:[], tickets:[], shoplist:[],
   goals:{dientes:3,malta:2,cepillado:3,bano:1,arenero:15},
-  useOffers:false, catalogUrl:"", lastSync:""
+  useOffers:false, catalogUrl:"", lastSync:"",
+  syncUrl:"", upd:"", lastNube:""
 };
 
 function load(){
@@ -436,11 +445,18 @@ function load(){
   if(!d.recurring.incomes) d.recurring.incomes = [];
   return d;
 }
+var _syncT = null, _sincronizando = false;
 function save(){
+  if(!_sincronizando) S.upd = new Date().toISOString();
   var raw = JSON.stringify(S);
   mem = raw;
   try { if(hasLS) window.localStorage.setItem(KEY, raw); }
   catch(e){ hasLS = false; document.getElementById("storeState").textContent = "memoria llena / sesión"; }
+  /* si hay nube configurada, sube los cambios en cuanto pares de tocar */
+  if(!_sincronizando && (S.syncUrl||"").trim()){
+    clearTimeout(_syncT);
+    _syncT = setTimeout(function(){ sincroniza(false); }, 6000);
+  }
 }
 var S = load();
 document.getElementById("storeState").textContent = hasLS ? "" : "solo en esta sesión";
@@ -1062,6 +1078,94 @@ function renderSet(){
   }).join("");
 
   document.getElementById("setUrl").value = S.catalogUrl || "";
+  document.getElementById("setSync").value = S.syncUrl || "";
+  var ni = document.getElementById("nubeInfo");
+  if(ni) ni.textContent = S.lastNube ? ("última: "+new Date(S.lastNube).toLocaleString("es-ES",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"})) : "sin sincronizar";
+}
+
+/* =========== SINCRONIZACIÓN ENTRE LOS DOS MÓVILES ===========
+   Regla de oro: fusionar sin perder nada. Lo que existe en un móvil y no en el
+   otro se suma; cuando el mismo dato está en los dos, gana el más reciente. */
+function fusiona(local, remoto){
+  if(!remoto || remoto.vacio || !remoto.prices) return local;
+  var out = JSON.parse(JSON.stringify(local));
+  var mp = {};
+  (out.prices||[]).forEach(function(p){ mp[p.norm+"|"+p.shop] = p; });
+  (remoto.prices||[]).forEach(function(p){
+    var k = p.norm+"|"+p.shop, a = mp[k];
+    if(!a || (p.fecha||"") > (a.fecha||"")) mp[k] = p;
+  });
+  out.prices = Object.keys(mp).map(function(k){ return mp[k]; });
+  ["tickets","shoplist","cats"].forEach(function(col){
+    var m = {};
+    (out[col]||[]).forEach(function(x){ m[x.id] = x; });
+    (remoto[col]||[]).forEach(function(x){ if(!m[x.id]) m[x.id] = x; });
+    out[col] = Object.keys(m).map(function(k){ return m[k]; });
+  });
+  ["expenses","incomes"].forEach(function(col){
+    var m = {};
+    ((out.recurring||{})[col]||[]).forEach(function(x){ m[x.id] = x; });
+    (((remoto.recurring||{})[col])||[]).forEach(function(x){ if(!m[x.id]) m[x.id] = x; });
+    out.recurring[col] = Object.keys(m).map(function(k){ return m[k]; });
+  });
+  Object.keys(remoto.months||{}).forEach(function(mk){
+    var r = remoto.months[mk], l = out.months[mk];
+    if(!l){ out.months[mk] = r; return; }
+    ["expenses","incomes"].forEach(function(col){
+      var m = {};
+      (l[col]||[]).forEach(function(x){ m[x.id] = x; });
+      (r[col]||[]).forEach(function(x){ if(!m[x.id]) m[x.id] = x; });
+      l[col] = Object.keys(m).map(function(k){ return m[k]; });
+    });
+    ["paid","received"].forEach(function(f){
+      l[f] = l[f] || {};
+      Object.keys(r[f]||{}).forEach(function(id){ if(r[f][id]) l[f][id] = true; });
+    });
+  });
+  Object.keys(remoto.care||{}).forEach(function(dk){
+    var r = remoto.care[dk], l = out.care[dk];
+    if(!l){ out.care[dk] = r; return; }
+    l.cats = l.cats||{}; l.home = l.home||{};
+    Object.keys(r.cats||{}).forEach(function(cid){
+      l.cats[cid] = l.cats[cid] || {};
+      Object.keys(r.cats[cid]).forEach(function(t){ if(r.cats[cid][t]) l.cats[cid][t] = r.cats[cid][t]; });
+    });
+    Object.keys(r.home||{}).forEach(function(t){ if(r.home[t]) l.home[t] = r.home[t]; });
+  });
+  if((remoto.upd||"") > (local.upd||"")){
+    if(remoto.goals) out.goals = remoto.goals;
+    if(remoto.shops) out.shops = remoto.shops;
+    if(remoto.catalogUrl) out.catalogUrl = remoto.catalogUrl;
+    out.useOffers = remoto.useOffers;
+  }
+  return out;
+}
+function sincroniza(manual){
+  var u = (S.syncUrl||"").trim();
+  if(!u){ if(manual) toast("Configura la URL en Ajustes → Sincronizar"); return Promise.resolve(false); }
+  if(_sincronizando) return Promise.resolve(false);
+  _sincronizando = true;
+  if(manual) toast("Sincronizando…");
+  return fetch(u, {cache:"no-store"})
+    .then(function(r){ if(!r.ok) throw new Error("HTTP "+r.status); return r.json(); })
+    .then(function(remoto){
+      S = fusiona(S, remoto);
+      S.upd = new Date().toISOString();
+      return fetch(u, {method:"PUT", headers:{"content-type":"application/json"}, body: JSON.stringify(S)});
+    })
+    .then(function(r){
+      if(!r.ok) throw new Error("al subir, HTTP "+r.status);
+      S.lastNube = new Date().toISOString();
+      _sincronizando = false;
+      save(); render();
+      if(manual) toast("Sincronizado ✓");
+      return true;
+    })
+    .catch(function(e){
+      _sincronizando = false;
+      if(manual) toast("No he podido: "+e.message);
+      return false;
+    });
 }
 
 /* =========== RENDER =========== */
@@ -1496,6 +1600,11 @@ document.getElementById("offToggle").onclick = function(){
 document.getElementById("setUrl").addEventListener("change", function(e){
   S.catalogUrl = e.target.value.trim(); save(); toast("URL guardada");
 });
+document.getElementById("setSync").addEventListener("change", function(e){
+  S.syncUrl = e.target.value.trim(); save();
+  toast(S.syncUrl ? "Guardada · dale a Sincronizar ahora" : "Sincronización desactivada");
+});
+document.getElementById("btnSync").onclick = function(){ sincroniza(true); };
 document.getElementById("prFile").onchange = function(e){
   var f = e.target.files[0]; if(!f) return;
   var r = new FileReader();
@@ -1588,6 +1697,8 @@ document.getElementById("btnReset").onclick = function(){
 };
 
 render();
+/* al abrir, baja lo que haya hecho el otro móvil */
+if((S.syncUrl||"").trim()) setTimeout(function(){ sincroniza(false); }, 800);
 })();
 </script>
 </body>
