@@ -1,18 +1,96 @@
 {
-  "_comentario": "Lista de productos que se rastrean cada lunes. Añade o quita los que quieras. 'url' es la página del comparador con los precios por supermercado.",
+  "_comentario": "Lista de productos que se rastrean cada lunes. 'min' y 'max' son el rango de precio creible: lo que caiga fuera se descarta (evita que se cuele el precio por unidad o el de otro formato).",
   "productos": [
-    { "prod": "Pechuga de pollo", "unit": "kg", "url": "https://radarsuper.com/precios/pechuga-de-pollo" },
-    { "prod": "Huevos docena M", "unit": "12 ud", "url": "https://radarsuper.com/precios/huevos" },
-    { "prod": "Leche entera brick", "unit": "1L", "url": "https://radarsuper.com/precios/leche-entera" },
-    { "prod": "Pan de molde blanco", "unit": "820g", "url": "https://radarsuper.com/precios/pan-de-molde" },
-    { "prod": "Arroz redondo", "unit": "1kg", "url": "https://radarsuper.com/precios/arroz" },
-    { "prod": "Espaguetis", "unit": "1kg", "url": "https://radarsuper.com/precios/espaguetis" },
-    { "prod": "Aceite de oliva virgen extra", "unit": "1L", "url": "https://radarsuper.com/precios/aceite-de-oliva-virgen-extra" },
-    { "prod": "Atún en aceite pack latas", "unit": "900g", "url": "https://radarsuper.com/precios/atun-en-lata" },
-    { "prod": "Patatas malla 3kg", "unit": "3kg", "url": "https://radarsuper.com/precios/patatas" },
-    { "prod": "Plátano de Canarias", "unit": "kg", "url": "https://radarsuper.com/precios/platanos" },
-    { "prod": "Tomate frito 390g", "unit": "390g", "url": "https://radarsuper.com/precios/tomate-frito" },
-    { "prod": "Café molido natural 500g", "unit": "500g", "url": "https://radarsuper.com/precios/cafe-molido" },
-    { "prod": "Papel higiénico", "unit": "12 rollos", "url": "https://radarsuper.com/precios/papel-higienico" }
+    {
+      "prod": "Pechuga de pollo",
+      "unit": "kg",
+      "min": 4,
+      "max": 12,
+      "url": "https://radarsuper.com/precios/pechuga-de-pollo"
+    },
+    {
+      "prod": "Huevos docena M",
+      "unit": "12 ud",
+      "min": 1.5,
+      "max": 5,
+      "url": "https://radarsuper.com/precios/huevos"
+    },
+    {
+      "prod": "Leche entera brick",
+      "unit": "1L",
+      "min": 0.6,
+      "max": 2,
+      "url": "https://radarsuper.com/precios/leche-entera"
+    },
+    {
+      "prod": "Pan de molde blanco",
+      "unit": "820g",
+      "min": 0.8,
+      "max": 3,
+      "url": "https://radarsuper.com/precios/pan-de-molde"
+    },
+    {
+      "prod": "Arroz redondo",
+      "unit": "1kg",
+      "min": 0.8,
+      "max": 3,
+      "url": "https://radarsuper.com/precios/arroz"
+    },
+    {
+      "prod": "Espaguetis",
+      "unit": "1kg",
+      "min": 0.75,
+      "max": 3.5,
+      "url": "https://radarsuper.com/precios/espaguetis"
+    },
+    {
+      "prod": "Aceite de oliva virgen extra",
+      "unit": "1L",
+      "min": 3.5,
+      "max": 12,
+      "url": "https://radarsuper.com/precios/aceite-de-oliva-virgen-extra"
+    },
+    {
+      "prod": "Atún en aceite pack latas",
+      "unit": "900g",
+      "min": 3,
+      "max": 12,
+      "url": "https://radarsuper.com/precios/atun-en-lata"
+    },
+    {
+      "prod": "Patatas malla 3kg",
+      "unit": "3kg",
+      "min": 2,
+      "max": 8,
+      "url": "https://radarsuper.com/precios/patatas"
+    },
+    {
+      "prod": "Plátano de Canarias",
+      "unit": "kg",
+      "min": 1.4,
+      "max": 4.5,
+      "url": "https://radarsuper.com/precios/platanos"
+    },
+    {
+      "prod": "Tomate frito 390g",
+      "unit": "390g",
+      "min": 0.3,
+      "max": 2,
+      "url": "https://radarsuper.com/precios/tomate-frito"
+    },
+    {
+      "prod": "Café molido natural 500g",
+      "unit": "500g",
+      "min": 2.5,
+      "max": 9,
+      "url": "https://radarsuper.com/precios/cafe-molido"
+    },
+    {
+      "prod": "Papel higiénico",
+      "unit": "12 rollos",
+      "min": 1.5,
+      "max": 8,
+      "url": "https://radarsuper.com/precios/papel-higienico"
+    }
   ]
 }
