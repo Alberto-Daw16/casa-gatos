@@ -607,7 +607,10 @@ function addPrice(prod, shop, price, unit, date, src, offer){
   price = price>0 ? r2(price) : null;
   offer = offer>0 ? r2(offer) : null;
   if(price===null && offer===null) return;
-  var n = matchNorm(norm(prod));
+  /* el catálogo trae nombres ya limpios: se respetan tal cual (si no, "Queso curado"
+     se comería a "Queso curado en lonchas"). El emparejado difuso queda para los
+     tickets y para lo que escribes en la lista. */
+  var n = (src === "catálogo") ? norm(prod) : matchNorm(norm(prod));
   var i = S.prices.findIndex(function(p){ return p.norm===n && p.shop===shop; });
   var d = date || dKey(today);
   var rec = {id:uid(), prod:canonName(n, prod.trim()), norm:n, shop:shop,
