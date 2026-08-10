@@ -263,7 +263,7 @@
       <div class="card">
         <h2>Catálogo de precios <span class="sum" id="prCount"></span></h2>
         <input id="prSearch" placeholder="Buscar producto…" autocomplete="off">
-        <div class="chips"><div class="chip" id="offToggle">🏷️ Contar ofertas al comparar</div></div>
+        <div class="chips"><div class="chip" id="grpToggle">Agrupar por producto</div><div class="chip" id="offToggle">🏷️ Contar ofertas al comparar</div></div>
         <div id="prList" style="margin-top:12px"></div>
       </div>
       <div class="card">
@@ -428,7 +428,7 @@ var DEF = {
   recurring:{expenses:[],incomes:[]},
   months:{}, care:{}, prices:[], tickets:[], shoplist:[],
   goals:{dientes:3,malta:2,cepillado:3,bano:1,arenero:15},
-  useOffers:false, catalogUrl:"", lastSync:"",
+  useOffers:false, agrupar:true, catalogUrl:"", lastSync:"",
   syncUrl:"", upd:"", lastNube:""
 };
 
@@ -613,6 +613,125 @@ function canonName(n, fallback){
   return fallback;
 }
 function r2(x){ return Math.round(x*100)/100; }
+/* — agrupado por nombre genérico: "ALCAMPO CULTIVAMOS LO BUENO Sandía negra al peso"
+     y "Sandía negra" son lo mismo. Solo afecta a cómo se ve; los datos no se tocan. — */
+var _LT = "a-zaeiouunc0-9\u00e0-\u00ff";
+function _rx(alts, flags){ return new RegExp("(?<!["+_LT+"])(?:"+alts+")(?![" +_LT+ "])", flags||"gi"); }
+var MARCAS = _rx([
+ "alcampo","auchan","cultivamos lo bueno","calidad extra","producto econ[o\u00f3]mico","carrefour","classic",
+ "el mercado","c[i\u00ed]rculo de calidad","hacendado","nuestra alacena","selecci[o\u00f3]n de d[i\u00ed]a","milbona","sanicat",
+ "el caser[i\u00ed]o","la vaca que r[i\u00ed]e","pr[e\u00e9]sident","larsa","purina","felix","gourmet gold","gourmet","nuske",
+ "delikuit","deligato","elpozo","casa tarradellas","navidul","revilla","zespri","kaiku","alpro","yaos","chufi",
+ "bifrutas","nescaf[e\u00e9]","simpl","vitalive","l[a\u00e1]ctea","dia","lidl","mercadona","sensation","prote[i\u00ed]na plus"
+].join("|"));
+var RUIDO = _rx([
+ "al peso","a granel","granel","aprox\\.?","approx","categor[i\u00ed]a","origen","producto","pack","bandeja","malla",
+ "bolsa","tarrina","bri[ck]ks?","caja","paquete","pieza[s]?","lata[s]?","tubo","bote","unidad(?:es)?","uds?","docena",
+ "hass","variedad","calibre","nacional","importaci[o\u00f3]n","seleccionad[oa]","selecci[o\u00f3]n","de vaca","fresc[oa][s]?",
+ "filetead[oa][s]?","al corte","envasad[oa][s]?","refrigerad[oa][s]?","aproximad[oa]s?","botella[s]?"
+].join("|"));
+var CONECT = {de:1,del:1,la:1,el:1,los:1,las:1,un:1,una:1,unos:1,unas:1,con:1,para:1,en:1,y:1,al:1,a:1,por:1,sin:1,lo:1};
+function singular(w){
+  if(w.length < 5) return w;
+  if(/ces$/.test(w)) return w.slice(0,-3)+"z";
+  if(/[lrndszjxy]es$/.test(w)) return w.slice(0,-2);
+  if(/s$/.test(w)) return w.slice(0,-1);
+  return w;
+}
+var _memoG = {}, _memoK = {};
+function generico(prod){
+  var raw = String(prod||"");
+  if(_memoG[raw]!==undefined) return _memoG[raw];
+  var s = " " + raw + " ";
+  s = s.replace(/\bI\.\s*$/," ");
+  s = s.replace(MARCAS," ");
+  s = s.replace(/\d+\s*\/\s*\d+/g," ");
+  s = s.replace(_rx("\\d+(?:[.,]\\d+)?\\s*(?:kg|kilos?|kilogramos?|gramos?|gr|g|ml|cl|litros?|l|rollos?)")," ");
+  s = s.replace(/\d+\s*x\s*\d+\s*\w*/gi," ");
+  s = s.replace(RUIDO," ");
+  s = s.replace(/[:().,;\u00b7"'%+]+/g," ").replace(/\s*\d+(?:[.,]\d+)?\s*/g," ").replace(/\s+/g," ").trim();
+  if(!s) s = raw.replace(/\s+/g," ").trim();
+  var w = s.toLowerCase().split(" ").filter(Boolean);
+  while(w.length && CONECT[w[0]]) w.shift();
+  while(w.length && (CONECT[w[w.length-1]] || w[w.length-1].length<2)) w.pop();
+  w = w.filter(function(x,i){ return !(i>0 && x===w[i-1]); });
+  s = w.join(" ");
+  if(!s) s = raw.trim();
+  else s = s.charAt(0).toUpperCase() + s.slice(1);
+  _memoG[raw] = s;
+  return s;
+}
+function claveGrupo(prod){
+  var raw = String(prod||"");
+  if(_memoK[raw]!==undefined) return _memoK[raw];
+  var w = norm(generico(raw)).split(" ").filter(Boolean);
+  w = w.filter(function(x){ return !CONECT[x] && x.length>1; }).map(singular);
+  var uniq = {}; w.forEach(function(x){ uniq[x]=1; });
+  var k = Object.keys(uniq).sort().join(" ") || norm(raw);
+  _memoK[raw] = k;
+  return k;
+}
+/* precio por kilo / litro / unidad */
+function porMedida(precio, unit, prod){
+  var txt = (unit||"") + " " + (prod||"");
+  var decl = null;
+  var m = txt.match(/(\d{1,4}[.,]\d{1,2})\s*\u20ac\s*(?:\/|por)\s*(?:kg|kilo|kilogramo|kilos)\b/i);
+  if(m) decl = {v:num(m[1]), u:"kg"};
+  if(!decl){
+    var ml = txt.match(/(\d{1,4}[.,]\d{1,2})\s*\u20ac\s*(?:\/|por)\s*(?:l|litro|litros)\b/i);
+    if(ml) decl = {v:num(ml[1]), u:"L"};
+  }
+  var calc = null;
+  if(precio!=null){
+    var pk = txt.match(/pack de (\d+)|(\d+)\s*(?:paquetes?|packs?|botellas?|latas?|briks?|bricks?|sobres?|bolsas?|piezas?|unidades)\s*(?:de|x)\b|(\d+)\s*x\s*\d/i);
+    var mult = pk ? (num(pk[1]||pk[2]||pk[3])||1) : 1;
+    var w = txt.match(_rx("(\\d+(?:[.,]\\d+)?)\\s*(kg|kilos?|kilogramos?|gramos?|gr|g|ml|cl|litros?|l)","i"));
+    if(w){
+      var n=num(w[1]), u=w[2].toLowerCase();
+      if(n>0){
+        if(/^k/.test(u)) calc={v:precio/(n*mult), u:"kg"};
+        else if(/^g/.test(u)) calc={v:precio/((n/1000)*mult), u:"kg"};
+        else if(/^ml/.test(u)) calc={v:precio/((n/1000)*mult), u:"L"};
+        else if(/^cl/.test(u)) calc={v:precio/((n/100)*mult), u:"L"};
+        else if(/^l/.test(u)) calc={v:precio/(n*mult), u:"L"};
+      }
+    }
+  }
+  if(!calc && precio!=null && /^\s*(kg|kilo|kilogramo)\s*\.?\s*$/i.test(unit||"")) calc={v:precio,u:"kg"};
+  if(!calc && precio!=null && /^\s*(l|litro)\s*\.?\s*$/i.test(unit||"")) calc={v:precio,u:"L"};
+  if(calc && decl){
+    /* mismo número y distinta etiqueta = la tienda se equivocó de unidad (Dia pone €/KILO a la leche) */
+    if(calc.u!==decl.u) return (calc.v/decl.v>0.85 && calc.v/decl.v<1.18) ? calc : decl;
+    return decl;   /* si la tienda publica el precio por kilo, ese es el bueno */
+  }
+  if(calc) return calc;
+  if(decl) return decl;
+  if(precio==null) return null;
+  var ud = txt.match(/(\d+)\s*(?:ud|uds|unidades|rollos)\b/i);
+  if(ud && num(ud[1])>0) return {v:precio/num(ud[1]), u:"ud"};
+  return {v:precio, u:"ud"};
+}
+function medidaDe(p){ var e = eff(p); return e===null ? null : porMedida(e, p.unit, p.prod); }
+function fmtMedida(m){ return m ? (money(m.v) + "/" + m.u) : ""; }
+/* ordena por precio por kilo/litro, no por lo que marca la etiqueta */
+function ordenaPorMedida(list){
+  var cnt = {}, dom = null;
+  list.forEach(function(p){ p._m = medidaDe(p); if(p._m) cnt[p._m.u] = (cnt[p._m.u]||0)+1; });
+  Object.keys(cnt).forEach(function(u){
+    if(!dom || cnt[u]>cnt[dom] || (cnt[u]===cnt[dom] && dom==="ud" && u!=="ud")) dom = u;
+  });
+  var out = list.slice().sort(function(a,b){
+    var ka = a._m && a._m.u===dom, kb = b._m && b._m.u===dom;
+    if(ka && kb) return a._m.v - b._m.v;
+    if(ka !== kb) return ka ? -1 : 1;
+    var x = eff(a), y = eff(b);
+    if(x===null) return 1; if(y===null) return -1;
+    return x-y;
+  });
+  out.uDom = dom;
+  return out;
+}
+
 /* precio que cuenta para comparar: el normal, salvo que actives "contar ofertas" */
 function eff(p){
   if(S.useOffers && p.offer>0) return p.offer;
@@ -646,36 +765,88 @@ function addPrice(prod, shop, price, unit, date, src, offer){
     }
   } else S.prices.push(rec);
 }
+function mismoGrupo(name){
+  var k = claveGrupo(name);
+  return S.prices.filter(function(p){ return eff(p)!==null && claveGrupo(p.prod)===k; });
+}
 function bestFor(name){
+  if(S.agrupar!==false){
+    var gr = mismoGrupo(name);
+    if(gr.length) return ordenaPorMedida(gr)[0];
+  }
   var n = matchNorm(norm(name));
   var list = S.prices.filter(function(p){ return p.norm===n && eff(p)!==null; });
   if(!list.length) return null;
   return list.slice().sort(function(a,b){ return eff(a)-eff(b); })[0];
 }
 function groupPrices(q){
-  var g = {};
+  var agr = S.agrupar !== false;
+  var g = {}, orden = [];
   S.prices.forEach(function(p){
-    if(q && p.norm.indexOf(q)<0) return;
-    if(!g[p.norm]) g[p.norm] = {prod:p.prod, unit:p.unit, list:[]};
-    g[p.norm].list.push(p);
+    var key = agr ? claveGrupo(p.prod) : p.norm;
+    var label = agr ? generico(p.prod) : p.prod;
+    var o = g[key];
+    if(!o){ o = g[key] = {prod:label, unit:p.unit, list:[], norm:key, refs:0}; orden.push(key); }
+    if(agr){
+      var a = label.split(" ").length, b = o.prod.split(" ").length;
+      if(a<b || (a===b && label.length<o.prod.length)) o.prod = label;
+    }
+    o.list.push(p); o.refs++;
   });
-  return Object.keys(g).sort(function(a,b){ return g[a].prod.localeCompare(g[b].prod); })
-    .map(function(k){
-      var o=g[k]; o.norm=k;
-      o.list.sort(function(a,b){
-        var ea=eff(a), eb=eff(b);
-        if(ea===null) return 1; if(eb===null) return -1;
-        return ea-eb;
+  var out = orden.map(function(k){ return g[k]; });
+  if(q) out = out.filter(function(o){
+    if(norm(o.prod).indexOf(q)>-1) return true;
+    return o.list.some(function(p){ return p.norm.indexOf(q)>-1; });
+  });
+  out.forEach(function(o){
+    if(agr){
+      /* unidad mayoritaria del grupo: lo demas se enseña aparte */
+      var cnt = {}, best = null;
+      o.list.forEach(function(p){ var m = medidaDe(p); p._m = m; if(m){ cnt[m.u]=(cnt[m.u]||0)+1; } });
+      Object.keys(cnt).forEach(function(u){
+        if(!best || cnt[u]>cnt[best] || (cnt[u]===cnt[best] && best==="ud" && u!=="ud")) best = u;
       });
-      return o;
+      o.uDom = best;
+      /* una fila por tienda: la referencia más barata por medida */
+      var porTienda = {};
+      o.list.forEach(function(p){
+        if(eff(p)===null) return;
+        var cur = porTienda[p.shop];
+        if(!cur) { porTienda[p.shop] = p; return; }
+        var a = p._m, b = cur._m;
+        if(a && b && a.u===b.u){ if(a.v < b.v) porTienda[p.shop] = p; }
+        else if(a && a.u===best && (!b || b.u!==best)) porTienda[p.shop] = p;
+        else if((!a||!b) && eff(p) < eff(cur)) porTienda[p.shop] = p;
+      });
+      o.list = Object.keys(porTienda).map(function(sh){ return porTienda[sh]; });
+      o.unit = "";
+    } else {
+      o.list.forEach(function(p){ p._m = medidaDe(p); });
+      o.uDom = null;
+    }
+    o.list.sort(function(a,b){
+      var ea = a._m, eb = b._m;
+      if(o.uDom){
+        var ka = ea && ea.u===o.uDom, kb = eb && eb.u===o.uDom;
+        if(ka && kb) return ea.v - eb.v;
+        if(ka !== kb) return ka ? -1 : 1;
+      }
+      var x = eff(a), y = eff(b);
+      if(x===null) return 1; if(y===null) return -1;
+      return x-y;
     });
+  });
+  return out.sort(function(a,b){ return a.prod.localeCompare(b.prod); });
 }
 function renderPrices(){
   var q = norm(document.getElementById("prSearch").value);
   var groups = groupPrices(q);
-  document.getElementById("prCount").textContent = S.prices.length + " precios";
+  document.getElementById("prCount").textContent = S.prices.length + " precios" +
+    (S.agrupar!==false ? " · " + groupPrices("").length + " productos" : "");
   var off = document.getElementById("offToggle");
   if(off) off.className = "chip" + (S.useOffers ? " on" : "");
+  var grp = document.getElementById("grpToggle");
+  if(grp) grp.className = "chip" + (S.agrupar!==false ? " on" : "");
   var sy = document.getElementById("syncInfo");
   if(sy) sy.textContent = S.lastSync ? "última sincronización: "+shortDate(S.lastSync) : "";
   var box = document.getElementById("prList");
@@ -699,16 +870,34 @@ function renderPrices(){
       }
       var isBest = eff(p)!==null && p===withP[0] && withP.length>1;
       var esNuevo = p.nuevo && daysAgo(p.nuevo)!==null && daysAgo(p.nuevo)<=14;
+      var med = "";
+      if(g.uDom && p._m){
+        med = ' <b>'+fmtMedida(p._m)+'</b>';
+        var bruto = money(eff(p));
+        extra = (p.offer>0 && eff(p)===p.offer ? ' 🏷️' : '') +
+                (bruto === money(p._m.v) ? '' : ' <i>'+bruto+'</i>');
+        main = "";
+        return '<span class="shop'+(isBest?" best":"")+'"'+stale+' data-editprice="'+p.id+'">'+
+          esc(p.shop)+med+extra+' <i>'+(esNuevo?"🆕 ":"")+age+(p.src==="ticket"?" 🧾":"")+'</i></span>';
+      }
       return '<span class="shop'+(isBest?" best":"")+'"'+stale+' data-editprice="'+p.id+'">'+
         esc(p.shop)+' <b>'+main+'</b>'+extra+' <i>'+(esNuevo?"🆕 ":"")+age+(p.src==="ticket"?" 🧾":"")+'</i></span>';
     }).join("");
     var save2 = "";
     if(withP.length>1){
-      var dif = eff(withP[withP.length-1]) - eff(withP[0]);
-      if(dif>0.005) save2 = ' <em>· ahorras '+money(dif)+'</em>';
+      if(g.uDom){
+        var mismos = withP.filter(function(p){ return p._m && p._m.u===g.uDom; });
+        if(mismos.length>1){
+          var d2 = mismos[mismos.length-1]._m.v - mismos[0]._m.v;
+          if(d2>0.005) save2 = ' <em>· ahorras '+money(d2)+(g.uDom==="ud"?" por unidad":"/"+g.uDom)+'</em>';
+        }
+      } else {
+        var dif = eff(withP[withP.length-1]) - eff(withP[0]);
+        if(dif>0.005) save2 = ' <em>· ahorras '+money(dif)+'</em>';
+      }
     }
-    return '<div class="prow"><div class="ptitle">'+esc(g.prod)+
-      (g.unit?' <em>('+esc(g.unit)+')</em>':'')+save2+'</div><div class="shops">'+shops+'</div></div>';
+    var refs = (g.refs>g.list.length) ? ' <em>('+g.refs+' referencias)</em>' : (g.unit?' <em>('+esc(g.unit)+')</em>':'');
+    return '<div class="prow"><div class="ptitle">'+esc(g.prod)+refs+save2+'</div><div class="shops">'+shops+'</div></div>';
   }).join("");
 }
 
@@ -721,11 +910,12 @@ function llenaSugerencias(){
   _dlStamp = S.prices.length;
   var dl = document.getElementById("prodList");
   if(!dl) return;
-  var vistos = {}, out = [];
+  var vistos = {}, out = [], agr = S.agrupar!==false;
   S.prices.forEach(function(p){
-    if(vistos[p.norm]) return;
-    vistos[p.norm] = 1;
-    out.push('<option value="'+esc(p.prod)+'">');
+    var k = agr ? claveGrupo(p.prod) : p.norm;
+    if(vistos[k]) return;
+    vistos[k] = 1;
+    out.push('<option value="'+esc(agr ? generico(p.prod) : p.prod)+'">');
   });
   dl.innerHTML = out.join("");
 }
@@ -740,7 +930,11 @@ function renderList(){
       var b = bestFor(it.name);
       var bp = b ? eff(b) : null;
       var isOff = b && (bp===b.offer) && b.offer>0;
-      var sub2 = b ? ("más barato en "+b.shop+" · "+money(bp)+(b.unit?" / "+b.unit:"")+(isOff?" 🏷️ oferta":"")) : "sin precio guardado";
+      var bm = b && S.agrupar!==false ? medidaDe(b) : null;
+      var precio2 = bm && bm.u!=="ud"
+        ? (fmtMedida(bm) + (money(bm.v)===money(bp) ? "" : " · "+money(bp)))
+        : (money(bp)+(b&&b.unit?" / "+b.unit:""));
+      var sub2 = b ? ("más barato en "+b.shop+" · "+precio2+(isOff?" 🏷️ oferta":"")) : "sin precio guardado";
       return '<li><div class="chk'+(it.done?" on":"")+'" data-litoggle="'+it.id+'">'+(it.done?"✓":"")+'</div>'+
         '<div class="it" data-liedit="'+it.id+'"><b style="'+(it.done?"opacity:.45;text-decoration:line-through":"")+'">'+
         esc(it.name)+(it.qty&&it.qty!=1?' ×'+it.qty:'')+'</b><small>'+esc(sub2)+'</small></div>'+
@@ -756,7 +950,14 @@ function renderList(){
     var tot = 0, have = 0, missing = [];
     pend.forEach(function(it){
       var nn = matchNorm(norm(it.name));
-      var p = S.prices.filter(function(x){ return x.norm===nn && x.shop===sh && eff(x)!==null; })[0];
+      var cand;
+      if(S.agrupar!==false){
+        cand = ordenaPorMedida(mismoGrupo(it.name).filter(function(x){ return x.shop===sh; }));
+      }
+      if(!cand || !cand.length){
+        cand = S.prices.filter(function(x){ return x.norm===nn && x.shop===sh && eff(x)!==null; });
+      }
+      var p = cand[0];
       if(p){ tot += eff(p)*(it.qty||1); have++; } else missing.push(it.name);
     });
     return {shop:sh, tot:tot, have:have, miss:missing};
@@ -1089,6 +1290,8 @@ function renderSet(){
 function fusiona(local, remoto){
   if(!remoto || remoto.vacio || !remoto.prices) return local;
   var out = JSON.parse(JSON.stringify(local));
+
+  // precios: uno por (producto, tienda); gana la fecha más nueva
   var mp = {};
   (out.prices||[]).forEach(function(p){ mp[p.norm+"|"+p.shop] = p; });
   (remoto.prices||[]).forEach(function(p){
@@ -1096,6 +1299,8 @@ function fusiona(local, remoto){
     if(!a || (p.fecha||"") > (a.fecha||"")) mp[k] = p;
   });
   out.prices = Object.keys(mp).map(function(k){ return mp[k]; });
+
+  // listas con id propio: unión
   ["tickets","shoplist","cats"].forEach(function(col){
     var m = {};
     (out[col]||[]).forEach(function(x){ m[x.id] = x; });
@@ -1108,6 +1313,8 @@ function fusiona(local, remoto){
     (((remoto.recurring||{})[col])||[]).forEach(function(x){ if(!m[x.id]) m[x.id] = x; });
     out.recurring[col] = Object.keys(m).map(function(k){ return m[k]; });
   });
+
+  // meses: unión de apuntes por id, y las marcas de pagado/cobrado se suman
   Object.keys(remoto.months||{}).forEach(function(mk){
     var r = remoto.months[mk], l = out.months[mk];
     if(!l){ out.months[mk] = r; return; }
@@ -1122,6 +1329,8 @@ function fusiona(local, remoto){
       Object.keys(r[f]||{}).forEach(function(id){ if(r[f][id]) l[f][id] = true; });
     });
   });
+
+  // cuidados: si cualquiera de los dos marcó algo ese día, cuenta
   Object.keys(remoto.care||{}).forEach(function(dk){
     var r = remoto.care[dk], l = out.care[dk];
     if(!l){ out.care[dk] = r; return; }
@@ -1132,11 +1341,14 @@ function fusiona(local, remoto){
     });
     Object.keys(r.home||{}).forEach(function(t){ if(r.home[t]) l.home[t] = r.home[t]; });
   });
+
+  // ajustes: manda el móvil que se tocó más tarde
   if((remoto.upd||"") > (local.upd||"")){
     if(remoto.goals) out.goals = remoto.goals;
     if(remoto.shops) out.shops = remoto.shops;
     if(remoto.catalogUrl) out.catalogUrl = remoto.catalogUrl;
     out.useOffers = remoto.useOffers;
+    if(remoto.agrupar!==undefined) out.agrupar = remoto.agrupar;
   }
   return out;
 }
@@ -1592,6 +1804,11 @@ document.getElementById("prSync").onclick = function(){
       toast(n+" precios actualizados"+(d.fecha?" ("+d.fecha+")":""));
     })
     .catch(function(e){ toast("No he podido: "+e.message); });
+};
+document.getElementById("grpToggle").onclick = function(){
+  S.agrupar = (S.agrupar===false);
+  save(); render();
+  toast(S.agrupar ? "Agrupado por producto, precio por kilo/litro" : "Cada referencia por separado");
 };
 document.getElementById("offToggle").onclick = function(){
   S.useOffers = !S.useOffers; save(); render();
