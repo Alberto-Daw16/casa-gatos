@@ -2,8 +2,8 @@ name: Actualizar precios
 
 on:
   schedule:
-    # lunes a las 06:00 UTC (08:00 en España en verano, 07:00 en invierno)
-    - cron: "0 6 * * 1"
+    # lunes a las 07:00 UTC (09:00 en España en verano, 08:00 en invierno)
+    - cron: "0 7 * * 1"
   workflow_dispatch:        # botón para lanzarlo a mano desde la pestaña Actions
 
 permissions:
