@@ -463,7 +463,7 @@
     <div class="tiles pase" data-pase>
       <div class="tile i"><span>Entra</span><b id="tIng" class="tab">0 &euro;</b><small id="tIngSub"></small></div>
       <div class="tile o"><span>Sale</span><b id="tGas" class="tab">0 &euro;</b><small id="tGasSub"></small></div>
-      <div class="tile g"><span>Ya pagado</span><b id="tReal" class="tab">0 &euro;</b><small id="tRealSub"></small></div>
+      <div class="tile g"><span>Del d&iacute;a a d&iacute;a</span><b id="tReal" class="tab">0 &euro;</b><small id="tRealSub"></small></div>
       <div class="tile y"><span>A la hucha</span><b id="tPct" class="tab">0 &euro;</b><small id="tPctSub"></small></div>
     </div>
 
@@ -798,6 +798,10 @@ function save(){
 var S = load();
 /* las bajas de hace más de un año ya no hacen falta: nadie tiene datos tan viejos sin sincronizar */
 (function(){
+  /* los fijos son de los dos por definición: si algún día se marcaron de uno, se suelta */
+  ["incomes","expenses"].forEach(function(col){
+    ((S.recurring||{})[col]||[]).forEach(function(x){ if(x.de) x.de = ""; });
+  });
   if(!S.borrados) S.borrados = {};
   var lim = new Date(Date.now() - 400*864e5).toISOString();
   Object.keys(S.borrados).forEach(function(id){ if(S.borrados[id] < lim) delete S.borrados[id]; });
@@ -1003,8 +1007,10 @@ function totalesMes(k, hastaDia, quien){
   var m = S.months[k] || {expenses:[],incomes:[],paid:{},received:{}};
   /* quien: sin nada = la caja común; con id = lo que es solo de esa persona */
   function mio(x){ return quien ? (x.de===quien) : esComun(x); }
-  var ingF = activeRec(S.recurring.incomes,k).filter(mio);
-  var expF = activeRec(S.recurring.expenses,k).filter(mio);
+  /* los fijos (nómina, alquiler) son de la casa aunque los cobre o los pague uno:
+     entran siempre en la caja común y nunca en el aparte de nadie */
+  var ingF = quien ? [] : activeRec(S.recurring.incomes,k);
+  var expF = quien ? [] : activeRec(S.recurring.expenses,k);
   function corta(list){
     var l = (list||[]).filter(mio);
     if(!hastaDia) return l;
@@ -1014,8 +1020,8 @@ function totalesMes(k, hastaDia, quien){
   return {
     ingF:sum(ingF), ingV:tIngV, expF:sum(expF), expV:tExpV,
     ing:sum(ingF)+tIngV, gas:sum(expF)+tExpV,
-    realIn: tIngV + sum(ingF.filter(function(r){ return (m.received||{})[r.id]; })),
-    realOut: tExpV + sum(expF.filter(function(r){ return (m.paid||{})[r.id]; }))
+    realIn: sum(ingF) + tIngV,
+    realOut: sum(expF) + tExpV
   };
 }
 /* lo que se ha metido en la hucha común ese mes. Es dinero que ya no está
@@ -1028,7 +1034,8 @@ function aporteMes(k, hastaDia){
     return true;
   }).reduce(function(a,x){ return a+(+x.amount||0); },0);
 }
-/* lo que de verdad queda libre: entra − sale − lo que se ha guardado */
+/* lo que queda del mes sin apalabrar: entra − sale − lo que ya se guardó.
+   Solo se usa para no ofrecerte guardar dos veces el mismo dinero. */
 function libreMes(k){
   var t = totalesMes(k);
   return t.ing - t.gas - aporteMes(k);
@@ -1043,7 +1050,7 @@ function flecha(dir){
 }
 function gastoPorCategoria(k){
   var acc = {};
-  activeRec(S.recurring.expenses,k).filter(esComun).forEach(function(e){
+  activeRec(S.recurring.expenses,k).forEach(function(e){
     var c = e.cat||"Otros"; acc[c] = (acc[c]||0)+(+e.amount||0);
   });
   ((S.months[k]||{}).expenses || []).filter(esComun).forEach(function(e){
@@ -1417,14 +1424,15 @@ function renderFin(){
   var dia = esteMes ? today.getDate() : 0;
   var t = totalesMes(k);
   var hucha = aporteMes(k);
-  var bal = t.ing - t.gas - hucha;
+  /* la hucha es un cajón aparte: se enseña, pero no mueve el número del mes */
+  var bal = t.ing - t.gas;
 
   document.getElementById("balTag").textContent = bal>=0 ? "Queda este mes" : "Se ha ido de mas";
   var bm = document.getElementById("balMain");
   animaNum(bm, Math.abs(bal));
   bm.style.color = bal>=0 ? "var(--acc)" : "var(--neg)";
   document.getElementById("balSub").textContent = money(t.ing)+" entra  ·  "+money(t.gas)+" sale"+
-    (hucha>0.005 ? "  ·  "+money(hucha)+" a la hucha" : "");
+    (hucha>0.005 ? "  ·  "+money(hucha)+" guardado" : "");
 
   /* comparacion con el mes anterior, a la misma altura del mes */
   var kAnt = mesRelativo(k,-1);
@@ -1468,9 +1476,11 @@ function renderFin(){
   document.getElementById("tIngSub").textContent = sub(t.ing, tAnt.ing, qAnt);
   animaNum(document.getElementById("tGas"), t.gas);
   document.getElementById("tGasSub").textContent = sub(t.gas, tAnt.gas, qAnt);
-  animaNum(document.getElementById("tReal"), t.realOut);
+  /* lo variable es lo único que se puede recortar: los fijos son los que son */
+  animaNum(document.getElementById("tReal"), t.expV);
   document.getElementById("tRealSub").textContent = t.gas>0
-    ? Math.round(t.realOut/t.gas*100)+" % de "+money(t.gas) : "nada apuntado";
+    ? Math.round(t.expV/t.gas*100)+" % del gasto · "+money(t.expF)+" son fijos"
+    : "nada apuntado";
   animaNum(document.getElementById("tPct"), hucha);
   document.getElementById("tPctSub").textContent = hucha>0.005
     ? (t.ing>0 ? Math.round(hucha/t.ing*100)+" % de lo que entra" : "")
@@ -1544,14 +1554,14 @@ function renderFin(){
   }).join("");
 }
 function rowsRec(id, list, flag, kind){
-  var ul = document.getElementById(id), m = mData(mKey(cur));
+  var ul = document.getElementById(id);
   if(!list.length){ ul.innerHTML = '<div class="empty">Nada por aquí</div>'; return; }
   ul.innerHTML = list.map(function(r){
-    var on = !!m[flag][r.id];
+    /* un fijo se da por hecho: ni casilla ni "pendiente", que es una tarea que
+       hay que hacer doce veces al año y no cuenta nada que no sepamos ya */
     return '<li>'+
-      '<div class="chk'+(on?' on':'')+'" data-flag="'+flag+'" data-id="'+r.id+'">'+CHECK+'</div>'+
-      '<div class="it" data-edit="'+(kind==="inc"?"incF":"expF")+'" data-id="'+r.id+'">'+
-        '<b>'+esc(r.name)+tagDe(r)+'</b><small>'+(r.day?("día "+r.day+" · "):"")+(on?(kind==="inc"?"cobrado":"pagado"):"pendiente")+'</small></div>'+
+      '<div class="it" data-edit="'+(kind==="inc"?"incF":"expF")+'" data-id="'+r.id+'" style="margin-left:2px">'+
+        '<b>'+esc(r.name)+'</b><small>'+(r.day?("cada mes, día "+r.day):"cada mes")+'</small></div>'+
       '<div class="amt '+(kind==="inc"?"pos":"neg")+'">'+(kind==="inc"?"+":"−")+money(r.amount)+'</div>'+
       '<button class="del" data-del="'+(kind==="inc"?"incF":"expF")+'" data-id="'+r.id+'">✕</button></li>';
   }).join("");
@@ -2567,10 +2577,11 @@ function openMoney(type, id){
     if(!t.inc) html += '<label>Categoría</label><select id="f_cat">'+CATS.map(function(c){
       return '<option'+(item&&item.cat===c?" selected":"")+'>'+c+'</option>'; }).join("")+'</select>';
   }
-  /* de quién es: por defecto de los dos; un ingreso extra nuevo se apunta a
-     quien está usando este móvil, que para eso lo dice en Ajustes */
+  /* de quién es: solo tiene sentido en lo variable. Un fijo (la nómina, el
+     alquiler) es de la casa aunque lo cobre o lo pague uno de los dos. */
   var deIni = item ? (item.de||"") : ((type==="incV" && S.yo) ? S.yo : "");
-  if(gente().length){
+  if(t.rec) deIni = "";
+  if(gente().length && !t.rec){
     html += '<label>De quién es</label><div class="depick" id="f_de">'+
       '<button data-de="" class="'+(deIni?"":"on")+'">De los dos</button>'+
       gente().map(function(pr){
@@ -2595,6 +2606,7 @@ function openMoney(type, id){
     if(!name){ toast("Ponle un nombre"); return; }
     if(amt===null){ toast("Falta el importe"); return; }
     var obj = item || {id:uid()};
+    if(t.rec) deSel = "";
     obj.name = name; obj.amount = Math.abs(amt); obj.de = deSel || "";
     if(t.rec){
       var dv = parseInt(document.getElementById("f_day").value,10);
