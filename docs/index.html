@@ -1111,6 +1111,35 @@ function cuandoHito(v){
   }
   return null;
 }
+/* Un aporte de DINERO NUEVO (una paga extra, una venta, un regalo) es dinero
+   que aparece: se apunta también como ingreso extra del mes, igual que un ticket
+   se apunta como gasto. Un aporte del SOBRANTE no crea nada, porque ese dinero
+   ya se contó cuando entró la nómina; solo cambia de sitio. */
+function ingresoDeAporte(a){
+  if(!a || !a.nuevo) return null;
+  var mk = String(a.date||"").slice(0,7);
+  if(mk.length !== 7) return null;
+  var m = mData(mk);
+  var e = (m.incomes||[]).filter(function(x){ return x.aporte===a.id; })[0];
+  if(!e){ e = {id:uid(), aporte:a.id}; m.incomes.push(e); }
+  e.name = a.nota || "A la hucha";
+  e.amount = +a.amount || 0;
+  e.date = a.date;
+  e.de = "";
+  return e;
+}
+function quitaIngresoDeAporte(id, salvo){
+  Object.keys(S.months||{}).forEach(function(mk){
+    S.months[mk].incomes = (S.months[mk].incomes||[]).filter(function(x){
+      if(x.aporte===id && x.id!==salvo){ olvida(x.id); return false; }
+      return true;
+    });
+  });
+}
+function cuadraAporte(a){
+  var e = ingresoDeAporte(a);
+  quitaIngresoDeAporte(a.id, e ? e.id : null);
+}
 function renderMeta(){
   var m = meta(), tot = totalHucha(), obj = +m.objetivo || 0;
   document.getElementById("metaTag").textContent = m.nombre ? ("Ahorrado para "+m.nombre) : "Ahorrado";
@@ -1162,7 +1191,7 @@ function renderMeta(){
   document.getElementById("sAportes").textContent = ap.length ? ap.length+" apuntes" : "";
   document.getElementById("lAportes").innerHTML = ap.length ? ap.map(function(x){
     return '<li><div class="it" data-editaporte="'+x.id+'"><b>'+esc(x.nota||"Aportación")+'</b>'+
-      '<small>'+shortDate(x.date)+'</small></div>'+
+      '<small>'+shortDate(x.date)+(x.nuevo?" · dinero nuevo":"")+'</small></div>'+
       '<div class="amt pos">+'+money(x.amount)+'</div>'+
       '<button class="del" data-delaporte="'+x.id+'">✕</button></li>';
   }).join("") : ilus("dinero","Todavía no habéis metido nada en la hucha");
@@ -1211,14 +1240,35 @@ function openHito(id){
 function openAporte(id, pre){
   if(!S.aportes) S.aportes = [];
   var a = id ? S.aportes.filter(function(x){ return x.id===id; })[0] : null;
+  var nuevo = a ? !!a.nuevo : (pre && pre.nuevo===false ? false : true);
   openSheet('<h3>'+(id?"Editar aportación":"Meter en la hucha de los dos")+'</h3>'+
     '<label>Cuánto (€)</label><input id="ap_v" type="number" inputmode="decimal" step="0.01" value="'+
       (a ? a.amount : (pre&&pre.amount ? pre.amount : ""))+'">'+
-    '<label>De dónde sale</label><input id="ap_n" placeholder="Sobrante de julio, la paga extra…" value="'+
+    '<label>Qué es</label><input id="ap_n" placeholder="La paga extra, la venta de la bici…" value="'+
       esc(a ? (a.nota||"") : (pre&&pre.nota ? pre.nota : ""))+'">'+
     '<label>Fecha</label><input id="ap_d" type="date" value="'+esc(a?a.date:dKey(today))+'">'+
+    '<label>De dónde sale</label><div class="depick" id="ap_or">'+
+      '<button data-or="1" class="'+(nuevo?"on":"")+'">Dinero nuevo</button>'+
+      '<button data-or="0" class="'+(nuevo?"":"on")+'">Ya estaba en el mes</button></div>'+
+    '<div class="mini" id="ap_orTxt"></div>'+
     '<div class="mini">Todo lo que entra aquí es de los dos, da igual quién lo meta. Lo que quieras ahorrar por tu cuenta va en <b>Mi hucha</b>.</div>'+
     '<div class="btns"><button class="b-no" id="ap_no">Cancelar</button><button class="b-ok" id="ap_ok">Guardar</button></div>');
+  var cajaOr = document.getElementById("ap_or"), avisoOr = document.getElementById("ap_orTxt");
+  function pintaOr(){
+    Array.prototype.forEach.call(cajaOr.children, function(x){
+      x.className = ((x.dataset.or==="1") === nuevo) ? "on" : "";
+    });
+    avisoOr.innerHTML = nuevo
+      ? 'Dinero que llega ahora y no estaba apuntado. Se suma también como <b>ingreso extra</b> del mes, que para eso ha entrado.'
+      : 'Dinero que ya contaba en el mes (el sobrante, por ejemplo). Solo cambia de sitio: no se vuelve a sumar.';
+  }
+  pintaOr();
+  cajaOr.onclick = function(e){
+    var b = e.target.closest("[data-or]");
+    if(!b) return;
+    nuevo = (b.dataset.or === "1");
+    pintaOr();
+  };
   document.getElementById("ap_no").onclick = closeSheet;
   document.getElementById("ap_ok").onclick = function(){
     var v = num(document.getElementById("ap_v").value);
@@ -1228,9 +1278,12 @@ function openAporte(id, pre){
     obj.nota = document.getElementById("ap_n").value.trim();
     obj.date = document.getElementById("ap_d").value || dKey(today);
     obj.de = "";
+    obj.nuevo = nuevo;
     if(!a) S.aportes.push(obj);
+    cuadraAporte(obj);
     save(); closeSheet(); render();
-    toast("A la hucha · sale de "+MONTHS[parseD(obj.date).getMonth()].toLowerCase());
+    toast(nuevo ? ("A la hucha · y a los ingresos de "+MONTHS[parseD(obj.date).getMonth()].toLowerCase())
+                : "A la hucha");
   };
 }
 
@@ -1571,11 +1624,17 @@ function rowsOne(id, list, kind){
   if(!list.length){ ul.innerHTML = '<div class="empty">Nada por aquí</div>'; return; }
   var s = list.slice().sort(function(a,b){ return (a.date||"").localeCompare(b.date||""); });
   ul.innerHTML = s.map(function(r){
-    var sub2 = (r.date ? shortDate(r.date) : "") + (r.cat ? " · "+esc(r.cat) : "") + (r.ticket ? " · ticket" : "");
-    return '<li><div class="it" data-edit="'+(kind==="inc"?"incV":"expV")+'" data-id="'+r.id+'" style="margin-left:2px">'+
+    var sub2 = (r.date ? shortDate(r.date) : "") + (r.cat ? " · "+esc(r.cat) : "") +
+               (r.ticket ? " · ticket" : "") + (r.aporte ? " · a la hucha" : "");
+    /* si el ingreso viene de un aporte, se toca por donde se creó: en la hucha */
+    var abre = r.aporte ? 'data-editaporte="'+r.aporte+'"'
+                        : 'data-edit="'+(kind==="inc"?"incV":"expV")+'" data-id="'+r.id+'"';
+    var borra = r.aporte ? 'data-delaporte="'+r.aporte+'"'
+                         : 'data-del="'+(kind==="inc"?"incV":"expV")+'" data-id="'+r.id+'"';
+    return '<li><div class="it" '+abre+' style="margin-left:2px">'+
       '<b>'+esc(r.name)+tagDe(r)+'</b><small>'+sub2+'</small></div>'+
       '<div class="amt '+(kind==="inc"?"pos":"neg")+'">'+(kind==="inc"?"+":"−")+money(r.amount)+'</div>'+
-      '<button class="del" data-del="'+(kind==="inc"?"incV":"expV")+'" data-id="'+r.id+'">✕</button></li>';
+      '<button class="del" '+borra+'>✕</button></li>';
   }).join("");
 }
 
@@ -2923,9 +2982,10 @@ document.addEventListener("click", function(e){
   }
   if(d.editaporte){ openAporte(d.editaporte); return; }
   if(d.delaporte){
-    if(!confirm("¿Sacar esta aportación de la hucha?")) return;
+    if(!confirm("¿Sacar esta aportación de la hucha? Si era dinero nuevo, también se quita del mes.")) return;
     S.aportes = (S.aportes||[]).filter(function(x){ return x.id!==d.delaporte; });
     olvida(d.delaporte);
+    quitaIngresoDeAporte(d.delaporte, null);
     save(); render(); return;
   }
   if(d.editmia){ openMio(d.editmia); return; }
@@ -3135,7 +3195,8 @@ document.getElementById("addHito").onclick = function(){ openHito(null); };
 document.getElementById("addAporte").onclick = function(){ openAporte(null); };
 document.getElementById("addSobra").onclick = function(){
   var k = mKey(cur), sobra = libreMes(k);
-  openAporte(null, {amount:r2(sobra), nota:"Sobrante de "+MONTHS[cur.getMonth()].toLowerCase()});
+  openAporte(null, {amount:r2(sobra), nuevo:false,
+                    nota:"Sobrante de "+MONTHS[cur.getMonth()].toLowerCase()});
 };
 Array.prototype.forEach.call(document.querySelectorAll("#shopSeg button"), function(b){
   b.onclick = function(){
