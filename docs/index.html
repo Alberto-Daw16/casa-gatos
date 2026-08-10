@@ -464,7 +464,7 @@
       <div class="tile i"><span>Entra</span><b id="tIng" class="tab">0 &euro;</b><small id="tIngSub"></small></div>
       <div class="tile o"><span>Sale</span><b id="tGas" class="tab">0 &euro;</b><small id="tGasSub"></small></div>
       <div class="tile g"><span>Ya pagado</span><b id="tReal" class="tab">0 &euro;</b><small id="tRealSub"></small></div>
-      <div class="tile y"><span>Ahorro</span><b id="tPct" class="tab">0 %</b><small id="tPctSub"></small></div>
+      <div class="tile y"><span>A la hucha</span><b id="tPct" class="tab">0 &euro;</b><small id="tPctSub"></small></div>
     </div>
 
     <div class="sec">
@@ -764,7 +764,9 @@ var DEF = {
   /* la hucha: la meta gorda y todo lo que se va metiendo */
   meta:{nombre:"", objetivo:0, hitos:[]}, aportes:[],
   /* la hucha de cada uno va cifrada con su propia clave; "pin" no se sube nunca */
-  privado:{}, pin:""
+  privado:{}, pin:"",
+  /* ids de lo que se ha borrado: sin esto, fusionar (que es unir) lo resucita */
+  borrados:{}
 };
 
 function load(){
@@ -794,6 +796,12 @@ function save(){
   }
 }
 var S = load();
+/* las bajas de hace más de un año ya no hacen falta: nadie tiene datos tan viejos sin sincronizar */
+(function(){
+  if(!S.borrados) S.borrados = {};
+  var lim = new Date(Date.now() - 400*864e5).toISOString();
+  Object.keys(S.borrados).forEach(function(id){ if(S.borrados[id] < lim) delete S.borrados[id]; });
+})();
 document.getElementById("storeState").textContent = hasLS ? "" : "solo en esta sesión";
 
 /* =========== UTILIDADES =========== */
@@ -802,6 +810,13 @@ var DOW = ["L","M","X","J","V","S","D"];
 var eur = new Intl.NumberFormat("es-ES",{style:"currency",currency:"EUR",maximumFractionDigits:2});
 function money(n){ return eur.format(n||0); }
 function uid(){ return "i" + Date.now().toString(36) + Math.floor(Math.random()*1e6).toString(36); }
+/* apuntar una baja. Fusionar dos móviles es unir listas, y unir nunca quita:
+   sin esta lista, lo que borras en un móvil vuelve en la siguiente sincronización. */
+function olvida(){
+  if(!S.borrados) S.borrados = {};
+  var hoy = new Date().toISOString(), i;
+  for(i=0;i<arguments.length;i++) if(arguments[i]) S.borrados[arguments[i]] = hoy;
+}
 function pad(n){ return n<10 ? "0"+n : ""+n; }
 function mKey(d){ return d.getFullYear()+"-"+pad(d.getMonth()+1); }
 function dKey(d){ return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate()); }
@@ -1003,6 +1018,21 @@ function totalesMes(k, hastaDia, quien){
     realOut: tExpV + sum(expF.filter(function(r){ return (m.paid||{})[r.id]; }))
   };
 }
+/* lo que se ha metido en la hucha común ese mes. Es dinero que ya no está
+   disponible: está guardado, así que sale de lo que queda del mes. */
+function aporteMes(k, hastaDia){
+  return (S.aportes||[]).filter(function(x){
+    var d = String(x.date||"");
+    if(d.slice(0,7) !== k) return false;
+    if(hastaDia && +(d.slice(8,10)||99) > hastaDia) return false;
+    return true;
+  }).reduce(function(a,x){ return a+(+x.amount||0); },0);
+}
+/* lo que de verdad queda libre: entra − sale − lo que se ha guardado */
+function libreMes(k){
+  var t = totalesMes(k);
+  return t.ing - t.gas - aporteMes(k);
+}
 function mesRelativo(k, n){
   return mKey(new Date(+k.slice(0,4), +k.slice(5,7)-1+n, 1));
 }
@@ -1130,7 +1160,7 @@ function renderMeta(){
       '<button class="del" data-delaporte="'+x.id+'">✕</button></li>';
   }).join("") : ilus("dinero","Todavía no habéis metido nada en la hucha");
 
-  var k = mKey(cur), t = totalesMes(k), sobra = t.ing - t.gas;
+  var k = mKey(cur), sobra = libreMes(k);
   var bs = document.getElementById("addSobra");
   bs.style.display = sobra > 0.5 ? "" : "none";
   bs.textContent = "Guardar lo que sobra de "+MONTHS[cur.getMonth()].toLowerCase()+" ("+money(sobra)+")";
@@ -1192,7 +1222,8 @@ function openAporte(id, pre){
     obj.date = document.getElementById("ap_d").value || dKey(today);
     obj.de = "";
     if(!a) S.aportes.push(obj);
-    save(); closeSheet(); render(); toast("A la hucha de los dos");
+    save(); closeSheet(); render();
+    toast("A la hucha · sale de "+MONTHS[parseD(obj.date).getMonth()].toLowerCase());
   };
 }
 
@@ -1385,13 +1416,15 @@ function renderFin(){
   var esteMes = (k === mKey(today));
   var dia = esteMes ? today.getDate() : 0;
   var t = totalesMes(k);
-  var bal = t.ing - t.gas;
+  var hucha = aporteMes(k);
+  var bal = t.ing - t.gas - hucha;
 
   document.getElementById("balTag").textContent = bal>=0 ? "Queda este mes" : "Se ha ido de mas";
   var bm = document.getElementById("balMain");
   animaNum(bm, Math.abs(bal));
   bm.style.color = bal>=0 ? "var(--acc)" : "var(--neg)";
-  document.getElementById("balSub").textContent = money(t.ing)+" entra  ·  "+money(t.gas)+" sale";
+  document.getElementById("balSub").textContent = money(t.ing)+" entra  ·  "+money(t.gas)+" sale"+
+    (hucha>0.005 ? "  ·  "+money(hucha)+" a la hucha" : "");
 
   /* comparacion con el mes anterior, a la misma altura del mes */
   var kAnt = mesRelativo(k,-1);
@@ -1438,9 +1471,10 @@ function renderFin(){
   animaNum(document.getElementById("tReal"), t.realOut);
   document.getElementById("tRealSub").textContent = t.gas>0
     ? Math.round(t.realOut/t.gas*100)+" % de "+money(t.gas) : "nada apuntado";
-  if(t.ing>0) animaNum(document.getElementById("tPct"), bal/t.ing*100, "%");
-  else { var tp=document.getElementById("tPct"); tp.textContent = "—"; tp.dataset.v = ""; }
-  document.getElementById("tPctSub").textContent = t.ing>0 ? money(bal)+" sobre lo que entra" : "";
+  animaNum(document.getElementById("tPct"), hucha);
+  document.getElementById("tPctSub").textContent = hucha>0.005
+    ? (t.ing>0 ? Math.round(hucha/t.ing*100)+" % de lo que entra" : "")
+    : "nada guardado este mes";
 
   document.getElementById("sIngF").textContent = money(t.ingF);
   document.getElementById("sIngV").textContent = money(t.ingV);
@@ -1987,8 +2021,12 @@ function saveTicket(t){
 }
 function delTicket(id){
   S.tickets = S.tickets.filter(function(t){ return t.id!==id; });
+  olvida(id);
   Object.keys(S.months).forEach(function(mk){
-    S.months[mk].expenses = S.months[mk].expenses.filter(function(e){ return e.ticket!==id; });
+    S.months[mk].expenses = S.months[mk].expenses.filter(function(e){
+      if(e.ticket===id){ olvida(e.id); return false; }
+      return true;
+    });
   });
   save();
 }
@@ -2362,6 +2400,19 @@ function fusiona(local, remoto){
       Object.keys(r.cats[cid]).forEach(function(t){ if(r.cats[cid][t]) l.cats[cid][t] = r.cats[cid][t]; });
     });
     Object.keys(r.home||{}).forEach(function(t){ if(r.home[t]) l.home[t] = r.home[t]; });
+  });
+
+  // las bajas viajan con los datos y mandan sobre la unión: lo borrado no vuelve
+  out.borrados = out.borrados || {};
+  Object.keys(remoto.borrados||{}).forEach(function(id){
+    if(!out.borrados[id]) out.borrados[id] = remoto.borrados[id];
+  });
+  var baja = out.borrados;
+  function limpia(l){ return (l||[]).filter(function(x){ return !baja[x.id]; }); }
+  ["tickets","shoplist","cats","people","aportes"].forEach(function(col){ out[col] = limpia(out[col]); });
+  ["expenses","incomes"].forEach(function(col){ out.recurring[col] = limpia(out.recurring[col]); });
+  Object.keys(out.months||{}).forEach(function(mk){
+    ["expenses","incomes"].forEach(function(col){ out.months[mk][col] = limpia(out.months[mk][col]); });
   });
 
   // las huchas privadas viajan cifradas: gana el bloque más nuevo de cada uno
@@ -2836,6 +2887,7 @@ document.addEventListener("click", function(e){
     var arr = d.del==="incF" ? S.recurring.incomes : d.del==="expF" ? S.recurring.expenses :
               d.del==="incV" ? m.incomes : m.expenses;
     for(var i=0;i<arr.length;i++){ if(arr[i].id===d.id){ arr.splice(i,1); break; } }
+    olvida(d.id);
     save(); render(); return;
   }
   if(d.flag){ m[d.flag][d.id] ? delete m[d.flag][d.id] : m[d.flag][d.id] = true; save(); renderFin(); return; }
@@ -2861,6 +2913,7 @@ document.addEventListener("click", function(e){
   if(d.delaporte){
     if(!confirm("¿Sacar esta aportación de la hucha?")) return;
     S.aportes = (S.aportes||[]).filter(function(x){ return x.id!==d.delaporte; });
+    olvida(d.delaporte);
     save(); render(); return;
   }
   if(d.editmia){ openMio(d.editmia); return; }
@@ -2874,6 +2927,7 @@ document.addEventListener("click", function(e){
   if(d.delper){
     if(!confirm("¿Quitar a esta persona? Lo que tuviera marcado pasa a ser de los dos.")) return;
     S.people = gente().filter(function(x){ return x.id!==d.delper; });
+    olvida(d.delper);
     if(S.yo===d.delper){ S.yo = ""; MIA = null; MIAPIN = ""; S.pin = ""; }
     ["incomes","expenses"].forEach(function(col){
       S.recurring[col].forEach(function(x){ if(x.de===d.delper) x.de = ""; });
@@ -2888,7 +2942,8 @@ document.addEventListener("click", function(e){
   if(d.editcat){ openCat(d.editcat); return; }
   if(d.delcat){
     if(!confirm("¿Quitar este gato? Se conserva su historial.")) return;
-    S.cats = S.cats.filter(function(x){ return x.id!==d.delcat; }); save(); render(); return;
+    S.cats = S.cats.filter(function(x){ return x.id!==d.delcat; });
+    olvida(d.delcat); save(); render(); return;
   }
   if(d.delshop){
     S.shops = S.shops.filter(function(x){ return x!==d.delshop; }); save(); render(); return;
@@ -2900,7 +2955,10 @@ document.addEventListener("click", function(e){
     save(); renderList(); return;
   }
   if(d.liedit){ openListItem(d.liedit); return; }
-  if(d.lidel){ S.shoplist = S.shoplist.filter(function(x){ return x.id!==d.lidel; }); save(); renderList(); return; }
+  if(d.lidel){
+    S.shoplist = S.shoplist.filter(function(x){ return x.id!==d.lidel; });
+    olvida(d.lidel); save(); renderList(); return;
+  }
   if(d.tkedit){
     var t = S.tickets.filter(function(x){ return x.id===d.tkedit; })[0];
     if(t) ticketEditor(JSON.parse(JSON.stringify(t)));
@@ -3064,7 +3122,7 @@ document.getElementById("editMeta").onclick = function(){ openMeta(); };
 document.getElementById("addHito").onclick = function(){ openHito(null); };
 document.getElementById("addAporte").onclick = function(){ openAporte(null); };
 document.getElementById("addSobra").onclick = function(){
-  var k = mKey(cur), t = totalesMes(k), sobra = t.ing - t.gas;
+  var k = mKey(cur), sobra = libreMes(k);
   openAporte(null, {amount:r2(sobra), nota:"Sobrante de "+MONTHS[cur.getMonth()].toLowerCase()});
 };
 Array.prototype.forEach.call(document.querySelectorAll("#shopSeg button"), function(b){
