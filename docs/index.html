@@ -630,15 +630,19 @@ var MARCAS = _rx([
 ].join("|"));
 var RUIDO = _rx([
  "al peso","a granel","granel","aprox\\.?","approx","categor[i\u00ed]a","origen","producto","pack","bandeja","malla",
- "bolsa","tarrina","bri[ck]ks?","caja","paquete","pieza[s]?","lata[s]?","tubo","bote","unidad(?:es)?","uds?","docena",
+ "bolsa","tarrina","bri(?:ck|k)s?","caja","paquete","pieza[s]?","lata[s]?","tubo","bote","unidad(?:es)?","uds?","docena",
+ "loncha[s]?","lonchita[s]?","novedad","familiar","corte fino","al corte",
  "hass","variedad","calibre","nacional","importaci[o\u00f3]n","seleccionad[oa]","selecci[o\u00f3]n","de vaca","fresc[oa][s]?",
  "filetead[oa][s]?","al corte","envasad[oa][s]?","refrigerad[oa][s]?","aproximad[oa]s?","botella[s]?"
 ].join("|"));
 var CONECT = {de:1,del:1,la:1,el:1,los:1,las:1,un:1,una:1,unos:1,unas:1,con:1,para:1,en:1,y:1,al:1,a:1,por:1,sin:1,lo:1};
+/* palabras que acaban en -s sin ser plural: si no, "anís" se quedaría en "ani" */
+var NOPLURAL = {anis:1,pais:1,gas:1,mas:1,tres:1,seis:1,dos:1,bus:1,plus:1,cous:1,mus:1,tos:1,
+                res:1,lunes:1,martes:1,jueves:1,viernes:1,crisis:1,atlas:1,virus:1,brios:1};
 function singular(w){
-  if(w.length < 5) return w;
+  if(w.length < 4 || NOPLURAL[w]) return w;
   if(/ces$/.test(w)) return w.slice(0,-3)+"z";
-  if(/[lrndszjxy]es$/.test(w)) return w.slice(0,-2);
+  if(w.length > 4 && /[lrndszjxy]es$/.test(w)) return w.slice(0,-2);
   if(/s$/.test(w)) return w.slice(0,-1);
   return w;
 }
