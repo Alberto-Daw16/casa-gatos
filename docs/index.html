@@ -10,163 +10,221 @@
 <title>Casa &amp; Gatos</title>
 <style>
   :root{
-    --bg:#140a0f; --bg2:#1e1017; --card:#241420; --card2:#2d1a28;
-    --line:#3a2331; --txt:#f4e9ee; --dim:#a98d9c;
-    --red:#e0345f; --red-d:#a3153c; --gold:#f0c26b; --green:#3fc189; --blue:#5aa9e6;
-    --r:16px;
+    /* base */
+    --bg:#0e0f13; --bg2:#15171f; --card:#171922; --card2:#1e212c;
+    --line:#262936; --line2:#333748; --txt:#f2f1ef; --dim:#8b8b98;
+    /* marca y estados */
+    --acc:#9085e9; --in:#199e70; --out:#d95926; --gold:#c98500;
+    --blue:#3987e5; --pink:#d55181; --red:#d95926; --green:#199e70;
+    --pos:#4fd6a0; --neg:#ff8f6b;
+    /* categorías: color fijo por categoría, el mismo en toda la app */
+    --c-casa:#3987e5; --c-comida:#d95926; --c-gatos:#199e70; --c-ocio:#c98500;
+    --c-transporte:#d55181; --c-salud:#9085e9; --c-compras:#4bb3c9; --c-otros:#7c8494;
+    --r:10px;
   }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
   html,body{margin:0;padding:0}
   body{
-    background:radial-gradient(120% 60% at 50% 0%, #2a1220 0%, var(--bg) 60%) fixed, var(--bg);
-    color:var(--txt);
+    background:var(--bg); color:var(--txt);
     font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",sans-serif;
     font-size:16px; line-height:1.4;
-    padding-bottom:calc(78px + env(safe-area-inset-bottom));
+    padding-bottom:calc(80px + env(safe-area-inset-bottom));
     -webkit-text-size-adjust:100%;
   }
+  .tab{font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1}
+
   header{
-    position:sticky; top:0; z-index:20;
-    background:rgba(20,10,15,.92); backdrop-filter:blur(12px);
+    position:sticky; top:0; z-index:20; background:var(--bg);
     border-bottom:1px solid var(--line);
-    padding:calc(10px + env(safe-area-inset-top)) 14px 10px;
+    padding:calc(12px + env(safe-area-inset-top)) 16px 10px;
   }
-  .brand{display:flex;align-items:center;gap:8px;font-weight:700;letter-spacing:.3px;font-size:17px}
-  .brand small{color:var(--dim);font-weight:500;font-size:12px;margin-left:auto}
-  .monthnav{display:flex;align-items:center;gap:10px;margin-top:10px}
+  .brand{display:flex;align-items:center;gap:8px;font-size:11.5px;font-weight:800;
+    letter-spacing:2.4px;color:var(--acc);text-transform:uppercase}
+  .brand .dot{width:7px;height:7px;border-radius:50%;background:var(--acc);flex:none}
+  .brand small{color:var(--dim);font-weight:600;font-size:10px;margin-left:auto;letter-spacing:.6px}
+  .monthnav{display:flex;align-items:baseline;gap:10px;margin-top:9px}
   .monthnav button{
-    background:var(--card2);border:1px solid var(--line);color:var(--txt);
-    width:38px;height:34px;border-radius:10px;font-size:17px;line-height:1;cursor:pointer;
+    background:none;border:0;color:var(--dim);width:26px;height:26px;
+    font-size:20px;line-height:1;cursor:pointer;padding:0;
   }
-  .monthnav .mlabel{flex:1;text-align:center;font-weight:600;text-transform:capitalize}
-  .monthnav .today{width:auto;padding:0 10px;font-size:13px;color:var(--gold)}
-  main{padding:14px 14px 20px;max-width:640px;margin:0 auto}
+  .monthnav .mlabel{font-weight:800;font-size:23px;letter-spacing:-.6px;text-transform:capitalize}
+  .monthnav .today{width:auto;font-size:11px;font-weight:700;color:var(--acc);
+    letter-spacing:1.2px;text-transform:uppercase;margin-left:auto}
+  main{padding:14px 16px 20px;max-width:640px;margin:0 auto}
   .view{display:none} .view.on{display:block}
 
-  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:14px;margin-bottom:14px}
-  .card h2{margin:0 0 10px;font-size:14px;letter-spacing:.6px;text-transform:uppercase;color:var(--dim);
-    display:flex;align-items:center;gap:8px}
-  .card h2 .sum{margin-left:auto;color:var(--txt);font-size:15px;letter-spacing:0;text-transform:none;font-weight:700}
+  /* ---------- tarjetas y secciones ---------- */
+  .card{background:var(--card);border-radius:var(--r);padding:14px;margin-bottom:12px}
+  .card h2, .sec h2{margin:0 0 10px;font-size:11px;letter-spacing:1.8px;text-transform:uppercase;
+    color:var(--dim);font-weight:700;display:flex;align-items:center;gap:8px}
+  .card h2 .sum, .sec h2 .sum{margin-left:auto;color:var(--txt);font-size:15px;letter-spacing:-.2px;
+    text-transform:none;font-weight:800;font-variant-numeric:tabular-nums}
+  .sec{margin:24px 0 0}
+  .sec h2 .tick{width:4px;height:15px;border-radius:1px;display:block;flex:none}
 
-  .balance{background:linear-gradient(160deg,#3a1226,#1d0f18);border:1px solid var(--red-d)}
-  .bal-main{font-size:34px;font-weight:800;letter-spacing:-1px;margin:2px 0 2px}
-  .bal-sub{color:var(--dim);font-size:13px}
-  .bal-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px}
-  .bal-grid div{background:rgba(255,255,255,.05);border-radius:12px;padding:8px 10px}
-  .bal-grid span{display:block;font-size:11px;color:var(--dim);text-transform:uppercase;letter-spacing:.5px}
-  .bal-grid b{font-size:16px;font-weight:700}
-  .bar{height:8px;border-radius:8px;background:rgba(255,255,255,.09);overflow:hidden;margin-top:12px;display:flex}
-  .bar i{display:block;height:100%}
+  /* ---------- panel de arriba (Dinero) ---------- */
+  .hero{padding:6px 0 2px}
+  .hero .tag{font-size:10.5px;letter-spacing:2px;color:var(--dim);text-transform:uppercase}
+  .hnum{font-size:48px;font-weight:800;letter-spacing:-2.4px;line-height:1;margin:8px 0 5px}
+  .hsub{font-size:13px;color:var(--dim)}
+  .split{display:flex;gap:2px;margin-top:14px;height:9px}
+  .split i{display:block;height:100%;border-radius:2px}
+  .delta{display:inline-flex;align-items:center;gap:7px;font-size:12.5px;font-weight:600;
+    padding:6px 11px;border-radius:8px;margin-top:13px;line-height:1.3}
+  .delta.up{background:rgba(217,89,38,.15);color:var(--neg)}
+  .delta.down{background:rgba(25,158,112,.15);color:var(--pos)}
+  .delta.flat{background:rgba(255,255,255,.06);color:var(--dim)}
+  .delta svg{flex:none}
+  .tiles{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px}
+  .tile{background:var(--card);border-radius:8px;padding:11px 12px;border-left:3px solid var(--line2)}
+  .tile span{display:block;font-size:9.5px;letter-spacing:1.4px;color:var(--dim);text-transform:uppercase}
+  .tile b{display:block;font-size:19px;font-weight:800;letter-spacing:-.6px;margin-top:4px;
+    font-variant-numeric:tabular-nums}
+  .tile small{font-size:11px;color:var(--dim);display:block;margin-top:1px}
+  .tile.i{border-left-color:var(--in)} .tile.o{border-left-color:var(--out)}
+  .tile.g{border-left-color:var(--acc)} .tile.y{border-left-color:var(--gold)}
+  .spark{display:flex;align-items:flex-end;gap:5px;height:78px;margin-top:2px}
+  .spark div{flex:1;display:flex;flex-direction:column;justify-content:flex-end;gap:0;
+    height:100%;text-align:center;cursor:default}
+  .spark i{display:block;background:#2b2f3d}
+  .spark i.v{background:#7c8494;border-radius:2px 2px 0 0}
+  .spark i.f{background:#2b2f3d;border-radius:0 0 2px 2px}
+  .spark div.on i.v{background:var(--out)}
+  .spark div.on i.f{background:#4a3327}
+  .spark em{font-style:normal;margin-top:5px;font-size:9.5px;color:var(--dim);text-transform:uppercase;letter-spacing:.5px}
+  .spark div.on em{color:var(--txt);font-weight:700}
 
+  /* ---------- barras por categoría ---------- */
+  .bars{display:flex;flex-direction:column;gap:9px}
+  .brow{display:grid;grid-template-columns:1fr auto;gap:4px 10px;font-size:12.5px}
+  .brow .t{display:flex;align-items:center;gap:7px;color:var(--dim);min-width:0}
+  .brow .t i{width:9px;height:9px;border-radius:2px;display:block;flex:none}
+  .brow .t span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .brow .v{font-weight:700;font-variant-numeric:tabular-nums}
+  .brow .track{grid-column:1/-1;height:8px;background:#22252f;border-radius:2px;overflow:hidden}
+  .brow .track i{display:block;height:100%;border-radius:0 2px 2px 0}
+
+  /* ---------- listas ---------- */
   ul.list{list-style:none;margin:0;padding:0}
-  ul.list li{display:flex;align-items:center;gap:10px;padding:10px 0;border-top:1px solid var(--line)}
+  ul.list li{display:flex;align-items:center;gap:11px;padding:11px 0;border-top:1px solid var(--line)}
   ul.list li:first-child{border-top:0}
-  .chk{width:26px;height:26px;flex:0 0 26px;border-radius:9px;border:1.5px solid var(--line);
-    background:var(--card2);display:flex;align-items:center;justify-content:center;font-size:14px;cursor:pointer}
-  .chk.on{background:var(--green);border-color:var(--green);color:#06281a;font-weight:800}
+  .chk{width:24px;height:24px;flex:0 0 24px;border-radius:6px;border:1.5px solid var(--line2);
+    background:transparent;display:flex;align-items:center;justify-content:center;cursor:pointer;color:transparent}
+  .chk.on{background:var(--in);border-color:var(--in);color:#04180f}
+  .chk svg{width:13px;height:13px}
   .it{flex:1;min-width:0;cursor:pointer}
-  .it b{display:block;font-weight:600;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .it small{color:var(--dim);font-size:12px;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .amt{font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
-  .amt.neg{color:#ff8fa8} .amt.pos{color:var(--green)}
-  .del{background:none;border:0;color:var(--dim);font-size:18px;padding:4px 2px;cursor:pointer}
-  .empty{color:var(--dim);font-size:13px;padding:8px 0;text-align:center}
+  .it b{display:block;font-weight:600;font-size:14.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .it small{color:var(--dim);font-size:11.5px;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .amt{font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap;letter-spacing:-.2px}
+  .amt.neg{color:var(--neg)} .amt.pos{color:var(--pos)}
+  .del{background:none;border:0;color:#5b6070;font-size:15px;padding:4px 2px;cursor:pointer;line-height:1}
+  .empty{color:var(--dim);font-size:12.5px;padding:10px 0;text-align:center}
 
-  .add{width:100%;margin-top:10px;background:var(--card2);border:1px dashed var(--line);color:var(--gold);
-    border-radius:12px;padding:11px;font-size:14px;font-weight:600;cursor:pointer}
+  .add{width:100%;margin-top:10px;background:transparent;border:1px solid var(--line2);color:var(--dim);
+    border-radius:8px;padding:11px;font-size:13.5px;font-weight:700;cursor:pointer;letter-spacing:.2px}
+  .add:active{background:var(--card2)}
 
-  .seg{display:flex;gap:6px;background:var(--card2);padding:5px;border-radius:14px;margin-bottom:14px}
+  .seg{display:flex;gap:0;margin-bottom:14px;border-bottom:1px solid var(--line)}
   .seg button{flex:1;background:none;border:0;color:var(--dim);font-size:13px;font-weight:700;
-    padding:9px 4px;border-radius:10px;cursor:pointer}
-  .seg button.on{background:var(--red);color:#fff}
+    padding:10px 4px;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px}
+  .seg button.on{color:var(--txt);border-bottom-color:var(--acc)}
 
-  .cal{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
-  .cal .dow{text-align:center;font-size:11px;color:var(--dim);padding-bottom:2px}
-  .day{aspect-ratio:1/1;border-radius:11px;background:var(--card2);border:1px solid transparent;
-    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer;position:relative}
+  /* ---------- calendario ---------- */
+  .cal{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+  .cal .dow{text-align:center;font-size:10px;color:var(--dim);padding-bottom:3px;text-transform:uppercase;letter-spacing:.6px}
+  .day{aspect-ratio:1/1;border-radius:6px;background:var(--card2);border:1px solid transparent;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer}
   .day.pad{background:none;cursor:default}
   .day span{font-size:13px;font-weight:600}
-  .day.today{border-color:var(--gold)}
-  .day.sel{background:var(--red);color:#fff}
-  .day.sel span{color:#fff}
+  .day.today{border-color:var(--acc)}
+  .day.sel{background:var(--acc);color:#12101f}
+  .day.sel span{color:#12101f}
   .dots{display:flex;gap:3px;height:5px}
   .dots i{width:5px;height:5px;border-radius:50%;display:block}
+  .leyenda{display:flex;flex-wrap:wrap;gap:12px;margin-top:10px;font-size:11.5px;color:var(--dim)}
+  .leyenda span{display:flex;align-items:center;gap:6px}
+  .leyenda i{width:7px;height:7px;border-radius:50%;display:block}
 
-  .chips{display:flex;flex-wrap:wrap;gap:7px;margin-top:8px}
-  .chip{border:1px solid var(--line);background:var(--card2);color:var(--dim);border-radius:999px;
-    padding:8px 12px;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px}
-  .chip.on{background:var(--red);border-color:var(--red);color:#fff}
-  .catrow{padding:10px 0;border-top:1px solid var(--line)}
+  .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+  .chip{border:1px solid var(--line2);background:transparent;color:var(--dim);border-radius:7px;
+    padding:8px 11px;font-size:12.5px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px}
+  .chip.on{background:rgba(144,133,233,.16);border-color:var(--acc);color:var(--txt)}
+  .catrow{padding:12px 0;border-top:1px solid var(--line)}
   .catrow:first-child{border-top:0}
-  .catname{font-weight:700;font-size:15px;display:flex;align-items:center;gap:7px}
-  .catname em{margin-left:auto;font-style:normal;font-size:12px;color:var(--dim);font-weight:500}
+  .catname{font-weight:700;font-size:14.5px;display:flex;align-items:center;gap:9px}
+  .catname .av{width:26px;height:26px;border-radius:7px;background:var(--card2);display:flex;
+    align-items:center;justify-content:center;font-size:14px;flex:none}
+  .catname em{margin-left:auto;font-style:normal;font-size:12px;color:var(--dim);font-weight:600}
 
-  .stat{display:flex;align-items:center;gap:10px;padding:9px 0;border-top:1px solid var(--line)}
+  .stat{display:flex;align-items:center;gap:10px;padding:10px 0;border-top:1px solid var(--line)}
   .stat:first-child{border-top:0}
   .stat .lab{flex:1;min-width:0}
   .stat .lab b{display:block;font-size:14px;font-weight:600}
-  .stat .lab small{color:var(--dim);font-size:12px}
-  .pill{font-size:12px;font-weight:700;padding:4px 9px;border-radius:999px;white-space:nowrap}
-  .pill.ok{background:rgba(63,193,137,.16);color:var(--green)}
-  .pill.mid{background:rgba(240,194,107,.16);color:var(--gold)}
-  .pill.bad{background:rgba(224,52,95,.18);color:#ff8fa8}
+  .stat .lab small{color:var(--dim);font-size:11.5px}
+  .pill{font-size:11.5px;font-weight:700;padding:4px 9px;border-radius:6px;white-space:nowrap;
+    font-variant-numeric:tabular-nums}
+  .pill.ok{background:rgba(25,158,112,.18);color:var(--pos)}
+  .pill.mid{background:rgba(201,133,0,.2);color:#e8b04d}
+  .pill.bad{background:rgba(217,89,38,.18);color:var(--neg)}
   .pill.n{background:rgba(255,255,255,.07);color:var(--dim)}
 
   .quick{display:flex;gap:8px}
   .quick input{flex:1}
-  .quick button{background:var(--red);border:0;color:#fff;border-radius:12px;padding:0 16px;font-size:20px;font-weight:700;cursor:pointer}
+  .quick button{background:var(--acc);border:0;color:#12101f;border-radius:8px;padding:0 18px;
+    font-size:20px;font-weight:800;cursor:pointer}
 
-  .prow{padding:11px 0;border-top:1px solid var(--line)}
+  .prow{padding:12px 0;border-top:1px solid var(--line)}
   .prow:first-child{border-top:0}
-  .ptitle{display:flex;align-items:center;gap:8px;font-weight:600;font-size:15px}
-  .ptitle em{font-style:normal;color:var(--dim);font-size:12px;font-weight:500}
-  .shops{display:flex;flex-wrap:wrap;gap:6px;margin-top:7px}
-  .shop{font-size:12px;padding:5px 9px;border-radius:9px;background:var(--card2);border:1px solid var(--line);
-    color:var(--dim);display:flex;gap:6px;align-items:center}
-  .shop b{color:var(--txt);font-variant-numeric:tabular-nums}
-  .shop.best{border-color:var(--green);background:rgba(63,193,137,.13)}
-  .shop.best b{color:var(--green)}
-  .shop i{font-style:normal;opacity:.6;font-size:10px}
+  .ptitle{display:flex;align-items:center;gap:8px;font-weight:700;font-size:14.5px;flex-wrap:wrap}
+  .ptitle em{font-style:normal;color:var(--dim);font-size:11.5px;font-weight:500}
+  .shops{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}
+  .shop{font-size:12px;padding:6px 9px;border-radius:7px;background:var(--card2);
+    color:var(--dim);display:flex;gap:6px;align-items:center;border-left:2px solid var(--line2)}
+  .shop b{color:var(--txt);font-variant-numeric:tabular-nums;letter-spacing:-.2px}
+  .shop.best{border-left-color:var(--in);background:rgba(25,158,112,.12)}
+  .shop.best b{color:var(--pos)}
+  .shop i{font-style:normal;opacity:.65;font-size:10px}
+  .shop u{text-decoration:none}
 
   nav{
     position:fixed;left:0;right:0;bottom:0;z-index:30;display:flex;
-    background:rgba(20,10,15,.95);backdrop-filter:blur(14px);border-top:1px solid var(--line);
-    padding:8px 6px calc(8px + env(safe-area-inset-bottom));
+    background:rgba(14,15,19,.96);backdrop-filter:blur(14px);border-top:1px solid var(--line);
+    padding:9px 6px calc(9px + env(safe-area-inset-bottom));
   }
-  nav button{flex:1;background:none;border:0;color:var(--dim);font-size:11px;font-weight:600;
-    display:flex;flex-direction:column;align-items:center;gap:3px;padding:5px 0;cursor:pointer}
-  nav button i{font-style:normal;font-size:20px;line-height:1}
-  nav button.on{color:var(--red)}
+  nav button{flex:1;background:none;border:0;color:var(--dim);font-size:9.5px;font-weight:700;
+    letter-spacing:.9px;text-transform:uppercase;
+    display:flex;flex-direction:column;align-items:center;gap:4px;padding:4px 0;cursor:pointer}
+  nav button svg{width:20px;height:20px}
+  nav button.on{color:var(--acc)}
 
-  .ov{position:fixed;inset:0;z-index:50;background:rgba(0,0,0,.6);display:none;align-items:flex-end}
+  .ov{position:fixed;inset:0;z-index:50;background:rgba(0,0,0,.65);display:none;align-items:flex-end}
   .ov.on{display:flex}
-  .sheet{width:100%;max-width:640px;margin:0 auto;background:var(--bg2);border-radius:20px 20px 0 0;
+  .sheet{width:100%;max-width:640px;margin:0 auto;background:var(--bg2);border-radius:14px 14px 0 0;
     border-top:1px solid var(--line);padding:18px 16px calc(18px + env(safe-area-inset-bottom));max-height:90vh;overflow:auto}
-  .sheet h3{margin:0 0 14px;font-size:17px}
-  label{display:block;font-size:12px;color:var(--dim);margin:10px 0 5px;text-transform:uppercase;letter-spacing:.5px}
-  input,select,textarea{width:100%;background:var(--card);border:1px solid var(--line);color:var(--txt);
-    border-radius:12px;padding:12px;font-size:16px;font-family:inherit}
+  .sheet h3{margin:0 0 14px;font-size:16px;letter-spacing:-.2px}
+  label{display:block;font-size:10.5px;color:var(--dim);margin:12px 0 5px;text-transform:uppercase;letter-spacing:1.4px;font-weight:700}
+  input,select,textarea{width:100%;background:var(--card);border:1px solid var(--line2);color:var(--txt);
+    border-radius:8px;padding:12px;font-size:16px;font-family:inherit}
   textarea{min-height:120px;font-size:13px;font-family:ui-monospace,Menlo,Consolas,monospace}
-  input:focus,select:focus,textarea:focus{outline:2px solid var(--red);border-color:transparent}
+  input:focus,select:focus,textarea:focus{outline:2px solid var(--acc);border-color:transparent}
   .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
   .btns{display:flex;gap:10px;margin-top:18px}
-  .btns button{flex:1;border:0;border-radius:12px;padding:13px;font-size:15px;font-weight:700;cursor:pointer}
-  .b-ok{background:var(--red);color:#fff}
+  .btns button{flex:1;border:0;border-radius:8px;padding:13px;font-size:14.5px;font-weight:700;cursor:pointer}
+  .b-ok{background:var(--acc);color:#12101f}
   .b-no{background:var(--card2);color:var(--dim)}
-  .mini{font-size:12px;color:var(--dim);margin-top:6px}
-  .lineitem{display:grid;grid-template-columns:1fr 44px 66px 30px 22px;gap:5px;margin-bottom:6px;align-items:center}
-  .lineitem input{padding:9px 7px;font-size:14px;border-radius:9px}
-  .offbtn{background:var(--card);border:1px solid var(--line);border-radius:9px;color:var(--dim);
-    font-size:14px;padding:8px 0;cursor:pointer;line-height:1}
-  .offbtn.on{background:rgba(240,194,107,.2);border-color:var(--gold)}
+  .mini{font-size:11.5px;color:var(--dim);margin-top:7px;line-height:1.5}
+  .lineitem{display:grid;grid-template-columns:1fr 44px 66px 30px 22px;gap:5px;align-items:center}
+  .lineitem input{padding:9px 7px;font-size:14px;border-radius:7px}
+  .offbtn{background:transparent;border:1px solid var(--line2);border-radius:7px;color:var(--dim);
+    font-size:11px;font-weight:800;padding:9px 0;cursor:pointer;line-height:1;letter-spacing:.4px}
+  .offbtn.on{background:rgba(201,133,0,.2);border-color:var(--gold);color:#e8b04d}
   .linewrap{margin-bottom:6px}
-  .linewrap .lineitem{margin-bottom:0}
-  .lineoff{display:flex;align-items:center;gap:8px;margin:4px 0 0 0;padding:6px 9px;border-radius:9px;
-    background:rgba(240,194,107,.09);border:1px solid rgba(240,194,107,.35)}
-  .lineoff span{font-size:11px;color:var(--gold);flex:1}
-  .lineoff input{width:78px;padding:6px 7px;font-size:13px;border-radius:8px;margin:0}
-  .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:100px;background:var(--card2);
-    border:1px solid var(--line);color:var(--txt);padding:10px 16px;border-radius:999px;font-size:13px;
+  .lineoff{display:flex;align-items:center;gap:8px;margin:4px 0 0;padding:6px 9px;border-radius:7px;
+    background:rgba(201,133,0,.1);border:1px solid rgba(201,133,0,.35)}
+  .lineoff span{font-size:11px;color:#e8b04d;flex:1}
+  .lineoff input{width:82px;padding:6px 7px;font-size:13px;border-radius:6px;margin:0}
+  .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:104px;background:var(--card2);
+    border:1px solid var(--line2);color:var(--txt);padding:11px 16px;border-radius:8px;font-size:13px;
     z-index:80;opacity:0;transition:opacity .25s;pointer-events:none;max-width:88%;text-align:center}
   .toast.on{opacity:1}
 </style>
@@ -174,7 +232,7 @@
 <body>
 
 <header>
-  <div class="brand">🩸 Casa &amp; Gatos <small id="storeState"></small></div>
+  <div class="brand"><span class="dot"></span>Casa &amp; Gatos <small id="storeState"></small></div>
   <div class="monthnav">
     <button id="prevM" aria-label="Mes anterior">‹</button>
     <div class="mlabel" id="mLabel">—</div>
@@ -186,47 +244,56 @@
 <main>
   <!-- ============ FINANZAS ============ -->
   <section class="view on" id="v-fin">
-    <div class="card balance">
-      <h2>Balance del mes</h2>
-      <div class="bal-main" id="balMain">0 €</div>
-      <div class="bal-sub" id="balSub"></div>
-      <div class="bar" id="balBar"></div>
-      <div class="bal-grid">
-        <div><span>Ingresos</span><b id="tIng" class="amt pos">0 €</b></div>
-        <div><span>Gastos</span><b id="tGas" class="amt neg">0 €</b></div>
-        <div><span>Real (marcado)</span><b id="tReal">0 €</b></div>
-        <div><span>Ahorro s/ ingresos</span><b id="tPct">0 %</b></div>
-      </div>
+
+    <div class="hero">
+      <div class="tag" id="balTag">Queda este mes</div>
+      <div class="hnum tab" id="balMain">0 &euro;</div>
+      <div class="hsub" id="balSub"></div>
+      <div class="split" id="balBar"></div>
+      <div id="balDelta"></div>
     </div>
 
-    <div class="card">
-      <h2>Ingresos fijos <span class="sum" id="sIngF">0 €</span></h2>
-      <ul class="list" id="lIngF"></ul>
-      <button class="add" data-add="incF">+ Añadir ingreso fijo</button>
+    <div class="tiles">
+      <div class="tile i"><span>Entra</span><b id="tIng" class="tab">0 &euro;</b><small id="tIngSub"></small></div>
+      <div class="tile o"><span>Sale</span><b id="tGas" class="tab">0 &euro;</b><small id="tGasSub"></small></div>
+      <div class="tile g"><span>Ya pagado</span><b id="tReal" class="tab">0 &euro;</b><small id="tRealSub"></small></div>
+      <div class="tile y"><span>Ahorro</span><b id="tPct" class="tab">0 %</b><small id="tPctSub"></small></div>
     </div>
 
-    <div class="card">
-      <h2>Ingresos extra <span class="sum" id="sIngV">0 €</span></h2>
-      <ul class="list" id="lIngV"></ul>
-      <button class="add" data-add="incV">+ Añadir ingreso extra</button>
+    <div class="sec">
+      <h2><span class="tick" style="background:var(--out)"></span>Seis meses de gasto <span class="sum" id="sMedia"></span></h2>
+      <div class="spark" id="spark"></div>
     </div>
 
-    <div class="card">
-      <h2>Gastos fijos <span class="sum" id="sGasF">0 €</span></h2>
-      <ul class="list" id="lGasF"></ul>
-      <button class="add" data-add="expF">+ Añadir gasto fijo</button>
-    </div>
-
-    <div class="card">
-      <h2>Gastos variables <span class="sum" id="sGasV">0 €</span></h2>
-      <ul class="list" id="lGasV"></ul>
-      <button class="add" data-add="expV">+ Añadir gasto variable</button>
-    </div>
-
-    <div class="card">
-      <h2>Por categoría</h2>
+    <div class="sec">
+      <h2><span class="tick" style="background:var(--out)"></span>En qu&eacute; se va <span class="sum" id="sCat">0 &euro;</span></h2>
       <div id="byCat"></div>
     </div>
+
+    <div class="sec">
+      <h2><span class="tick" style="background:var(--in)"></span>Ingresos fijos <span class="sum" id="sIngF">0 &euro;</span></h2>
+      <ul class="list" id="lIngF"></ul>
+      <button class="add" data-add="incF">A&ntilde;adir ingreso fijo</button>
+    </div>
+
+    <div class="sec">
+      <h2><span class="tick" style="background:var(--in)"></span>Ingresos extra <span class="sum" id="sIngV">0 &euro;</span></h2>
+      <ul class="list" id="lIngV"></ul>
+      <button class="add" data-add="incV">A&ntilde;adir ingreso extra</button>
+    </div>
+
+    <div class="sec">
+      <h2><span class="tick" style="background:var(--out)"></span>Gastos fijos <span class="sum" id="sGasF">0 &euro;</span></h2>
+      <ul class="list" id="lGasF"></ul>
+      <button class="add" data-add="expF">A&ntilde;adir gasto fijo</button>
+    </div>
+
+    <div class="sec">
+      <h2><span class="tick" style="background:var(--out)"></span>Gastos variables <span class="sum" id="sGasV">0 &euro;</span></h2>
+      <ul class="list" id="lGasV"></ul>
+      <button class="add" data-add="expV">A&ntilde;adir gasto variable</button>
+    </div>
+
   </section>
 
   <!-- ============ COMPRA ============ -->
@@ -258,9 +325,9 @@
       <div class="card">
         <h2>Tickets <span class="sum" id="tkSum"></span></h2>
         <ul class="list" id="lTickets"></ul>
-        <button class="add" id="tkPhoto">📷 Ticket desde foto (OCR)</button>
-        <button class="add" id="tkText">📝 Escribir / pegar ticket</button>
-        <button class="add" id="tkJson">📥 Importar ticket en JSON</button>
+        <button class="add" id="tkPhoto">Ticket desde foto (OCR)</button>
+        <button class="add" id="tkText">Escribir o pegar ticket</button>
+        <button class="add" id="tkJson">Importar ticket en JSON</button>
         <input type="file" id="tkFile" accept="image/*" capture="environment" style="display:none">
         <div class="mini">Cada ticket guardado se apunta solo como gasto variable del mes y alimenta el catálogo de precios.</div>
       </div>
@@ -268,17 +335,17 @@
 
     <div id="sub-precios">
       <div class="card">
-        <h2>Catálogo de precios <span class="sum" id="prCount"></span></h2>
+        <h2>Catálogo <span class="sum" id="prCount"></span></h2>
         <input id="prSearch" placeholder="Buscar producto…" autocomplete="off">
-        <div class="chips"><div class="chip" id="grpToggle">Agrupar por producto</div><div class="chip" id="offToggle">🏷️ Contar ofertas al comparar</div></div>
+        <div class="chips"><div class="chip" id="grpToggle">Agrupar por producto</div><div class="chip" id="offToggle">Contar ofertas al comparar</div></div>
         <div id="prList" style="margin-top:12px"></div>
       </div>
       <div class="card">
         <h2>Actualizar <span class="sum" id="syncInfo" style="font-size:12px;color:var(--dim)"></span></h2>
-        <button class="add" id="prSeed" style="color:var(--green)">⚡ Cargar catálogo incluido (46 precios) — empieza por aquí</button>
-        <button class="add" id="prSync">☁️ Actualizar precios desde la nube <span style="color:var(--dim);font-weight:400">· solo si has montado el repo</span></button>
+        <button class="add" id="prSeed" style="color:var(--pos)">Cargar catálogo incluido (46 precios) — empieza por aquí</button>
+        <button class="add" id="prSync">Actualizar precios desde la nube <span style="color:var(--dim);font-weight:400">· solo si has montado el repo</span></button>
         <button class="add" id="prAdd">+ Apuntar un precio visto en tienda</button>
-        <button class="add" id="prImport">📥 Importar catálogo (JSON)</button>
+        <button class="add" id="prImport">Importar catálogo (JSON)</button>
         <input type="file" id="prFile" accept="application/json" style="display:none">
         <div class="mini">La app funciona perfectamente sin nube: el catálogo incluido y tus tickets bastan. Lo de la nube es solo para que los precios se refresquen solos los lunes.</div>
       </div>
@@ -290,7 +357,7 @@
     <div class="card">
       <h2>Calendario <span class="sum" id="calHint"></span></h2>
       <div class="cal" id="calGrid"></div>
-      <div class="mini">🔴 tarea de gato · 🔵 casa (arenero / baño) · 🟡 peso o vet</div>
+      <div class="leyenda"><span><i style="background:var(--acc)"></i>tarea de gato</span><span><i style="background:var(--blue)"></i>casa (arenero / baño)</span><span><i style="background:var(--gold)"></i>peso o vet</span></div>
     </div>
     <div class="card">
       <h2 id="dayTitle">Día</h2>
@@ -311,12 +378,12 @@
     <div class="card">
       <h2>Gatos</h2>
       <ul class="list" id="lCats"></ul>
-      <button class="add" data-add="cat">+ Añadir gato</button>
+      <button class="add" data-add="cat">Añadir gato</button>
     </div>
     <div class="card">
       <h2>Supermercados</h2>
       <div id="shopsBox"></div>
-      <button class="add" id="shopAdd">+ Añadir supermercado</button>
+      <button class="add" id="shopAdd">Añadir supermercado</button>
     </div>
     <div class="card">
       <h2>Sincronizar entre los dos <span class="sum" id="nubeInfo" style="font-size:12px;color:var(--dim)"></span></h2>
@@ -324,7 +391,7 @@
       <input id="setSync" placeholder="https://…workers.dev/?k=vuestra-clave" autocomplete="off">
       <label>Contraseña (cifra lo que sube a la nube)</label>
       <input id="setPass" type="password" placeholder="una frase que sepáis los dos" autocomplete="off">
-      <button class="add" id="btnSync" style="color:var(--green)">🔄 Sincronizar ahora</button>
+      <button class="add" id="btnSync" style="color:var(--pos)">Sincronizar ahora</button>
       <div class="mini">La misma URL <b>y la misma contraseña</b> en los dos móviles. Lo que se sube va cifrado en
         el propio móvil: quien diera con la URL vería un churro de letras, no vuestros gastos. La contraseña no
         sale de aquí, así que si la cambias en uno tienes que cambiarla en el otro. Si la olvidas, lo del móvil
@@ -342,17 +409,17 @@
     </div>
     <div class="card">
       <h2>Datos</h2>
-      <button class="add" id="btnExport">⬇︎ Exportar copia (JSON)</button>
-      <button class="add" id="btnImport">⬆︎ Importar copia</button>
+      <button class="add" id="btnExport">Exportar copia (JSON)</button>
+      <button class="add" id="btnImport">Importar copia</button>
       <input type="file" id="fileIn" accept="application/json" style="display:none">
-      <button class="add" id="btnReset" style="color:#ff8fa8">✕ Borrar todo</button>
+      <button class="add" id="btnReset" style="color:var(--neg)">Borrar todo</button>
       <div class="mini">Los datos se guardan en este dispositivo. Exporta de vez en cuando para tener copia.</div>
     </div>
     <div class="card">
       <h2>Cómo usarlo</h2>
       <div class="mini" style="font-size:13px;line-height:1.6">
         · Añade a pantalla de inicio desde el navegador y va como una app.<br>
-        · Los <b>fijos</b> se repiten solos cada mes desde el mes en que los creas; márcalos con ✓ al pagarse o cobrarse.<br>
+        · Los <b>fijos</b> se repiten solos cada mes desde el mes en que los creas; márcalos con la casilla al pagarse o cobrarse.<br>
         · En <b>Compra</b>: la lista te dice dónde sale más barato, los tickets se convierten en gasto y en precios.<br>
         · El <b>OCR</b> de tickets tarda la primera vez (se descarga el motor) y necesita internet ese primer uso.<br>
         · En <b>Cuidados</b> toca un día y marca lo hecho.
@@ -362,10 +429,10 @@
 </main>
 
 <nav>
-  <button class="on" data-view="fin"><i>💰</i>Finanzas</button>
-  <button data-view="shop"><i>🛒</i>Compra</button>
-  <button data-view="care"><i>🐾</i>Cuidados</button>
-  <button data-view="set"><i>⚙️</i>Ajustes</button>
+  <button class="on" data-view="fin"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l5-5 4 3 7-8"/><path d="M3 21h18"/></svg>Dinero</button>
+  <button data-view="shop"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 7h14l-1.2 12H6.2z"/><path d="M9 7V5a3 3 0 016 0v2"/></svg>Compra</button>
+  <button data-view="care"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="9" r="2.4"/><circle cx="16" cy="9" r="2.4"/><path d="M6 15.5c0 3 2.7 4.5 6 4.5s6-1.5 6-4.5"/></svg>Gatos</button>
+  <button data-view="set"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6l1.5 1.5M16.9 16.9l1.5 1.5M18.4 5.6l-1.5 1.5M7.1 16.9l-1.5 1.5"/></svg>Ajustes</button>
 </nav>
 
 <div class="ov" id="ov"><div class="sheet" id="sheet"></div></div>
@@ -523,49 +590,144 @@ function activeRec(list,k){
 function sum(list){ return list.reduce(function(a,b){ return a + (+b.amount||0); },0); }
 
 /* =========== FINANZAS =========== */
-function renderFin(){
-  var k = mKey(cur), m = mData(k);
+/* color fijo por categoria: el mismo en las barras y donde haga falta */
+var CAT_COLOR = {"Casa":"#3987e5","Comida":"#d95926","Gatos":"#199e70","Ocio":"#c98500",
+                 "Transporte":"#d55181","Salud":"#9085e9","Compras":"#4bb3c9","Otros":"#7c8494"};
+function colorCat(c){ return CAT_COLOR[c] || CAT_COLOR.Otros; }
+
+/* totales de un mes cualquiera. hastaDia: solo cuenta los apuntes sueltos
+   hasta ese dia, para poder comparar "a estas alturas" con el mes pasado. */
+function totalesMes(k, hastaDia){
+  var m = S.months[k] || {expenses:[],incomes:[],paid:{},received:{}};
   var ingF = activeRec(S.recurring.incomes,k), expF = activeRec(S.recurring.expenses,k);
-  var tIngF = sum(ingF), tIngV = sum(m.incomes), tExpF = sum(expF), tExpV = sum(m.expenses);
-  var ing = tIngF + tIngV, gas = tExpF + tExpV, bal = ing - gas;
-  var realIn = tIngV + sum(ingF.filter(function(r){ return m.received[r.id]; }));
-  var realOut = tExpV + sum(expF.filter(function(r){ return m.paid[r.id]; }));
+  function corta(list){
+    if(!hastaDia) return list||[];
+    return (list||[]).filter(function(x){ return +(String(x.date||"").slice(8,10)||99) <= hastaDia; });
+  }
+  var tIngV = sum(corta(m.incomes)), tExpV = sum(corta(m.expenses));
+  return {
+    ingF:sum(ingF), ingV:tIngV, expF:sum(expF), expV:tExpV,
+    ing:sum(ingF)+tIngV, gas:sum(expF)+tExpV,
+    realIn: tIngV + sum(ingF.filter(function(r){ return (m.received||{})[r.id]; })),
+    realOut: tExpV + sum(expF.filter(function(r){ return (m.paid||{})[r.id]; }))
+  };
+}
+function mesRelativo(k, n){
+  return mKey(new Date(+k.slice(0,4), +k.slice(5,7)-1+n, 1));
+}
+function flecha(dir){
+  var d = dir>0 ? "M12 19V5M5 12l7-7 7 7" : (dir<0 ? "M12 5v14M5 12l7 7 7-7" : "M5 12h14");
+  return '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" '+
+         'stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="'+d+'"/></svg>';
+}
+function renderFin(){
+  var k = mKey(cur);
+  var esteMes = (k === mKey(today));
+  var dia = esteMes ? today.getDate() : 0;
+  var t = totalesMes(k);
+  var bal = t.ing - t.gas;
 
-  document.getElementById("balMain").textContent = money(bal);
-  document.getElementById("balMain").style.color = bal>=0 ? "var(--green)" : "#ff8fa8";
-  document.getElementById("balSub").textContent = bal>=0
-    ? "Te sobran " + money(bal) + " este mes 👌" : "Te faltan " + money(Math.abs(bal)) + " este mes";
-  document.getElementById("tIng").textContent = money(ing);
-  document.getElementById("tGas").textContent = money(gas);
-  document.getElementById("tReal").textContent = money(realIn - realOut);
-  document.getElementById("tPct").textContent = ing>0 ? Math.round(bal/ing*100)+" %" : "—";
-  document.getElementById("sIngF").textContent = money(tIngF);
-  document.getElementById("sIngV").textContent = money(tIngV);
-  document.getElementById("sGasF").textContent = money(tExpF);
-  document.getElementById("sGasV").textContent = money(tExpV);
+  document.getElementById("balTag").textContent = bal>=0 ? "Queda este mes" : "Se ha ido de mas";
+  var bm = document.getElementById("balMain");
+  bm.textContent = money(Math.abs(bal));
+  bm.style.color = bal>=0 ? "var(--pos)" : "var(--neg)";
+  document.getElementById("balSub").textContent = money(t.ing)+" entra  ·  "+money(t.gas)+" sale";
 
-  var base = Math.max(ing, gas, 1);
+  var base = Math.max(t.ing, t.gas, 1);
   document.getElementById("balBar").innerHTML =
-    '<i style="width:'+(tExpF/base*100)+'%;background:var(--red)"></i>' +
-    '<i style="width:'+(tExpV/base*100)+'%;background:var(--gold)"></i>';
+    '<i style="width:'+(t.expF/base*100)+'%;background:var(--out)"></i>' +
+    '<i style="width:'+(t.expV/base*100)+'%;background:var(--gold)"></i>' +
+    '<i style="flex:1;background:#22252f"></i>';
 
-  rowsRec("lIngF", ingF, "received", "inc");
-  rowsOne("lIngV", m.incomes, "inc");
-  rowsRec("lGasF", expF, "paid", "exp");
-  rowsOne("lGasV", m.expenses, "exp");
+  /* comparacion con el mes anterior, a la misma altura del mes */
+  var kAnt = mesRelativo(k,-1);
+  var ant = totalesMes(kAnt, dia || 0);
+  var actual = esteMes ? totalesMes(k, dia) : t;
+  var dif = actual.gas - ant.gas;
+  var pct = ant.gas>0 ? Math.round(dif/ant.gas*100) : null;
+  var cuando = esteMes ? ("a "+dia+" de "+MONTHS[cur.getMonth()].toLowerCase()) : "en total";
+  var cls = Math.abs(dif)<0.5 ? "flat" : (dif>0 ? "up" : "down");
+  var txt;
+  if(!ant.gas) txt = "Del mes pasado no hay con qué comparar";
+  else if(Math.abs(dif)<0.5) txt = "Igual que el mes pasado "+cuando;
+  else txt = money(Math.abs(dif)) + (dif>0 ? " más" : " menos") + " que el mes pasado " + cuando +
+             (pct!==null ? "  ("+(dif>0?"+":"−")+Math.abs(pct)+" %)" : "");
+  document.getElementById("balDelta").innerHTML =
+    '<div class="delta '+cls+'">'+flecha(Math.abs(dif)<0.5?0:(dif>0?1:-1))+txt+'</div>';
 
+  /* fichas */
+  var tAnt = totalesMes(kAnt);
+  function sub(a,b,q){
+    if(!b) return "";
+    var d = a-b;
+    if(Math.abs(d)<0.5) return "igual que en "+q;
+    return (d>0?"+":"−")+money(Math.abs(d))+" que en "+q;
+  }
+  var qAnt = MONTHS[parseD(kAnt+"-01").getMonth()].toLowerCase().slice(0,3);
+  document.getElementById("tIng").textContent = money(t.ing);
+  document.getElementById("tIngSub").textContent = sub(t.ing, tAnt.ing, qAnt);
+  document.getElementById("tGas").textContent = money(t.gas);
+  document.getElementById("tGasSub").textContent = sub(t.gas, tAnt.gas, qAnt);
+  document.getElementById("tReal").textContent = money(t.realOut);
+  document.getElementById("tRealSub").textContent = t.gas>0
+    ? Math.round(t.realOut/t.gas*100)+" % de "+money(t.gas) : "nada apuntado";
+  document.getElementById("tPct").textContent = t.ing>0 ? Math.round(bal/t.ing*100)+" %" : "—";
+  document.getElementById("tPctSub").textContent = t.ing>0 ? money(bal)+" sobre lo que entra" : "";
+
+  document.getElementById("sIngF").textContent = money(t.ingF);
+  document.getElementById("sIngV").textContent = money(t.ingV);
+  document.getElementById("sGasF").textContent = money(t.expF);
+  document.getElementById("sGasV").textContent = money(t.expV);
+
+  /* seis meses de gasto */
+  var meses = [], maxG = 1, suma = 0, cuenta = 0;
+  for(var i=5;i>=0;i--){
+    var kk = mesRelativo(k,-i);
+    var tt = totalesMes(kk);
+    meses.push({k:kk, g:tt.gas, fijo:tt.expF, vari:tt.expV, lab:MONTHS[parseD(kk+"-01").getMonth()].slice(0,3)});
+    if(tt.gas>maxG) maxG = tt.gas;
+    if(tt.gas>0){ suma += tt.gas; cuenta++; }
+  }
+  document.getElementById("sMedia").textContent = cuenta ? "media "+money(suma/cuenta) : "";
+  /* la barra va partida: abajo lo fijo (que es igual todos los meses) y
+     arriba lo variable, que es lo que de verdad cambia de un mes a otro */
+  document.getElementById("spark").innerHTML = meses.map(function(x){
+    var hf = Math.round(x.fijo/maxG*56), hv = Math.round(x.vari/maxG*56);
+    if(x.g>0 && hf+hv<3) hv = 3;
+    var act = (x.k===k);
+    return '<div class="'+(act?"on":"")+'" title="'+esc(x.lab)+': '+money(x.g)+
+      ' ('+money(x.fijo)+' fijos + '+money(x.vari)+' variables)">'+
+      '<i class="v" style="height:'+hv+'px"></i>'+
+      '<i class="f" style="height:'+hf+'px"></i>'+
+      '<em>'+esc(x.lab)+'</em></div>';
+  }).join("");
+
+  rowsRec("lIngF", activeRec(S.recurring.incomes,k), "received", "inc");
+  rowsOne("lIngV", (S.months[k]||{}).incomes || [], "inc");
+  rowsRec("lGasF", activeRec(S.recurring.expenses,k), "paid", "exp");
+  rowsOne("lGasV", (S.months[k]||{}).expenses || [], "exp");
+
+  /* en que se va: fijos + variables, cada categoria con su color */
   var acc = {};
-  m.expenses.forEach(function(e){ var c=e.cat||"Otros"; acc[c]=(acc[c]||0)+(+e.amount||0); });
+  activeRec(S.recurring.expenses,k).forEach(function(e){
+    var c = e.cat||"Otros"; acc[c] = (acc[c]||0)+(+e.amount||0);
+  });
+  ((S.months[k]||{}).expenses || []).forEach(function(e){
+    var c = e.cat||"Otros"; acc[c] = (acc[c]||0)+(+e.amount||0);
+  });
   var keys = Object.keys(acc).sort(function(a,b){ return acc[b]-acc[a]; });
+  var total = keys.reduce(function(a,c){ return a+acc[c]; },0);
+  document.getElementById("sCat").textContent = money(total);
   var box = document.getElementById("byCat");
-  if(!keys.length){ box.innerHTML = '<div class="empty">Sin gastos variables todavía</div>'; }
+  if(!keys.length){ box.innerHTML = '<div class="empty">Sin gastos apuntados este mes</div>'; }
   else {
     var max = acc[keys[0]];
-    box.innerHTML = keys.map(function(c){
-      return '<div class="stat"><div class="lab"><b>'+esc(c)+'</b>'+
-        '<div class="bar" style="margin-top:6px"><i style="width:'+(acc[c]/max*100)+'%;background:var(--red)"></i></div></div>'+
-        '<div class="amt neg">'+money(acc[c])+'</div></div>';
-    }).join("");
+    box.innerHTML = '<div class="bars">' + keys.map(function(c){
+      var col = colorCat(c);
+      return '<div class="brow"><span class="t"><i style="background:'+col+'"></i><span>'+esc(c)+'</span></span>'+
+        '<span class="v tab">'+money(acc[c])+'</span>'+
+        '<span class="track"><i style="width:'+(acc[c]/max*100)+'%;background:'+col+'"></i></span></div>';
+    }).join("") + '</div>';
   }
 }
 function rowsRec(id, list, flag, kind){
@@ -574,7 +736,7 @@ function rowsRec(id, list, flag, kind){
   ul.innerHTML = list.map(function(r){
     var on = !!m[flag][r.id];
     return '<li>'+
-      '<div class="chk'+(on?' on':'')+'" data-flag="'+flag+'" data-id="'+r.id+'">'+(on?"✓":"")+'</div>'+
+      '<div class="chk'+(on?' on':'')+'" data-flag="'+flag+'" data-id="'+r.id+'">'+CHECK+'</div>'+
       '<div class="it" data-edit="'+(kind==="inc"?"incF":"expF")+'" data-id="'+r.id+'">'+
         '<b>'+esc(r.name)+'</b><small>'+(r.day?("día "+r.day+" · "):"")+(on?(kind==="inc"?"cobrado":"pagado"):"pendiente")+'</small></div>'+
       '<div class="amt '+(kind==="inc"?"pos":"neg")+'">'+(kind==="inc"?"+":"−")+money(r.amount)+'</div>'+
@@ -586,7 +748,7 @@ function rowsOne(id, list, kind){
   if(!list.length){ ul.innerHTML = '<div class="empty">Nada por aquí</div>'; return; }
   var s = list.slice().sort(function(a,b){ return (a.date||"").localeCompare(b.date||""); });
   ul.innerHTML = s.map(function(r){
-    var sub2 = (r.date ? shortDate(r.date) : "") + (r.cat ? " · "+esc(r.cat) : "") + (r.ticket ? " · 🧾 ticket" : "");
+    var sub2 = (r.date ? shortDate(r.date) : "") + (r.cat ? " · "+esc(r.cat) : "") + (r.ticket ? " · ticket" : "");
     return '<li><div class="it" data-edit="'+(kind==="inc"?"incV":"expV")+'" data-id="'+r.id+'" style="margin-left:2px">'+
       '<b>'+esc(r.name)+'</b><small>'+sub2+'</small></div>'+
       '<div class="amt '+(kind==="inc"?"pos":"neg")+'">'+(kind==="inc"?"+":"−")+money(r.amount)+'</div>'+
@@ -623,6 +785,7 @@ function canonName(n, fallback){
   for(var i=0;i<S.prices.length;i++) if(S.prices[i].norm===n) return S.prices[i].prod;
   return fallback;
 }
+var CHECK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5.5 5.5L20 6.5"/></svg>';
 function r2(x){ return Math.round(x*100)/100; }
 /* — agrupado por nombre genérico: "ALCAMPO CULTIVAMOS LO BUENO Sandía negra al peso"
      y "Sandía negra" son lo mismo. Solo afecta a cómo se ve; los datos no se tocan. — */
@@ -878,9 +1041,9 @@ function renderPrices(){
       var main, extra = "";
       if(p.price>0){
         main = money(p.price);
-        if(p.offer>0) extra = ' <u style="color:var(--gold);text-decoration:none">🏷️'+money(p.offer)+'</u>';
+        if(p.offer>0) extra = ' <u style="color:var(--gold);text-decoration:none">of. '+money(p.offer)+'</u>';
       } else {
-        main = '<u style="color:var(--gold);text-decoration:none">🏷️'+money(p.offer)+'</u>';
+        main = '<u style="color:var(--gold);text-decoration:none">of. '+money(p.offer)+'</u>';
         extra = ' <i>sin precio normal</i>';
       }
       var isBest = eff(p)!==null && p===withP[0] && withP.length>1;
@@ -890,14 +1053,14 @@ function renderPrices(){
         med = ' <b>'+fmtMedida(p._m)+'</b>';
         var bruto = money(eff(p));
         /* la oferta se enseña siempre, aunque se compare por el precio normal */
-        var etiq = p.offer>0 ? (eff(p)===p.offer ? ' 🏷️' : ' <u style="color:var(--gold);text-decoration:none">🏷️'+money(p.offer)+'</u>') : '';
+        var etiq = p.offer>0 ? (eff(p)===p.offer ? ' <u style="color:var(--gold);text-decoration:none">of.</u>' : ' <u style="color:var(--gold);text-decoration:none">of. '+money(p.offer)+'</u>') : '';
         extra = etiq + (bruto === money(p._m.v) ? '' : ' <i>'+bruto+'</i>');
         main = "";
         return '<span class="shop'+(isBest?" best":"")+'"'+stale+' data-editprice="'+p.id+'">'+
-          esc(p.shop)+med+extra+' <i>'+(esNuevo?"🆕 ":"")+age+(p.src==="ticket"?" 🧾":"")+'</i></span>';
+          esc(p.shop)+med+extra+' <i>'+(esNuevo?"nuevo · ":"")+age+(p.src==="ticket"?" · ticket":"")+'</i></span>';
       }
       return '<span class="shop'+(isBest?" best":"")+'"'+stale+' data-editprice="'+p.id+'">'+
-        esc(p.shop)+' <b>'+main+'</b>'+extra+' <i>'+(esNuevo?"🆕 ":"")+age+(p.src==="ticket"?" 🧾":"")+'</i></span>';
+        esc(p.shop)+' <b>'+main+'</b>'+extra+' <i>'+(esNuevo?"nuevo · ":"")+age+(p.src==="ticket"?" · ticket":"")+'</i></span>';
     }).join("");
     var save2 = "";
     if(withP.length>1){
@@ -950,8 +1113,8 @@ function renderList(){
       var precio2 = bm && bm.u!=="ud"
         ? (fmtMedida(bm) + (money(bm.v)===money(bp) ? "" : " · "+money(bp)))
         : (money(bp)+(b&&b.unit?" / "+b.unit:""));
-      var sub2 = b ? ("más barato en "+b.shop+" · "+precio2+(isOff?" 🏷️ oferta":"")) : "sin precio guardado";
-      return '<li><div class="chk'+(it.done?" on":"")+'" data-litoggle="'+it.id+'">'+(it.done?"✓":"")+'</div>'+
+      var sub2 = b ? ("más barato en "+b.shop+" · "+precio2+(isOff?" en oferta":"")) : "sin precio guardado";
+      return '<li><div class="chk'+(it.done?" on":"")+'" data-litoggle="'+it.id+'">'+CHECK+'</div>'+
         '<div class="it" data-liedit="'+it.id+'"><b style="'+(it.done?"opacity:.45;text-decoration:line-through":"")+'">'+
         esc(it.name)+(it.qty&&it.qty!=1?' ×'+it.qty:'')+'</b><small>'+esc(sub2)+'</small></div>'+
         (b?'<div class="amt">'+money(bp*(it.qty||1))+'</div>':'')+
@@ -984,7 +1147,7 @@ function renderList(){
   var cheapestFull = res.filter(function(r){ return r.have===maxHave; }).sort(function(a,b){ return a.tot-b.tot; })[0];
   box.innerHTML = res.map(function(r){
     var isBest = r===cheapestFull;
-    return '<div class="stat"><div class="lab"><b>'+esc(r.shop)+(isBest?' 🏆':'')+'</b>'+
+    return '<div class="stat"><div class="lab"><b>'+esc(r.shop)+(isBest?' <span class="pill ok" style="margin-left:6px">mejor</span>':'')+'</b>'+
       '<small>'+r.have+"/"+pend.length+" productos"+(r.miss.length&&r.miss.length<4?" · falta: "+esc(r.miss.join(", ")):"")+'</small></div>'+
       '<div class="pill '+(isBest?"ok":"n")+'">'+money(r.tot)+'</div></div>';
   }).join("") + '<div class="mini">Compara solo los productos de los que hay precio en cada sitio.</div>';
@@ -1156,7 +1319,7 @@ function runOCR(file){
     sheetMsg("Descargando el motor de OCR (solo la primera vez)…");
     return loadOCR().then(function(ok){
       if(!ok) throw new Error("No he podido cargar el OCR (¿sin internet?)");
-      sheetMsg("Leyendo el ticket… esto tarda un poco 🐢");
+      sheetMsg("Leyendo el ticket… esto tarda un poco");
       return window.Tesseract.recognize(dataUrl, "spa", {
         logger: function(m){
           if(m.status==="recognizing text") sheetMsg("Leyendo el ticket… "+Math.round(m.progress*100)+"%");
@@ -1169,13 +1332,13 @@ function runOCR(file){
 
 /* =========== CUIDADOS =========== */
 var CAT_TASKS = [
-  {k:"dientes", label:"Dientes", icon:"🦷"},
-  {k:"malta",   label:"Malta",   icon:"🧴"},
-  {k:"cepillado",label:"Cepillado",icon:"🪮"}
+  {k:"dientes",   label:"Dientes"},
+  {k:"malta",     label:"Malta"},
+  {k:"cepillado", label:"Cepillado"}
 ];
 var HOME_TASKS = [
-  {k:"arenero", label:"Arenero a fondo", icon:"🧹"},
-  {k:"bano",    label:"Limpiar el baño", icon:"🚿"}
+  {k:"arenero", label:"Arenero a fondo"},
+  {k:"bano",    label:"Limpiar el baño"}
 ];
 function care(dk, make){
   if(!S.care[dk]){ if(!make) return null; S.care[dk] = {cats:{}, home:{}}; }
@@ -1206,7 +1369,7 @@ function renderCal(){
     var h = dayHas(dk);
     var cls = "day" + (dk===dKey(today)?" today":"") + (dk===selDay?" sel":"");
     var dots = "";
-    if(h.cat) dots += '<i style="background:var(--red)"></i>';
+    if(h.cat) dots += '<i style="background:var(--acc)"></i>';
     if(h.home) dots += '<i style="background:var(--blue)"></i>';
     if(h.health) dots += '<i style="background:var(--gold)"></i>';
     html += '<div class="'+cls+'" data-day="'+dk+'"><span>'+d+'</span><div class="dots">'+dots+'</div></div>';
@@ -1221,17 +1384,17 @@ function renderDay(){
   var html = "";
   S.cats.forEach(function(cat){
     var t = (c.cats||{})[cat.id] || {};
-    html += '<div class="catrow"><div class="catname">'+esc(cat.emoji||"🐈")+' '+esc(cat.name)+
+    html += '<div class="catrow"><div class="catname"><span class="av">'+esc(cat.emoji||"·")+'</span>'+esc(cat.name)+
       (t.peso?'<em>'+t.peso+' kg</em>':'')+'</div><div class="chips">';
     CAT_TASKS.forEach(function(x){
-      html += '<div class="chip'+(t[x.k]?" on":"")+'" data-ct="'+cat.id+'" data-t="'+x.k+'">'+x.icon+' '+x.label+'</div>';
+      html += '<div class="chip'+(t[x.k]?" on":"")+'" data-ct="'+cat.id+'" data-t="'+x.k+'">'+x.label+'</div>';
     });
-    html += '<div class="chip'+(t.vet?" on":"")+'" data-ct="'+cat.id+'" data-t="vet">🏥 Vet</div>';
-    html += '<div class="chip'+(t.peso?" on":"")+'" data-weight="'+cat.id+'">⚖️ Peso</div></div></div>';
+    html += '<div class="chip'+(t.vet?" on":"")+'" data-ct="'+cat.id+'" data-t="vet">Vet</div>';
+    html += '<div class="chip'+(t.peso?" on":"")+'" data-weight="'+cat.id+'">Peso</div></div></div>';
   });
-  html += '<div class="catrow"><div class="catname">🏠 Casa</div><div class="chips">';
+  html += '<div class="catrow"><div class="catname">Casa</div><div class="chips">';
   HOME_TASKS.forEach(function(x){
-    html += '<div class="chip'+((c.home||{})[x.k]?" on":"")+'" data-ht="'+x.k+'">'+x.icon+' '+x.label+'</div>';
+    html += '<div class="chip'+((c.home||{})[x.k]?" on":"")+'" data-ht="'+x.k+'">'+x.label+'</div>';
   });
   html += '</div></div>';
   document.getElementById("dayEditor").innerHTML = html;
@@ -1263,17 +1426,17 @@ function renderStats(){
     ws.getDate()+" "+MONTHS[ws.getMonth()].slice(0,3)+" – "+we.getDate()+" "+MONTHS[we.getMonth()].slice(0,3);
   var out = "";
   S.cats.forEach(function(cat){
-    out += '<div class="catrow"><div class="catname">'+esc(cat.emoji||"🐈")+' '+esc(cat.name)+'</div></div>';
+    out += '<div class="catrow"><div class="catname"><span class="av">'+esc(cat.emoji||"·")+'</span>'+esc(cat.name)+'</div></div>';
     CAT_TASKS.forEach(function(x){
       var n = countRange(ws,we,function(c){ return ((c.cats||{})[cat.id]||{})[x.k]; });
       var goal = S.goals[x.k]||1;
-      out += statRow(x.icon+" "+x.label, "objetivo "+goal+"/semana", pill(n,goal));
+      out += statRow(x.label, "objetivo "+goal+"/semana", pill(n,goal));
     });
   });
   var nb = countRange(ws,we,function(c){ return (c.home||{}).bano; });
-  out += statRow("🚿 Limpiar el baño","objetivo "+(S.goals.bano||1)+"/semana", pill(nb, S.goals.bano||1));
+  out += statRow("Limpiar el baño","objetivo "+(S.goals.bano||1)+"/semana", pill(nb, S.goals.bano||1));
   var la = lastDone(function(c){ return (c.home||{}).arenero; }), ga = S.goals.arenero||15;
-  out += statRow("🧹 Arenero a fondo","cada "+ga+" días", la===null ? '<div class="pill bad">nunca</div>'
+  out += statRow("Arenero a fondo","cada "+ga+" días", la===null ? '<div class="pill bad">nunca</div>'
     : '<div class="pill '+(la<=ga-4?"ok":(la<=ga?"mid":"bad"))+'">'+(la===0?"hoy":"hace "+la+" d")+'</div>');
   document.getElementById("weekStats").innerHTML = out;
 
@@ -1281,23 +1444,23 @@ function renderStats(){
   var out2 = "";
   S.cats.forEach(function(cat){
     var parts = CAT_TASKS.map(function(x){
-      return x.icon+" "+countRange(ms,me,function(c){ return ((c.cats||{})[cat.id]||{})[x.k]; });
+      return x.label+" "+countRange(ms,me,function(c){ return ((c.cats||{})[cat.id]||{})[x.k]; });
     }).join("  ·  ");
     var pesos = [], d = new Date(ms);
     while(d<=me){ var c = S.care[dKey(d)]; var t = c && (c.cats||{})[cat.id];
       if(t && t.peso) pesos.push(t.peso); d.setDate(d.getDate()+1); }
-    out2 += statRow(esc(cat.emoji||"🐈")+" "+esc(cat.name), parts,
+    out2 += statRow(esc(cat.name), parts,
       pesos.length ? '<div class="pill mid">'+pesos[pesos.length-1]+' kg</div>' : '');
   });
-  out2 += statRow("🧹 Arenero","veces este mes",'<div class="pill n">'+countRange(ms,me,function(c){ return (c.home||{}).arenero; })+'</div>');
-  out2 += statRow("🚿 Baño","veces este mes",'<div class="pill n">'+countRange(ms,me,function(c){ return (c.home||{}).bano; })+'</div>');
+  out2 += statRow("Arenero","veces este mes",'<div class="pill n">'+countRange(ms,me,function(c){ return (c.home||{}).arenero; })+'</div>');
+  out2 += statRow("Baño","veces este mes",'<div class="pill n">'+countRange(ms,me,function(c){ return (c.home||{}).bano; })+'</div>');
   document.getElementById("monthStats").innerHTML = out2;
 }
 
 /* =========== AJUSTES =========== */
 function renderSet(){
   document.getElementById("lCats").innerHTML = S.cats.map(function(c){
-    return '<li><div class="it" data-editcat="'+c.id+'"><b>'+esc(c.emoji||"🐈")+" "+esc(c.name)+'</b><small>toca para editar</small></div>'+
+    return '<li><div class="it" data-editcat="'+c.id+'"><b><span class="av" style="display:inline-flex;width:22px;height:22px;vertical-align:-6px;margin-right:7px">'+esc(c.emoji||"·")+'</span>'+esc(c.name)+'</b><small>toca para editar</small></div>'+
       '<button class="del" data-delcat="'+c.id+'">✕</button></li>';
   }).join("") || '<div class="empty">Sin gatos</div>';
 
@@ -1305,9 +1468,9 @@ function renderSet(){
     return '<div class="chip on" data-delshop="'+esc(s)+'">'+esc(s)+' ✕</div>'; }).join("")+'</div>';
 
   var g = [
-    {k:"dientes",l:"🦷 Dientes (veces/semana)"},{k:"malta",l:"🧴 Malta (veces/semana)"},
-    {k:"cepillado",l:"🪮 Cepillado (veces/semana)"},{k:"bano",l:"🚿 Baño (veces/semana)"},
-    {k:"arenero",l:"🧹 Arenero (cada X días)"}
+    {k:"dientes",l:"Dientes (veces/semana)"},{k:"malta",l:"Malta (veces/semana)"},
+    {k:"cepillado",l:"Cepillado (veces/semana)"},{k:"bano",l:"Baño (veces/semana)"},
+    {k:"arenero",l:"Arenero (cada X días)"}
   ];
   document.getElementById("goalsBox").innerHTML = g.map(function(x){
     return '<label>'+x.l+'</label><input type="number" inputmode="numeric" min="1" data-goal="'+x.k+'" value="'+(S.goals[x.k]||1)+'">';
@@ -1318,7 +1481,7 @@ function renderSet(){
   document.getElementById("setPass").value = S.syncPass || "";
   var ni = document.getElementById("nubeInfo");
   var cuando = S.lastNube ? ("última: "+new Date(S.lastNube).toLocaleString("es-ES",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"})) : "sin sincronizar";
-  if(ni) ni.textContent = ((S.syncPass||"").trim() ? "🔒 cifrado · " : "") + cuando;
+  if(ni) ni.textContent = ((S.syncPass||"").trim() ? "cifrado · " : "") + cuando;
 }
 
 /* =========== SINCRONIZACIÓN ENTRE LOS DOS MÓVILES ===========
@@ -1457,7 +1620,7 @@ function sincroniza(manual){
       S.lastNube = new Date().toISOString();
       _sincronizando = false;
       save(); render();
-      if(manual) toast("Sincronizado ✓");
+      if(manual) toast("Sincronizado");
       return true;
     })
     .catch(function(e){
@@ -1589,18 +1752,18 @@ function openPrice(id){
       var flecha = dif>0.005 ? ' <span style="color:#ff8fa8">▲ subió '+money(dif)+'</span>'
                  : (dif<-0.005 ? ' <span style="color:var(--green)">▼ bajó '+money(-dif)+'</span>' : '');
       return '<div class="mini">'+shortDate(h.date)+": "+(h.price>0?money(h.price):"—")+
-             (h.offer>0?" 🏷️"+money(h.offer):"")+flecha+'</div>';
+             (h.offer>0?" of. "+money(h.offer):"")+flecha+'</div>';
     }).join("");
   }
   openSheet('<h3>'+(p?"Precio · "+esc(p.shop):"Apuntar precio")+'</h3>'+
     '<label>Producto</label><input id="p_prod" placeholder="Pechuga de pollo" value="'+esc(p?p.prod:"")+'">'+
     '<div class="row2"><div><label>Precio normal (€)</label><input id="p_price" type="number" inputmode="decimal" step="0.01" value="'+(p&&p.price>0?p.price:"")+'"></div>'+
-    '<div><label>🏷️ Oferta (€)</label><input id="p_offer" type="number" inputmode="decimal" step="0.01" placeholder="opcional" value="'+(p&&p.offer>0?p.offer:"")+'"></div></div>'+
-    '<div class="mini">El precio normal es el que manda para comparar. La oferta se guarda aparte y se marca con 🏷️.</div>'+
+    '<div><label>Oferta (€)</label><input id="p_offer" type="number" inputmode="decimal" step="0.01" placeholder="opcional" value="'+(p&&p.offer>0?p.offer:"")+'"></div></div>'+
+    '<div class="mini">El precio normal es el que manda para comparar. La oferta se guarda aparte y se marca en dorado.</div>'+
     '<div class="row2"><div><label>Unidad</label><input id="p_unit" placeholder="kg, ud, 1L" value="'+esc(p?p.unit:"")+'"></div>'+
     '<div><label>Supermercado</label><select id="p_shop">'+shopOptions(p?p.shop:null)+'</select></div></div>'+
     '<label>Fecha del dato</label><input id="p_date" type="date" value="'+esc(p?p.date:dKey(today))+'">'+
-    (p?'<button class="add" id="p_now">✓ Sigue igual — marcar como comprobado hoy</button>':'')+
+    (p?'<button class="add" id="p_now">Sigue igual — marcar como comprobado hoy</button>':'')+
     hist+
     '<div class="btns">'+(p?'<button class="b-no" id="p_del">Borrar</button>':'<button class="b-no" id="p_cancel">Cancelar</button>')+
     '<button class="b-ok" id="p_save">Guardar</button></div>');
@@ -1653,7 +1816,7 @@ function openListItem(id){
 
 /* --- editor de ticket --- */
 function ticketEditor(t){
-  var html = '<h3>🧾 Ticket</h3><div class="mini" id="sh_msg"></div>'+
+  var html = '<h3>Ticket</h3><div class="mini" id="sh_msg"></div>'+
     '<div class="row2"><div><label>Supermercado</label><select id="t_shop">'+shopOptions(t.shop)+'</select></div>'+
     '<div><label>Fecha</label><input id="t_date" type="date" value="'+esc(t.date||dKey(today))+'"></div></div>'+
     '<label>Categoría del gasto</label><select id="t_cat">'+CATS.map(function(c){
@@ -1673,7 +1836,7 @@ function ticketEditor(t){
         '<input data-l="'+i+'" data-f="name" value="'+esc(l.name)+'" placeholder="producto">'+
         '<input data-l="'+i+'" data-f="qty" type="number" inputmode="decimal" step="0.5" value="'+(l.qty||1)+'">'+
         '<input data-l="'+i+'" data-f="price" type="number" inputmode="decimal" step="0.01" value="'+(l.price||"")+'">'+
-        '<button class="offbtn'+(enOferta?" on":"")+'" data-loff="'+i+'" title="tenía oferta">🏷️</button>'+
+        '<button class="offbtn'+(enOferta?" on":"")+'" data-loff="'+i+'" title="tenía oferta">OF</button>'+
         '<button class="del" data-lrm="'+i+'">✕</button></div>'+
         (enOferta ? '<div class="lineoff"><span>lo pagaste a</span>'+
           '<input data-l="'+i+'" data-f="off" type="number" inputmode="decimal" step="0.01" value="'+
@@ -1687,7 +1850,7 @@ function ticketEditor(t){
     var tot = num(document.getElementById("t_total").value)||0;
     var d = Math.abs(s-tot);
     document.getElementById("t_check").innerHTML = "Suma de líneas: <b>"+money(s)+"</b>"+
-      (d>0.02 ? ' · <span style="color:var(--gold)">no cuadra con el total ('+money(tot)+')</span>' : ' · cuadra ✓');
+      (d>0.02 ? ' · <span style="color:var(--gold)">no cuadra con el total ('+money(tot)+')</span>' : ' · cuadra');
   }
   document.getElementById("t_lines").addEventListener("input", function(e){
     var i = e.target.dataset.l, f = e.target.dataset.f;
@@ -1730,7 +1893,7 @@ function ticketEditor(t){
 /* resumen tras guardar un ticket: qué productos no estaban en el catálogo.
    Se pueden renombrar aquí mismo, que es cuando te acuerdas de qué eran. */
 function avisaNuevos(res, shop){
-  var html = '<h3>🆕 '+res.nuevos.length+' producto'+(res.nuevos.length>1?'s':'')+' nuevo'+(res.nuevos.length>1?'s':'')+'</h3>'+
+  var html = '<h3>'+res.nuevos.length+' producto'+(res.nuevos.length>1?'s':'')+' nuevo'+(res.nuevos.length>1?'s':'')+'</h3>'+
     '<div class="mini">No estaban en el catálogo y ya se han añadido con su precio de '+esc(shop)+
     '. Si el ticket los abrevia raro, córrigelos ahora y quedarán bien guardados.</div>';
   res.nuevos.forEach(function(n,i){
@@ -1753,7 +1916,7 @@ function avisaNuevos(res, shop){
   };
 }
 function openTicketText(){
-  openSheet('<h3>📝 Pegar ticket</h3>'+
+  openSheet('<h3>Pegar ticket</h3>'+
     '<div class="mini">Pega el texto del ticket (una línea por producto, el precio al final). Yo lo troceo y luego lo repasas.</div>'+
     '<textarea id="tx" placeholder="MERCADONA\n12/08/2026\n2 PECHUGA POLLO 5,49 10,98\nLECHE ENTERA 0,96\nTOTAL 11,94"></textarea>'+
     '<div class="btns"><button class="b-no" id="tx_cancel">Cancelar</button><button class="b-ok" id="tx_ok">Trocear</button></div>');
@@ -1766,7 +1929,7 @@ function openTicketText(){
   };
 }
 function openTicketJson(){
-  openSheet('<h3>📥 Ticket en JSON</h3>'+
+  openSheet('<h3>Ticket en JSON</h3>'+
     '<div class="mini">Formato: {"shop":"Mercadona","date":"2026-08-12","total":11.94,"lines":[{"name":"Pechuga pollo","qty":2,"price":10.98}]}<br>'+
     'En una línea con oferta, <b>price</b> es el precio normal y <b>off</b> lo que pagaste: {"name":"Gnocchi","qty":1,"price":0.89,"off":0.76}</div>'+
     '<textarea id="tj" placeholder=\'{"shop":"Mercadona","date":"2026-08-12","total":11.94,"lines":[...]}\'></textarea>'+
@@ -1892,7 +2055,7 @@ document.getElementById("prSync").onclick = function(){
   toast("Descargando precios…");
   fetch(url, {cache:"no-store"})
     .then(function(r){
-      if(r.status===404) throw new Error("aquí no hay catálogo todavía — usa ⚡ Cargar catálogo incluido");
+      if(r.status===404) throw new Error("aquí no hay catálogo todavía — usa el botón de cargar el catálogo incluido");
       if(!r.ok) throw new Error("HTTP "+r.status);
       return r.json();
     })
@@ -1943,7 +2106,7 @@ document.getElementById("tkPhoto").onclick = function(){ document.getElementById
 document.getElementById("tkFile").onchange = function(e){
   var f = e.target.files[0]; e.target.value = "";
   if(!f) return;
-  openSheet('<h3>📷 Leyendo ticket</h3><div class="mini" id="sh_msg">Empezando…</div>'+
+  openSheet('<h3>Leyendo ticket</h3><div class="mini" id="sh_msg">Empezando…</div>'+
     '<div class="mini">La primera vez descarga el motor de OCR (unos MB). Si va muy lento, cancela y usa "Escribir / pegar ticket".</div>'+
     '<div class="btns"><button class="b-no" id="o_cancel">Cancelar</button></div>');
   document.getElementById("o_cancel").onclick = closeSheet;
@@ -1954,7 +2117,7 @@ document.getElementById("tkFile").onchange = function(e){
     ticketEditor(t);
     toast(t.lines.length ? t.lines.length+" líneas detectadas · repásalas" : "No he sacado líneas claras, mételas a mano");
   }).catch(function(err){
-    openSheet('<h3>😕 No ha podido</h3><div class="mini">'+esc(err.message||err)+'</div>'+
+    openSheet('<h3>No ha podido</h3><div class="mini">'+esc(err.message||err)+'</div>'+
       '<div class="btns"><button class="b-no" id="o_c2">Cerrar</button><button class="b-ok" id="o_t2">Escribirlo a mano</button></div>');
     document.getElementById("o_c2").onclick = closeSheet;
     document.getElementById("o_t2").onclick = openTicketText;
