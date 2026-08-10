@@ -315,9 +315,13 @@
       <h2>Sincronizar entre los dos <span class="sum" id="nubeInfo" style="font-size:12px;color:var(--dim)"></span></h2>
       <label>URL de sincronización (con la clave)</label>
       <input id="setSync" placeholder="https://…workers.dev/?k=vuestra-clave" autocomplete="off">
+      <label>Contraseña (cifra lo que sube a la nube)</label>
+      <input id="setPass" type="password" placeholder="una frase que sepáis los dos" autocomplete="off">
       <button class="add" id="btnSync" style="color:var(--green)">🔄 Sincronizar ahora</button>
-      <div class="mini">La misma URL en los dos móviles y listo: gastos, tickets, lista y cuidados se juntan solos.
-        Se sube en cuanto dejas de tocar, y al abrir la app se baja lo del otro. Quien no tenga la URL no entra.</div>
+      <div class="mini">La misma URL <b>y la misma contraseña</b> en los dos móviles. Lo que se sube va cifrado en
+        el propio móvil: quien diera con la URL vería un churro de letras, no vuestros gastos. La contraseña no
+        sale de aquí, así que si la cambias en uno tienes que cambiarla en el otro. Si la olvidas, lo del móvil
+        sigue intacto; lo de la nube ya no se puede leer.</div>
     </div>
     <div class="card">
       <h2>Catálogo en la nube</h2>
@@ -429,7 +433,7 @@ var DEF = {
   months:{}, care:{}, prices:[], tickets:[], shoplist:[],
   goals:{dientes:3,malta:2,cepillado:3,bano:1,arenero:15},
   useOffers:false, agrupar:true, catalogUrl:"", lastSync:"",
-  syncUrl:"", upd:"", lastNube:""
+  syncUrl:"", syncPass:"", upd:"", lastNube:"", lastCat:"", lastAuto:""
 };
 
 function load(){
@@ -1280,8 +1284,10 @@ function renderSet(){
 
   document.getElementById("setUrl").value = S.catalogUrl || "";
   document.getElementById("setSync").value = S.syncUrl || "";
+  document.getElementById("setPass").value = S.syncPass || "";
   var ni = document.getElementById("nubeInfo");
-  if(ni) ni.textContent = S.lastNube ? ("última: "+new Date(S.lastNube).toLocaleString("es-ES",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"})) : "sin sincronizar";
+  var cuando = S.lastNube ? ("última: "+new Date(S.lastNube).toLocaleString("es-ES",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"})) : "sin sincronizar";
+  if(ni) ni.textContent = ((S.syncPass||"").trim() ? "🔒 cifrado · " : "") + cuando;
 }
 
 /* =========== SINCRONIZACIÓN ENTRE LOS DOS MÓVILES ===========
@@ -1352,18 +1358,68 @@ function fusiona(local, remoto){
   }
   return out;
 }
+/* — cifrado de extremo a extremo: la nube solo guarda un churro; la clave se queda
+     en el móvil y nunca viaja. AES-GCM 256 con la contraseña estirada por PBKDF2. — */
+function hayCripto(){ return !!(window.crypto && window.crypto.subtle && window.crypto.subtle.deriveKey); }
+function _b64(buf){
+  var b = new Uint8Array(buf), s = "", i;
+  for(i=0;i<b.length;i++) s += String.fromCharCode(b[i]);
+  return btoa(s);
+}
+function _unb64(t){
+  var bin = atob(t), a = new Uint8Array(bin.length), i;
+  for(i=0;i<bin.length;i++) a[i] = bin.charCodeAt(i);
+  return a;
+}
+function _claveDe(pass, salt){
+  return crypto.subtle.importKey("raw", new TextEncoder().encode(pass), "PBKDF2", false, ["deriveKey"])
+    .then(function(k){
+      return crypto.subtle.deriveKey({name:"PBKDF2", salt:salt, iterations:150000, hash:"SHA-256"},
+                                     k, {name:"AES-GCM", length:256}, false, ["encrypt","decrypt"]);
+    });
+}
+function cifra(obj, pass){
+  var salt = crypto.getRandomValues(new Uint8Array(16));
+  var iv = crypto.getRandomValues(new Uint8Array(12));
+  return _claveDe(pass, salt)
+    .then(function(k){ return crypto.subtle.encrypt({name:"AES-GCM", iv:iv}, k, new TextEncoder().encode(JSON.stringify(obj))); })
+    .then(function(ct){ return {cifrado:1, s:_b64(salt), i:_b64(iv), d:_b64(ct)}; });
+}
+function descifra(blob, pass){
+  return _claveDe(pass, _unb64(blob.s))
+    .then(function(k){ return crypto.subtle.decrypt({name:"AES-GCM", iv:_unb64(blob.i)}, k, _unb64(blob.d)); })
+    .then(function(buf){ return JSON.parse(new TextDecoder().decode(buf)); });
+}
 function sincroniza(manual){
   var u = (S.syncUrl||"").trim();
   if(!u){ if(manual) toast("Configura la URL en Ajustes → Sincronizar"); return Promise.resolve(false); }
   if(_sincronizando) return Promise.resolve(false);
+  var pass = (S.syncPass||"").trim();
+  if(pass && !hayCripto()){
+    if(manual) toast("Este navegador no puede cifrar: abre la app por https");
+    return Promise.resolve(false);
+  }
   _sincronizando = true;
   if(manual) toast("Sincronizando…");
   return fetch(u, {cache:"no-store"})
     .then(function(r){ if(!r.ok) throw new Error("HTTP "+r.status); return r.json(); })
     .then(function(remoto){
+      if(remoto && remoto.cifrado){
+        if(!pass) throw new Error("la nube está cifrada y aquí no hay contraseña");
+        return descifra(remoto, pass).catch(function(){ throw new Error("la contraseña no coincide"); });
+      }
+      return remoto;
+    })
+    .then(function(remoto){
       S = fusiona(S, remoto);
       S.upd = new Date().toISOString();
-      return fetch(u, {method:"PUT", headers:{"content-type":"application/json"}, body: JSON.stringify(S)});
+      /* la URL y la contraseña no suben nunca: son la llave, no el contenido */
+      var envio = JSON.parse(JSON.stringify(S));
+      delete envio.syncUrl; delete envio.syncPass; delete envio.lastNube;
+      return pass ? cifra(envio, pass) : envio;
+    })
+    .then(function(cuerpo){
+      return fetch(u, {method:"PUT", headers:{"content-type":"application/json"}, body: JSON.stringify(cuerpo)});
     })
     .then(function(r){
       if(!r.ok) throw new Error("al subir, HTTP "+r.status);
@@ -1800,7 +1856,7 @@ document.getElementById("prSync").onclick = function(){
     })
     .then(function(d){
       var n = importCatalog(d, true);
-      S.lastSync = dKey(today); save(); render();
+      S.lastSync = dKey(today); S.lastCat = d.fecha || dKey(today); save(); render();
       toast(n+" precios actualizados"+(d.fecha?" ("+d.fecha+")":""));
     })
     .catch(function(e){ toast("No he podido: "+e.message); });
@@ -1816,6 +1872,11 @@ document.getElementById("offToggle").onclick = function(){
 };
 document.getElementById("setUrl").addEventListener("change", function(e){
   S.catalogUrl = e.target.value.trim(); save(); toast("URL guardada");
+});
+document.getElementById("setPass").addEventListener("change", function(e){
+  S.syncPass = e.target.value;
+  save(); render();
+  toast(S.syncPass.trim() ? "Contraseña guardada · ponla igual en el otro móvil" : "Sin contraseña: la nube irá sin cifrar");
 });
 document.getElementById("setSync").addEventListener("change", function(e){
   S.syncUrl = e.target.value.trim(); save();
@@ -1913,9 +1974,37 @@ document.getElementById("btnReset").onclick = function(){
   S = JSON.parse(JSON.stringify(DEF)); save(); render(); toast("Todo borrado");
 };
 
+/* — precios al día sin tocar nada: el robot de GitHub los deja listos los lunes
+     por la mañana, y la app se los baja sola la primera vez que la abres después. — */
+function ultimoLunes(){
+  var d = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+  d.setDate(d.getDate() - ((d.getDay()+6)%7));
+  return dKey(d);
+}
+function autoPrecios(){
+  if(location.protocol === "file:") return;
+  if(S.lastAuto === dKey(today)) return;              // como mucho, una mirada al día
+  if((S.lastCat||"") >= ultimoLunes()) return;        // ya tengo el catálogo de esta semana
+  var url = (S.catalogUrl||"").trim() || "precios.json";
+  S.lastAuto = dKey(today);
+  fetch(url, {cache:"no-store"})
+    .then(function(r){ return r.ok ? r.json() : null; })
+    .then(function(d){
+      if(!d || !d.items) return;
+      if((d.fecha||"") && d.fecha === S.lastCat) return;
+      var n = importCatalog(d, true);
+      S.lastCat = d.fecha || dKey(today);
+      S.lastSync = dKey(today);
+      save(); render();
+      if(n) toast("Precios al día ("+n+")");
+    })
+    .catch(function(){});
+}
+
 render();
 /* al abrir, baja lo que haya hecho el otro móvil */
 if((S.syncUrl||"").trim()) setTimeout(function(){ sincroniza(false); }, 800);
+setTimeout(autoPrecios, 2500);
 })();
 </script>
 </body>
