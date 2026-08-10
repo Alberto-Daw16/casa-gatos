@@ -226,7 +226,65 @@
   .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:104px;background:var(--card2);
     border:1px solid var(--line2);color:var(--txt);padding:11px 16px;border-radius:8px;font-size:13px;
     z-index:80;opacity:0;transition:opacity .25s;pointer-events:none;max-width:88%;text-align:center}
-  .toast.on{opacity:1}
+  .toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+  .toast{transform:translateX(-50%) translateY(8px);transition:opacity .25s, transform .25s}
+
+  /* ================= movimiento ================= */
+  @keyframes sube{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+  @keyframes entra{from{opacity:0}to{opacity:1}}
+  @keyframes creceX{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+  @keyframes creceY{from{transform:scaleY(0)}to{transform:scaleY(1)}}
+  @keyframes pop{0%{transform:scale(.4);opacity:0}60%{transform:scale(1.08)}100%{transform:scale(1);opacity:1}}
+  @keyframes late{0%,100%{transform:scale(1)}50%{transform:scale(1.06)}}
+
+  .view.on{animation:entra .22s ease both}
+  .view.on > *{animation:sube .34s cubic-bezier(.2,.8,.2,1) both}
+  .view.on > *:nth-child(1){animation-delay:.02s}
+  .view.on > *:nth-child(2){animation-delay:.06s}
+  .view.on > *:nth-child(3){animation-delay:.10s}
+  .view.on > *:nth-child(4){animation-delay:.14s}
+  .view.on > *:nth-child(5){animation-delay:.18s}
+  .view.on > *:nth-child(6){animation-delay:.22s}
+  .view.on > *:nth-child(n+7){animation-delay:.26s}
+
+  .brow .track i{transform-origin:left;animation:creceX .55s cubic-bezier(.2,.8,.2,1) both}
+  .split i{transform-origin:left;animation:creceX .6s cubic-bezier(.2,.8,.2,1) both}
+  .spark i{transform-origin:bottom;animation:creceY .5s cubic-bezier(.2,.8,.2,1) both}
+  .delta{animation:sube .4s .12s cubic-bezier(.2,.8,.2,1) both}
+  .tile{animation:sube .38s cubic-bezier(.2,.8,.2,1) both}
+  .tiles .tile:nth-child(2){animation-delay:.05s}
+  .tiles .tile:nth-child(3){animation-delay:.10s}
+  .tiles .tile:nth-child(4){animation-delay:.15s}
+  .chk.on svg{animation:pop .32s cubic-bezier(.2,1.4,.4,1) both}
+  .chip{transition:background .18s, border-color .18s, color .18s, transform .12s}
+  .chip:active{transform:scale(.95)}
+  .day{transition:background .18s, border-color .18s, transform .12s}
+  .day:active{transform:scale(.92)}
+  .seg button{transition:color .2s}
+  .add{transition:background .18s, border-color .18s}
+  .shop{animation:sube .3s both}
+  .hnum{transition:color .3s}
+  .pulso{animation:late .5s ease}
+
+  /* ================= mosaico del mes ================= */
+  .waffle{display:grid;grid-template-columns:repeat(21,1fr);gap:3px;margin-top:15px}
+  .waffle i{display:block;aspect-ratio:1/1;border-radius:2px;background:#22252f;
+    animation:pop .34s cubic-bezier(.2,1.4,.4,1) both}
+  .wleg{display:flex;flex-wrap:wrap;gap:10px;margin-top:9px;font-size:11px;color:var(--dim)}
+  .wleg span{display:flex;align-items:center;gap:5px}
+  .wleg i{width:8px;height:8px;border-radius:2px;display:block}
+
+  /* ================= ilustraciones ================= */
+  .ilus{display:flex;flex-direction:column;align-items:center;gap:10px;padding:22px 0 12px}
+  .ilus svg{opacity:.9}
+  .ilus p{margin:0;font-size:12.5px;color:var(--dim);text-align:center;max-width:26ch;line-height:1.5}
+  .catname .av{overflow:hidden;background:transparent}
+  .catname .av svg{width:100%;height:100%;display:block}
+
+  @media (prefers-reduced-motion: reduce){
+    *,*::before,*::after{animation-duration:.001ms !important;animation-delay:0s !important;
+      transition-duration:.001ms !important}
+  }
 </style>
 </head>
 <body>
@@ -249,7 +307,8 @@
       <div class="tag" id="balTag">Queda este mes</div>
       <div class="hnum tab" id="balMain">0 &euro;</div>
       <div class="hsub" id="balSub"></div>
-      <div class="split" id="balBar"></div>
+      <div class="waffle" id="waffle"></div>
+      <div class="wleg" id="wleg"></div>
       <div id="balDelta"></div>
     </div>
 
@@ -590,6 +649,73 @@ function activeRec(list,k){
 function sum(list){ return list.reduce(function(a,b){ return a + (+b.amount||0); },0); }
 
 /* =========== FINANZAS =========== */
+/* ============ dibujo y movimiento ============ */
+var SIN_MOVIMIENTO = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+var PALETA = ["#9085e9","#199e70","#d95926","#3987e5","#c98500"];
+
+/* numeros que suben solos hasta su valor */
+function animaNum(el, valor, sufijo){
+  if(!el) return;
+  var antes = parseFloat(el.dataset.v);
+  var pinta = function(v){ el.textContent = sufijo==="%" ? (Math.round(v)+" %") : money(v); };
+  el.dataset.v = valor;
+  if(SIN_MOVIMIENTO || !isFinite(antes) || antes===valor){ pinta(valor); return; }
+  var t0 = null, dur = 550;
+  function paso(t){
+    if(t0===null) t0 = t;
+    var k = Math.min(1, (t-t0)/dur);
+    k = 1 - Math.pow(1-k, 3);
+    pinta(antes + (valor-antes)*k);
+    if(k<1) requestAnimationFrame(paso); else pinta(valor);
+  }
+  requestAnimationFrame(paso);
+}
+/* un gato de bloques, siempre el mismo para cada nombre */
+/* si el gato tiene emoji propio, manda el emoji; si no, su gato de bloques */
+function avatarGato(c){
+  var e = (c && c.emoji || "").trim();
+  return e ? esc(e) : gatoSVG((c && c.name) || "gato");
+}
+function gatoSVG(nombre){
+  var h = 0, i;
+  for(i=0;i<String(nombre).length;i++) h = (h*31 + String(nombre).charCodeAt(i)) >>> 0;
+  var a = PALETA[h % PALETA.length], b = PALETA[(h>>3) % PALETA.length];
+  if(b===a) b = PALETA[(h+2) % PALETA.length];
+  var ojo = (h>>5) % 2 ? "#0e0f13" : "#0e0f13";
+  return '<svg viewBox="0 0 24 24" aria-hidden="true">'+
+    '<rect x="0" y="0" width="24" height="24" rx="3" fill="'+b+'" opacity=".22"/>'+
+    '<rect x="3" y="3" width="4" height="5" fill="'+a+'"/>'+
+    '<rect x="17" y="3" width="4" height="5" fill="'+a+'"/>'+
+    '<rect x="4" y="7" width="16" height="13" rx="2" fill="'+a+'"/>'+
+    '<rect x="7" y="11" width="3" height="3" fill="'+ojo+'"/>'+
+    '<rect x="14" y="11" width="3" height="3" fill="'+ojo+'"/>'+
+    '<rect x="11" y="15" width="2" height="2" fill="'+ojo+'" opacity=".7"/>'+
+    '</svg>';
+}
+/* ilustraciones de bloques para cuando no hay nada que enseñar */
+function ilus(tipo, texto){
+  var c = PALETA, g = {
+    dinero:'<rect x="2" y="26" width="12" height="20" rx="2" fill="'+c[1]+'"/>'+
+           '<rect x="18" y="14" width="12" height="32" rx="2" fill="'+c[2]+'"/>'+
+           '<rect x="34" y="4" width="12" height="42" rx="2" fill="'+c[0]+'"/>',
+    compra:'<rect x="6" y="14" width="36" height="30" rx="3" fill="'+c[3]+'" opacity=".35"/>'+
+           '<rect x="6" y="14" width="36" height="8" rx="2" fill="'+c[3]+'"/>'+
+           '<rect x="14" y="6" width="6" height="10" rx="2" fill="'+c[0]+'"/>'+
+           '<rect x="28" y="6" width="6" height="10" rx="2" fill="'+c[0]+'"/>'+
+           '<rect x="14" y="28" width="20" height="4" rx="2" fill="'+c[4]+'"/>',
+    ticket:'<rect x="8" y="4" width="32" height="40" rx="3" fill="'+c[0]+'" opacity=".3"/>'+
+           '<rect x="13" y="12" width="22" height="4" rx="2" fill="'+c[0]+'"/>'+
+           '<rect x="13" y="21" width="16" height="4" rx="2" fill="'+c[2]+'"/>'+
+           '<rect x="13" y="30" width="12" height="4" rx="2" fill="'+c[1]+'"/>',
+    gato:  '<rect x="4" y="6" width="8" height="10" fill="'+c[0]+'"/>'+
+           '<rect x="36" y="6" width="8" height="10" fill="'+c[0]+'"/>'+
+           '<rect x="8" y="14" width="32" height="26" rx="4" fill="'+c[0]+'"/>'+
+           '<rect x="15" y="22" width="6" height="6" fill="#0e0f13"/>'+
+           '<rect x="27" y="22" width="6" height="6" fill="#0e0f13"/>'
+  }[tipo] || '';
+  return '<div class="ilus"><svg width="72" height="52" viewBox="0 0 48 48">'+g+'</svg>'+
+         '<p>'+esc(texto)+'</p></div>';
+}
 /* color fijo por categoria: el mismo en las barras y donde haga falta */
 var CAT_COLOR = {"Casa":"#3987e5","Comida":"#d95926","Gatos":"#199e70","Ocio":"#c98500",
                  "Transporte":"#d55181","Salud":"#9085e9","Compras":"#4bb3c9","Otros":"#7c8494"};
@@ -620,6 +746,49 @@ function flecha(dir){
   return '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" '+
          'stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="'+d+'"/></svg>';
 }
+function gastoPorCategoria(k){
+  var acc = {};
+  activeRec(S.recurring.expenses,k).forEach(function(e){
+    var c = e.cat||"Otros"; acc[c] = (acc[c]||0)+(+e.amount||0);
+  });
+  ((S.months[k]||{}).expenses || []).forEach(function(e){
+    var c = e.cat||"Otros"; acc[c] = (acc[c]||0)+(+e.amount||0);
+  });
+  return acc;
+}
+/* 42 cuadraditos = todo lo que sale este mes. Cada uno lleva el color de su
+   categoria, asi de un vistazo ves la mezcla sin leer un solo numero. */
+function pintaMosaico(k){
+  var caja = document.getElementById("waffle"), leg = document.getElementById("wleg");
+  if(!caja) return;
+  var acc = gastoPorCategoria(k);
+  var keys = Object.keys(acc).sort(function(a,b){ return acc[b]-acc[a]; });
+  var total = keys.reduce(function(a,c){ return a+acc[c]; },0);
+  var CELDAS = 42;
+  if(!total){
+    caja.innerHTML = new Array(CELDAS+1).join('<i></i>');
+    leg.innerHTML = "";
+    return;
+  }
+  var reparto = [], usadas = 0, i;
+  keys.forEach(function(c){
+    var n = Math.max(1, Math.round(acc[c]/total*CELDAS));
+    reparto.push({c:c, n:n}); usadas += n;
+  });
+  while(usadas > CELDAS){
+    for(i=reparto.length-1;i>=0 && usadas>CELDAS;i--){ if(reparto[i].n>1){ reparto[i].n--; usadas--; } }
+  }
+  while(usadas < CELDAS){ reparto[0].n++; usadas++; }
+  var celdas = [], j = 0;
+  reparto.forEach(function(r){
+    for(var i2=0;i2<r.n;i2++) celdas.push('<i style="background:'+colorCat(r.c)+
+      ';animation-delay:'+(0.012*(j++))+'s" title="'+esc(r.c)+'"></i>');
+  });
+  caja.innerHTML = celdas.join("");
+  leg.innerHTML = reparto.slice(0,5).map(function(r){
+    return '<span><i style="background:'+colorCat(r.c)+'"></i>'+esc(r.c)+'</span>';
+  }).join("");
+}
 function renderFin(){
   var k = mKey(cur);
   var esteMes = (k === mKey(today));
@@ -629,15 +798,9 @@ function renderFin(){
 
   document.getElementById("balTag").textContent = bal>=0 ? "Queda este mes" : "Se ha ido de mas";
   var bm = document.getElementById("balMain");
-  bm.textContent = money(Math.abs(bal));
+  animaNum(bm, Math.abs(bal));
   bm.style.color = bal>=0 ? "var(--pos)" : "var(--neg)";
   document.getElementById("balSub").textContent = money(t.ing)+" entra  ·  "+money(t.gas)+" sale";
-
-  var base = Math.max(t.ing, t.gas, 1);
-  document.getElementById("balBar").innerHTML =
-    '<i style="width:'+(t.expF/base*100)+'%;background:var(--out)"></i>' +
-    '<i style="width:'+(t.expV/base*100)+'%;background:var(--gold)"></i>' +
-    '<i style="flex:1;background:#22252f"></i>';
 
   /* comparacion con el mes anterior, a la misma altura del mes */
   var kAnt = mesRelativo(k,-1);
@@ -664,14 +827,15 @@ function renderFin(){
     return (d>0?"+":"−")+money(Math.abs(d))+" que en "+q;
   }
   var qAnt = MONTHS[parseD(kAnt+"-01").getMonth()].toLowerCase().slice(0,3);
-  document.getElementById("tIng").textContent = money(t.ing);
+  animaNum(document.getElementById("tIng"), t.ing);
   document.getElementById("tIngSub").textContent = sub(t.ing, tAnt.ing, qAnt);
-  document.getElementById("tGas").textContent = money(t.gas);
+  animaNum(document.getElementById("tGas"), t.gas);
   document.getElementById("tGasSub").textContent = sub(t.gas, tAnt.gas, qAnt);
-  document.getElementById("tReal").textContent = money(t.realOut);
+  animaNum(document.getElementById("tReal"), t.realOut);
   document.getElementById("tRealSub").textContent = t.gas>0
     ? Math.round(t.realOut/t.gas*100)+" % de "+money(t.gas) : "nada apuntado";
-  document.getElementById("tPct").textContent = t.ing>0 ? Math.round(bal/t.ing*100)+" %" : "—";
+  if(t.ing>0) animaNum(document.getElementById("tPct"), bal/t.ing*100, "%");
+  else { var tp=document.getElementById("tPct"); tp.textContent = "—"; tp.dataset.v = ""; }
   document.getElementById("tPctSub").textContent = t.ing>0 ? money(bal)+" sobre lo que entra" : "";
 
   document.getElementById("sIngF").textContent = money(t.ingF);
@@ -702,6 +866,9 @@ function renderFin(){
       '<em>'+esc(x.lab)+'</em></div>';
   }).join("");
 
+  /* mosaico: 42 cuadraditos repartidos según en qué se va el dinero */
+  pintaMosaico(k);
+
   rowsRec("lIngF", activeRec(S.recurring.incomes,k), "received", "inc");
   rowsOne("lIngV", (S.months[k]||{}).incomes || [], "inc");
   rowsRec("lGasF", activeRec(S.recurring.expenses,k), "paid", "exp");
@@ -719,14 +886,15 @@ function renderFin(){
   var total = keys.reduce(function(a,c){ return a+acc[c]; },0);
   document.getElementById("sCat").textContent = money(total);
   var box = document.getElementById("byCat");
-  if(!keys.length){ box.innerHTML = '<div class="empty">Sin gastos apuntados este mes</div>'; }
+  if(!keys.length){ box.innerHTML = ilus("dinero","Aún no hay gastos apuntados en este mes"); }
   else {
     var max = acc[keys[0]];
-    box.innerHTML = '<div class="bars">' + keys.map(function(c){
+    box.innerHTML = '<div class="bars">' + keys.map(function(c, i2){
       var col = colorCat(c);
       return '<div class="brow"><span class="t"><i style="background:'+col+'"></i><span>'+esc(c)+'</span></span>'+
         '<span class="v tab">'+money(acc[c])+'</span>'+
-        '<span class="track"><i style="width:'+(acc[c]/max*100)+'%;background:'+col+'"></i></span></div>';
+        '<span class="track"><i style="width:'+(acc[c]/max*100)+'%;background:'+col+
+        ';animation-delay:'+(0.06*i2)+'s"></i></span></div>';
     }).join("") + '</div>';
   }
 }
@@ -1103,7 +1271,7 @@ function renderList(){
   var ul = document.getElementById("lList");
   var pend = S.shoplist.filter(function(i){ return !i.done; });
   document.getElementById("listCount").textContent = pend.length ? pend.length+" pendientes" : "";
-  if(!S.shoplist.length){ ul.innerHTML = '<div class="empty">Lista vacía</div>'; }
+  if(!S.shoplist.length){ ul.innerHTML = ilus("compra","La lista está vacía. Escribe arriba y ve añadiendo cosas."); }
   else {
     ul.innerHTML = S.shoplist.map(function(it){
       var b = bestFor(it.name);
@@ -1158,7 +1326,7 @@ function renderTickets(){
   var ul = document.getElementById("lTickets");
   var t = S.tickets.slice().sort(function(a,b){ return (b.date||"").localeCompare(a.date||""); });
   document.getElementById("tkSum").textContent = S.tickets.length ? S.tickets.length+" guardados" : "";
-  if(!t.length){ ul.innerHTML = '<div class="empty">Sin tickets todavía</div>'; return; }
+  if(!t.length){ ul.innerHTML = ilus("ticket","Sin tickets todavía. Pega uno o hazle una foto."); return; }
   ul.innerHTML = t.map(function(k){
     return '<li><div class="it" data-tkedit="'+k.id+'"><b>'+esc(k.shop||"Ticket")+'</b>'+
       '<small>'+shortDate(k.date)+" · "+(k.lines?k.lines.length:0)+" líneas</small></div>"+
@@ -1384,7 +1552,7 @@ function renderDay(){
   var html = "";
   S.cats.forEach(function(cat){
     var t = (c.cats||{})[cat.id] || {};
-    html += '<div class="catrow"><div class="catname"><span class="av">'+esc(cat.emoji||"·")+'</span>'+esc(cat.name)+
+    html += '<div class="catrow"><div class="catname"><span class="av">'+avatarGato(cat)+'</span>'+esc(cat.name)+
       (t.peso?'<em>'+t.peso+' kg</em>':'')+'</div><div class="chips">';
     CAT_TASKS.forEach(function(x){
       html += '<div class="chip'+(t[x.k]?" on":"")+'" data-ct="'+cat.id+'" data-t="'+x.k+'">'+x.label+'</div>';
@@ -1426,7 +1594,7 @@ function renderStats(){
     ws.getDate()+" "+MONTHS[ws.getMonth()].slice(0,3)+" – "+we.getDate()+" "+MONTHS[we.getMonth()].slice(0,3);
   var out = "";
   S.cats.forEach(function(cat){
-    out += '<div class="catrow"><div class="catname"><span class="av">'+esc(cat.emoji||"·")+'</span>'+esc(cat.name)+'</div></div>';
+    out += '<div class="catrow"><div class="catname"><span class="av">'+avatarGato(cat)+'</span>'+esc(cat.name)+'</div></div>';
     CAT_TASKS.forEach(function(x){
       var n = countRange(ws,we,function(c){ return ((c.cats||{})[cat.id]||{})[x.k]; });
       var goal = S.goals[x.k]||1;
@@ -1460,9 +1628,9 @@ function renderStats(){
 /* =========== AJUSTES =========== */
 function renderSet(){
   document.getElementById("lCats").innerHTML = S.cats.map(function(c){
-    return '<li><div class="it" data-editcat="'+c.id+'"><b><span class="av" style="display:inline-flex;width:22px;height:22px;vertical-align:-6px;margin-right:7px">'+esc(c.emoji||"·")+'</span>'+esc(c.name)+'</b><small>toca para editar</small></div>'+
+    return '<li><div class="it" data-editcat="'+c.id+'"><b><span class="av" style="display:inline-flex;width:22px;height:22px;vertical-align:-6px;margin-right:7px">'+avatarGato(c)+'</span>'+esc(c.name)+'</b><small>toca para editar</small></div>'+
       '<button class="del" data-delcat="'+c.id+'">✕</button></li>';
-  }).join("") || '<div class="empty">Sin gatos</div>';
+  }).join("") || ilus("gato","Sin gatos todavía");
 
   document.getElementById("shopsBox").innerHTML = '<div class="chips">'+S.shops.map(function(s){
     return '<div class="chip on" data-delshop="'+esc(s)+'">'+esc(s)+' ✕</div>'; }).join("")+'</div>';
