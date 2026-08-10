@@ -85,6 +85,32 @@
   .puso b{display:block;font:400 22px/1 "Instrument Serif",Georgia,serif;margin-top:7px;
     font-variant-numeric:tabular-nums}
 
+  .privada{background:var(--card);padding:16px}
+  .privada .n{font:400 34px/1 "Instrument Serif",Georgia,serif;color:var(--c-transporte);
+    font-variant-numeric:tabular-nums;margin-bottom:5px}
+  .privada .d{font-size:12px;color:var(--dim)}
+  .privada .barra{display:grid;grid-template-columns:repeat(25,1fr);gap:3px;margin-top:14px}
+  .privada .barra i{display:block;aspect-ratio:1/1;background:#1c212c}
+  .privada .barra i.on{background:var(--c-transporte)}
+  .quienes{display:grid;grid-template-columns:repeat(auto-fit,minmax(88px,1fr));gap:7px;margin-top:6px}
+  .quienes button{background:var(--card2);border:1px solid var(--line);color:var(--dim);
+    padding:12px 6px 10px;display:flex;flex-direction:column;align-items:center;gap:8px;
+    font:400 12px/1.2 "Space Mono",ui-monospace,monospace;letter-spacing:.01em;cursor:pointer;
+    clip-path:polygon(0 0,calc(100% - 9px) 0,100% 9px,100% 100%,0 100%);transition:border-color .18s,color .18s}
+  .quienes button .ini{width:32px;height:32px;display:grid;place-items:center;background:#1c212c;
+    color:var(--dim);font:400 17px/1 "Instrument Serif",Georgia,serif;transition:background .18s,color .18s}
+  .quienes button.on{border-color:var(--acc);color:var(--txt)}
+  .quienes button.on .ini{background:var(--acc);color:#12160a}
+  .llave{display:flex;gap:11px;align-items:flex-start;background:var(--card2);padding:12px 13px;margin-top:13px}
+  .llave>span{flex:none;color:var(--c-transporte);line-height:0;margin-top:1px}
+  .llave div{font-size:12px;color:var(--dim);line-height:1.55}
+  .llave div b{display:block;color:var(--txt);font:400 15px/1.3 "Instrument Serif",Georgia,serif;margin-bottom:2px}
+  .recu{display:flex;align-items:center;gap:10px;margin-top:14px;cursor:pointer;font-size:13px;color:var(--dim)}
+  .candado{display:flex;gap:12px;align-items:flex-start;background:var(--card);padding:15px}
+  .candado svg{flex:none;margin-top:2px;color:var(--dim)}
+  .candado p{margin:0;font-size:12.5px;color:var(--dim);line-height:1.55}
+  .candado p b{color:var(--txt);display:block;font:400 18px/1.2 "Instrument Serif",Georgia,serif;margin-bottom:4px}
+
   /* de quién es cada cosa */
   .aparte{margin-top:14px;padding-top:13px;border-top:1px solid var(--line)}
   .aparte .et{font-family:"Space Mono",monospace;font-size:8.5px;letter-spacing:1.6px;
@@ -488,11 +514,6 @@
       </div>
 
       <div class="sec">
-        <h2><span class="tick" style="background:var(--acc)"></span>Qui&eacute;n ha puesto qu&eacute;</h2>
-        <div class="puso" id="metaPuso"></div>
-      </div>
-
-      <div class="sec">
         <h2><span class="tick" style="background:var(--acc)"></span>Hitos <span class="sum" id="sHitos"></span></h2>
         <div class="hitos" id="lHitos"></div>
         <button class="add" id="addHito">A&ntilde;adir hito</button>
@@ -504,6 +525,12 @@
         <button class="add" id="addAporte">Meter dinero en la hucha</button>
         <button class="add" id="addSobra">Guardar lo que sobra del mes</button>
         <button class="add" id="editMeta">Cambiar la meta</button>
+      </div>
+
+      <div class="sec" id="secMia">
+        <h2><span class="tick" style="background:var(--c-transporte)"></span>Mi hucha
+          <span class="sum" id="sMia"></span></h2>
+        <div id="miaCuerpo"></div>
       </div>
     </div>
 
@@ -595,12 +622,14 @@
     </div>
     <div class="card">
       <h2>Quiénes sois</h2>
+      <label>Este móvil lo usa</label>
+      <div class="quienes" id="quienSoy"></div>
+      <div class="mini">Con esto sé de quién es un ingreso extra y cuál de las dos huchas privadas te toca.
+        No se sincroniza: cada móvil se queda con su respuesta.</div>
+      <div id="miLlave"></div>
+      <label style="margin-top:16px">Los dos</label>
       <div id="gente"></div>
       <button class="add" id="addPersona">Añadir persona</button>
-      <label>Este móvil lo usa</label>
-      <div class="depick" id="quienSoy"></div>
-      <div class="mini">Sirve para que un ingreso extra se apunte solo a quien lo cobra.
-        Esto no se sincroniza: cada móvil se queda con su respuesta.</div>
     </div>
     <div class="card">
       <h2>Supermercados</h2>
@@ -653,7 +682,7 @@
 <nav>
   <button class="on" data-view="fin"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l5-5 4 3 7-8"/><path d="M3 21h18"/></svg>Dinero</button>
   <button data-view="shop"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 7h14l-1.2 12H6.2z"/><path d="M9 7V5a3 3 0 016 0v2"/></svg>Compra</button>
-  <button data-view="care"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4.6 4.2 5 9.9"/><path d="M19.4 4.2 19 9.9"/><path d="M4.6 4.2 9.2 7.2"/><path d="M19.4 4.2 14.8 7.2"/><path d="M5 10.6c0-2 3.1-3.5 7-3.5s7 1.5 7 3.5c0 4.8-2.4 8.3-7 8.3s-7-3.5-7-8.3Z"/><path d="M9.4 11.8v.9"/><path d="M14.6 11.8v.9"/><path d="M12 14.6v.9"/><path d="M12 15.5c-.5.7-1.4 1-2.1.7"/><path d="M12 15.5c.5.7 1.4 1 2.1.7"/><path d="M2.7 12.8h3"/><path d="M18.3 12.8h3"/></svg>Gatos</button>
+  <button data-view="care"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M6.4 6.4 5.9 2.9 9.2 5.2"/><path d="M12.2 5.5 15.1 3.2 13.7 7"/><path d="M5.7 9.2a4.05 4.05 0 1 1 8.1 0 4.05 4.05 0 0 1-8.1 0"/><path d="M8.3 8.6v.7"/><path d="M11.2 8.6v.7"/><path d="M7.3 12.6c-1.9 1.9-2.6 4.7-2.6 8h9.7c0-3.6.8-5.7 2.4-7.3"/><path d="M14.4 20.6c4.4.2 6.4-3.6 4.2-5.6"/></svg>Gatos</button>
   <button data-view="set"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6l1.5 1.5M16.9 16.9l1.5 1.5M18.4 5.6l-1.5 1.5M7.1 16.9l-1.5 1.5"/></svg>Ajustes</button>
 </nav>
 
@@ -733,7 +762,9 @@ var DEF = {
   /* quiénes sois; "yo" es de este móvil y no se sube nunca */
   people:[{id:"p1",name:"Alberto"},{id:"p2",name:"Cristina"}], yo:"",
   /* la hucha: la meta gorda y todo lo que se va metiendo */
-  meta:{nombre:"", objetivo:0, hitos:[]}, aportes:[]
+  meta:{nombre:"", objetivo:0, hitos:[]}, aportes:[],
+  /* la hucha de cada uno va cifrada con su propia clave; "pin" no se sube nunca */
+  privado:{}, pin:""
 };
 
 function load(){
@@ -1033,10 +1064,6 @@ function meta(){
   return S.meta;
 }
 function totalHucha(){ return (S.aportes||[]).reduce(function(a,x){ return a+(+x.amount||0); },0); }
-function huchaDe(id){
-  return (S.aportes||[]).filter(function(x){ return id ? x.de===id : !x.de; })
-    .reduce(function(a,x){ return a+(+x.amount||0); },0);
-}
 /* cuándo se alcanzó un hito: la fecha del aporte que hizo llegar el acumulado */
 function cuandoHito(v){
   var l = (S.aportes||[]).slice().sort(function(a,b){ return (a.date||"").localeCompare(b.date||""); });
@@ -1077,14 +1104,6 @@ function renderMeta(){
       ' · faltan '+money(pend.v - tot)+'</div>'
     : (obj>0 && tot>=obj ? '<div class="delta down">'+flecha(0)+'Meta conseguida</div>' : "");
 
-  /* quién ha puesto qué */
-  var filas = [{n:"De los dos", v:huchaDe("")}].concat(gente().map(function(pr){
-    return {n:pr.name, v:huchaDe(pr.id)};
-  }));
-  document.getElementById("metaPuso").innerHTML = filas.map(function(f){
-    return '<div><span>'+esc(f.n)+'</span><b>'+money(f.v)+'</b></div>';
-  }).join("");
-
   /* hitos */
   var hs = (m.hitos||[]).slice().sort(function(a,b){ return a.v-b.v; });
   document.getElementById("sHitos").textContent = hs.length
@@ -1105,8 +1124,7 @@ function renderMeta(){
   var ap = (S.aportes||[]).slice().sort(function(a,b){ return (b.date||"").localeCompare(a.date||""); });
   document.getElementById("sAportes").textContent = ap.length ? ap.length+" apuntes" : "";
   document.getElementById("lAportes").innerHTML = ap.length ? ap.map(function(x){
-    return '<li><div class="it" data-editaporte="'+x.id+'"><b>'+esc(x.nota||"Aportación")+
-      (x.de?'<span class="quien">'+esc(nombreDe(x.de))+'</span>':'')+'</b>'+
+    return '<li><div class="it" data-editaporte="'+x.id+'"><b>'+esc(x.nota||"Aportación")+'</b>'+
       '<small>'+shortDate(x.date)+'</small></div>'+
       '<div class="amt pos">+'+money(x.amount)+'</div>'+
       '<button class="del" data-delaporte="'+x.id+'">✕</button></li>';
@@ -1116,6 +1134,8 @@ function renderMeta(){
   var bs = document.getElementById("addSobra");
   bs.style.display = sobra > 0.5 ? "" : "none";
   bs.textContent = "Guardar lo que sobra de "+MONTHS[cur.getMonth()].toLowerCase()+" ("+money(sobra)+")";
+
+  renderMia();
 }
 function openMeta(){
   var m = meta();
@@ -1154,29 +1174,14 @@ function openHito(id){
 function openAporte(id, pre){
   if(!S.aportes) S.aportes = [];
   var a = id ? S.aportes.filter(function(x){ return x.id===id; })[0] : null;
-  var deIni = a ? (a.de||"") : (S.yo || "");
-  var html = '<h3>'+(id?"Editar aportación":"Meter en la hucha")+'</h3>'+
+  openSheet('<h3>'+(id?"Editar aportación":"Meter en la hucha de los dos")+'</h3>'+
     '<label>Cuánto (€)</label><input id="ap_v" type="number" inputmode="decimal" step="0.01" value="'+
       (a ? a.amount : (pre&&pre.amount ? pre.amount : ""))+'">'+
-    '<label>De dónde sale</label><input id="ap_n" placeholder="Paga extra, venta de la bici…" value="'+
+    '<label>De dónde sale</label><input id="ap_n" placeholder="Sobrante de julio, la paga extra…" value="'+
       esc(a ? (a.nota||"") : (pre&&pre.nota ? pre.nota : ""))+'">'+
-    '<label>Fecha</label><input id="ap_d" type="date" value="'+esc(a?a.date:dKey(today))+'">';
-  if(gente().length){
-    html += '<label>Quién lo pone</label><div class="depick" id="ap_de">'+
-      '<button data-de="" class="'+(deIni?"":"on")+'">De los dos</button>'+
-      gente().map(function(pr){
-        return '<button data-de="'+pr.id+'" class="'+(deIni===pr.id?"on":"")+'">'+esc(pr.name)+'</button>';
-      }).join("")+'</div>';
-  }
-  html += '<div class="btns"><button class="b-no" id="ap_no">Cancelar</button><button class="b-ok" id="ap_ok">Guardar</button></div>';
-  openSheet(html);
-  var deSel = deIni, caja = document.getElementById("ap_de");
-  if(caja) caja.onclick = function(e){
-    var b = e.target.closest("[data-de]");
-    if(!b) return;
-    deSel = b.dataset.de;
-    Array.prototype.forEach.call(caja.children, function(x){ x.className = (x.dataset.de===deSel)?"on":""; });
-  };
+    '<label>Fecha</label><input id="ap_d" type="date" value="'+esc(a?a.date:dKey(today))+'">'+
+    '<div class="mini">Todo lo que entra aquí es de los dos, da igual quién lo meta. Lo que quieras ahorrar por tu cuenta va en <b>Mi hucha</b>.</div>'+
+    '<div class="btns"><button class="b-no" id="ap_no">Cancelar</button><button class="b-ok" id="ap_ok">Guardar</button></div>');
   document.getElementById("ap_no").onclick = closeSheet;
   document.getElementById("ap_ok").onclick = function(){
     var v = num(document.getElementById("ap_v").value);
@@ -1185,11 +1190,196 @@ function openAporte(id, pre){
     obj.amount = v;
     obj.nota = document.getElementById("ap_n").value.trim();
     obj.date = document.getElementById("ap_d").value || dKey(today);
-    obj.de = deSel || "";
+    obj.de = "";
     if(!a) S.aportes.push(obj);
-    save(); closeSheet(); render(); toast("A la hucha");
+    save(); closeSheet(); render(); toast("A la hucha de los dos");
   };
 }
+
+/* ==================== LA HUCHA DE CADA UNO ====================
+   Aparte de la común, cada uno tiene la suya. Se guarda cifrada con una clave
+   que solo sabe su dueño: en el otro móvil el bloque viaja, pero no se abre.
+   La clave nunca sube a la nube; si la guardas, se queda en este móvil. */
+var MIA = null, MIAPIN = "", _autoPin = false;
+var LOCK = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10.5" width="16" height="10.5"/><path d="M8 10.5V7.4a4 4 0 018 0v3.1"/><path d="M12 14.6v2.4"/></svg>';
+
+function miId(){ return S.yo || ""; }
+function sobreMio(id){ return (S.privado||{})[id] || null; }
+function fraseDe(id, pin){ return "hucha:"+id+":"+pin; }
+function miaVacia(){ return {aportes:[], objetivo:0}; }
+function totalMia(){ return MIA ? (MIA.aportes||[]).reduce(function(a,x){ return a+(+x.amount||0); },0) : 0; }
+function otroNombre(){
+  var o = gente().filter(function(p){ return p.id!==miId(); })[0];
+  return o ? o.name : "el otro";
+}
+function abreMia(pin){
+  var id = miId(), sb = sobreMio(id);
+  if(!id) return Promise.resolve(false);
+  if(!sb){ MIA = miaVacia(); MIAPIN = pin; return Promise.resolve(true); }
+  return descifra(sb.b, fraseDe(id,pin)).then(function(o){
+    MIA = (o && typeof o==="object") ? o : miaVacia();
+    if(!MIA.aportes) MIA.aportes = [];
+    MIAPIN = pin;
+    return true;
+  }).catch(function(){ return false; });
+}
+function guardaMia(){
+  var id = miId();
+  if(!MIA || !id) return Promise.resolve(false);
+  return cifra(MIA, fraseDe(id, MIAPIN)).then(function(blob){
+    if(!S.privado) S.privado = {};
+    S.privado[id] = {u:new Date().toISOString(), b:blob};
+    save(); renderMia();
+    return true;
+  }).catch(function(){ toast("No he podido guardarla"); return false; });
+}
+function cierraMia(){ MIA = null; MIAPIN = ""; S.pin = ""; _autoPin = true; save(); renderMia(); renderSet(); }
+
+function pideClave(){
+  var id = miId(), nuevo = !sobreMio(id);
+  openSheet('<h3>'+(nuevo?"Ponle clave a tu hucha":"Abre tu hucha")+'</h3>'+
+    '<label>Tu clave</label><input id="pn_a" type="password" inputmode="text" autocomplete="off" placeholder="lo que tú quieras">'+
+    (nuevo ? '<label>Otra vez, no vaya a ser</label><input id="pn_b" type="password" autocomplete="off">' : '')+
+    '<div class="recu" id="pn_r"><div class="chk'+(S.pin?" on":" on")+'">'+CHECK+'</div>'+
+      '<span>Recordarla en este móvil</span></div>'+
+    '<div class="mini">'+(nuevo
+      ? 'No hay manera de recuperarla: si se te olvida, lo que haya dentro se queda ahí para siempre. Que sea algo que no olvides, pero que '+esc(otroNombre())+' no adivine.'
+      : 'Si no la recuerdas no hay forma de abrirla, lo siento.')+'</div>'+
+    '<div class="btns"><button class="b-no" id="pn_no">Cancelar</button><button class="b-ok" id="pn_ok">'+(nuevo?"Crear":"Abrir")+'</button></div>');
+  var caja = document.getElementById("pn_r"), rec = true;
+  caja.onclick = function(){ rec = !rec; caja.firstChild.className = "chk"+(rec?" on":""); };
+  document.getElementById("pn_no").onclick = closeSheet;
+  document.getElementById("pn_ok").onclick = function(){
+    var a = document.getElementById("pn_a").value;
+    if(!a){ toast("Escribe algo"); return; }
+    if(nuevo){
+      var b = document.getElementById("pn_b").value;
+      if(a!==b){ toast("Las dos claves no son iguales"); return; }
+    }
+    abreMia(a).then(function(ok){
+      if(!ok){ toast("Esa clave no abre"); return; }
+      S.pin = rec ? a : "";
+      _autoPin = true;
+      if(nuevo) return guardaMia().then(function(){ closeSheet(); save(); render(); });
+      save(); closeSheet(); render();
+    });
+  };
+}
+function cambiaClave(){
+  if(!MIA){ toast("Ábrela primero"); return; }
+  openSheet('<h3>Cambiar la clave</h3>'+
+    '<label>Nueva clave</label><input id="cc_a" type="password" autocomplete="off">'+
+    '<label>Repítela</label><input id="cc_b" type="password" autocomplete="off">'+
+    '<div class="mini">Se vuelve a cifrar todo con la nueva. La vieja deja de servir.</div>'+
+    '<div class="btns"><button class="b-no" id="cc_no">Cancelar</button><button class="b-ok" id="cc_ok">Guardar</button></div>');
+  document.getElementById("cc_no").onclick = closeSheet;
+  document.getElementById("cc_ok").onclick = function(){
+    var a = document.getElementById("cc_a").value, b = document.getElementById("cc_b").value;
+    if(!a){ toast("Escribe algo"); return; }
+    if(a!==b){ toast("No coinciden"); return; }
+    MIAPIN = a;
+    if(S.pin) S.pin = a;
+    guardaMia().then(function(){ closeSheet(); render(); toast("Clave cambiada"); });
+  };
+}
+function openMio(id){
+  if(!MIA) return;
+  var a = id ? (MIA.aportes||[]).filter(function(x){ return x.id===id; })[0] : null;
+  openSheet('<h3>'+(id?"Editar":"Meter en mi hucha")+'</h3>'+
+    '<label>Cuánto (€)</label><input id="mi_v" type="number" inputmode="decimal" step="0.01" value="'+(a?a.amount:"")+'">'+
+    '<label>De dónde sale</label><input id="mi_n" placeholder="La paga extra, un curro suelto…" value="'+esc(a?(a.nota||""):"")+'">'+
+    '<label>Fecha</label><input id="mi_d" type="date" value="'+esc(a?a.date:dKey(today))+'">'+
+    '<div class="btns"><button class="b-no" id="mi_no">Cancelar</button><button class="b-ok" id="mi_ok">Guardar</button></div>');
+  document.getElementById("mi_no").onclick = closeSheet;
+  document.getElementById("mi_ok").onclick = function(){
+    var v = num(document.getElementById("mi_v").value);
+    if(!(v>0)){ toast("Pon la cantidad"); return; }
+    var o = a || {id:uid()};
+    o.amount = v;
+    o.nota = document.getElementById("mi_n").value.trim();
+    o.date = document.getElementById("mi_d").value || dKey(today);
+    if(!a) MIA.aportes.push(o);
+    guardaMia().then(function(){ closeSheet(); toast("Guardado, solo tuyo"); });
+  };
+}
+function openMiObj(){
+  if(!MIA) return;
+  openSheet('<h3>Tu objetivo</h3>'+
+    '<label>Cuánto quieres juntar (€)</label><input id="mo_v" type="number" inputmode="decimal" step="100" value="'+(MIA.objetivo||"")+'">'+
+    '<div class="mini">Es solo para ti, no tiene nada que ver con la meta de los dos. Déjalo en blanco si no quieres ninguno.</div>'+
+    '<div class="btns"><button class="b-no" id="mo_no">Cancelar</button><button class="b-ok" id="mo_ok">Guardar</button></div>');
+  document.getElementById("mo_no").onclick = closeSheet;
+  document.getElementById("mo_ok").onclick = function(){
+    MIA.objetivo = num(document.getElementById("mo_v").value) || 0;
+    guardaMia().then(function(){ closeSheet(); });
+  };
+}
+function renderMia(){
+  var cab = document.getElementById("sMia"), box = document.getElementById("miaCuerpo");
+  if(!box) return;
+  var id = miId(), i;
+
+  if(!id){
+    cab.textContent = "";
+    box.innerHTML = '<div class="candado">'+LOCK+'<p><b>Antes dime quién eres</b>'+
+      'Además de la hucha común, cada uno tiene la suya. Para saber cuál es la tuya, dime en Ajustes cuál de los dos usa este móvil.</p></div>'+
+      '<button class="add" id="miaQuien">Ir a Ajustes</button>';
+    document.getElementById("miaQuien").onclick = function(){ vete("set"); };
+    return;
+  }
+  if(!hayCripto()){
+    cab.textContent = "";
+    box.innerHTML = '<div class="candado">'+LOCK+'<p><b>Aquí no puedo cifrar</b>'+
+      'Este navegador no me deja. Abre la app con https y vuelve a probar.</p></div>';
+    return;
+  }
+  if(!MIA){
+    if(!_autoPin && S.pin){
+      _autoPin = true;
+      abreMia(S.pin).then(function(ok){ if(!ok){ S.pin = ""; save(); } renderMia(); });
+      return;
+    }
+    var nuevo = !sobreMio(id);
+    cab.textContent = nuevo ? "" : "cerrada";
+    box.innerHTML = '<div class="candado">'+LOCK+'<p><b>'+(nuevo?"Tu hucha, solo tuya":"Cerrada con tu clave")+'</b>'+
+      (nuevo
+        ? 'Lo que ahorres por tu cuenta va aquí: no cuenta en la de los dos y '+esc(otroNombre())+' no lo ve, porque se guarda cifrado con una clave que solo sabes tú.'
+        : 'Escribe tu clave y te la abro. Va cifrada, así que en el otro móvil esto es un churro de letras.')+
+      '</p></div>'+
+      '<button class="add" id="miaAbrir">'+(nuevo?"Crear mi hucha":"Abrir mi hucha")+'</button>';
+    document.getElementById("miaAbrir").onclick = pideClave;
+    return;
+  }
+
+  var tot = totalMia(), obj = +MIA.objetivo || 0, pct = obj>0 ? Math.min(1, tot/obj) : 0;
+  cab.textContent = nombreDe(id);
+  var CEL = 25, ll = Math.round(pct*CEL), cu = "";
+  for(i=0;i<CEL;i++) cu += '<i class="'+(i<ll?"on":"")+'" style="animation-delay:'+(0.012*i)+'s"></i>';
+  var ap = (MIA.aportes||[]).slice().sort(function(a,b){ return (b.date||"").localeCompare(a.date||""); });
+
+  box.innerHTML =
+    '<div class="privada"><div class="n">'+money(tot)+'</div>'+
+      '<div class="d">'+(obj>0
+        ? Math.round(pct*100)+" % de "+money(obj)+"  ·  faltan "+money(Math.max(0,obj-tot))
+        : "Aparte de la de los dos. Ponle un objetivo si quieres.")+'</div>'+
+      (obj>0 ? '<div class="barra">'+cu+'</div>' : '')+
+    '</div>'+
+    (ap.length
+      ? '<ul class="list" id="lMia">'+ap.map(function(x){
+          return '<li><div class="it" data-editmia="'+x.id+'"><b>'+esc(x.nota||"Aportación")+'</b>'+
+            '<small>'+shortDate(x.date)+'</small></div>'+
+            '<div class="amt pos">+'+money(x.amount)+'</div>'+
+            '<button class="del" data-delmia="'+x.id+'">✕</button></li>';
+        }).join("")+'</ul>'
+      : '<div class="empty">Vacía de momento. Lo que metas aquí no lo ve nadie más.</div>')+
+    '<button class="add" id="miaAdd">Meter en mi hucha</button>'+
+    '<button class="add" id="miaObj">Cambiar mi objetivo</button>'+
+    '<button class="add" id="miaLock">Cerrar la hucha</button>';
+  document.getElementById("miaAdd").onclick = function(){ openMio(null); };
+  document.getElementById("miaObj").onclick = openMiObj;
+  document.getElementById("miaLock").onclick = cierraMia;
+}
+
 function renderFin(){
   var k = mKey(cur);
   var esteMes = (k === mKey(today));
@@ -2074,16 +2264,39 @@ function renderSet(){
         (gente().length>1 ? '<button class="del" data-delper="'+pr.id+'">✕</button>' : '')+'</li>';
     }).join("")+'</ul>';
     var qs = document.getElementById("quienSoy");
-    qs.innerHTML = '<button data-yo="" class="'+(S.yo?"":"on")+'">Sin decir</button>'+
-      gente().map(function(pr){
-        return '<button data-yo="'+pr.id+'" class="'+(S.yo===pr.id?"on":"")+'">'+esc(pr.name)+'</button>';
-      }).join("");
+    qs.innerHTML = gente().map(function(pr){
+        return '<button data-yo="'+pr.id+'" class="'+(S.yo===pr.id?"on":"")+'">'+
+          '<span class="ini">'+esc((pr.name||"?").trim().charAt(0).toUpperCase())+'</span>'+
+          esc(pr.name)+'</button>';
+      }).join("")+'<button data-yo="" class="'+(S.yo?"":"on")+'"><span class="ini">·</span>Ninguno</button>';
     qs.onclick = function(e){
       var b = e.target.closest("[data-yo]");
-      if(!b) return;
-      S.yo = b.dataset.yo; save(); renderSet();
-      toast(S.yo ? ("Este móvil es de "+nombreDe(S.yo)) : "Sin persona asignada");
+      if(!b || b.dataset.yo===S.yo) return;
+      S.yo = b.dataset.yo;
+      MIA = null; MIAPIN = ""; S.pin = ""; _autoPin = false;
+      save(); renderSet();
+      toast(S.yo ? ("Este móvil es de "+nombreDe(S.yo)) : "Sin nadie asignado");
     };
+  }
+  var lv = document.getElementById("miLlave");
+  if(lv){
+    if(!S.yo) lv.innerHTML = "";
+    else if(!hayCripto())
+      lv.innerHTML = '<div class="llave"><span>'+LOCK+'</span><div><b>Tu hucha privada</b>'+
+        'Este navegador no sabe cifrar. Abre la app con https.</div></div>';
+    else if(MIA)
+      lv.innerHTML = '<div class="llave"><span>'+LOCK+'</span><div><b>Tu hucha privada está abierta</b>'+
+        (S.pin ? "La clave está guardada en este móvil." : "La clave no se guarda: te la pediré la próxima vez.")+
+        '</div></div>'+
+        '<button class="add" id="llCambia">Cambiar mi clave</button>'+
+        '<button class="add" id="llCierra">Cerrar mi hucha</button>';
+    else
+      lv.innerHTML = '<div class="llave"><span>'+LOCK+'</span><div><b>Tu hucha privada</b>'+
+        (sobreMio(S.yo) ? "Está cerrada. Se abre desde Dinero → La hucha." : "Todavía no la has creado. Se hace desde Dinero → La hucha.")+
+        '</div></div>';
+    var lc = document.getElementById("llCambia"), lx = document.getElementById("llCierra");
+    if(lc) lc.onclick = cambiaClave;
+    if(lx) lx.onclick = cierraMia;
   }
   document.getElementById("setUrl").value = S.catalogUrl || "";
   document.getElementById("setSync").value = S.syncUrl || "";
@@ -2149,6 +2362,13 @@ function fusiona(local, remoto){
       Object.keys(r.cats[cid]).forEach(function(t){ if(r.cats[cid][t]) l.cats[cid][t] = r.cats[cid][t]; });
     });
     Object.keys(r.home||{}).forEach(function(t){ if(r.home[t]) l.home[t] = r.home[t]; });
+  });
+
+  // las huchas privadas viajan cifradas: gana el bloque más nuevo de cada uno
+  out.privado = out.privado || {};
+  Object.keys(remoto.privado||{}).forEach(function(pid){
+    var r = remoto.privado[pid], l = out.privado[pid];
+    if(r && r.b && (!l || (r.u||"") > (l.u||""))) out.privado[pid] = r;
   });
 
   // ajustes: manda el móvil que se tocó más tarde
@@ -2220,6 +2440,7 @@ function sincroniza(manual){
       /* la URL y la contraseña no suben nunca: son la llave, no el contenido */
       var envio = JSON.parse(JSON.stringify(S));
       delete envio.syncUrl; delete envio.syncPass; delete envio.lastNube; delete envio.yo;
+      delete envio.pin;
       return pass ? cifra(envio, pass) : envio;
     })
     .then(function(cuerpo){
@@ -2602,6 +2823,7 @@ document.addEventListener("click", function(e){
     "[data-add],[data-edit],[data-del],[data-flag],[data-day],[data-ct],[data-ht],[data-weight],"+
     "[data-editcat],[data-delcat],[data-delshop],[data-editprice],[data-litoggle],[data-liedit],[data-lidel],"+
     "[data-editper],[data-delper],[data-edithito],[data-delhito],[data-editaporte],[data-delaporte],"+
+    "[data-editmia],[data-delmia],"+
     "[data-tkedit],[data-tkdel]");
   if(!el) return;
   var m = mData(mKey(cur));
@@ -2641,11 +2863,18 @@ document.addEventListener("click", function(e){
     S.aportes = (S.aportes||[]).filter(function(x){ return x.id!==d.delaporte; });
     save(); render(); return;
   }
+  if(d.editmia){ openMio(d.editmia); return; }
+  if(d.delmia){
+    if(!confirm("¿Sacar esto de tu hucha?")) return;
+    MIA.aportes = (MIA.aportes||[]).filter(function(x){ return x.id!==d.delmia; });
+    guardaMia();
+    return;
+  }
   if(d.editper){ openPersona(d.editper); return; }
   if(d.delper){
     if(!confirm("¿Quitar a esta persona? Lo que tuviera marcado pasa a ser de los dos.")) return;
     S.people = gente().filter(function(x){ return x.id!==d.delper; });
-    if(S.yo===d.delper) S.yo = "";
+    if(S.yo===d.delper){ S.yo = ""; MIA = null; MIAPIN = ""; S.pin = ""; }
     ["incomes","expenses"].forEach(function(col){
       S.recurring[col].forEach(function(x){ if(x.de===d.delper) x.de = ""; });
     });
@@ -2810,6 +3039,11 @@ document.getElementById("todayBtn").onclick = function(){
 function syncSel(){
   if(selDay.slice(0,7) !== mKey(cur))
     selDay = (mKey(cur)===mKey(today)) ? dKey(today) : mKey(cur)+"-01";
+}
+/* llevar a otra pestaña desde donde sea */
+function vete(v){
+  var b = document.querySelector('nav button[data-view="'+v+'"]');
+  if(b) b.click();
 }
 Array.prototype.forEach.call(document.querySelectorAll("nav button"), function(b){
   b.onclick = function(){
