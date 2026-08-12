@@ -1,0 +1,28 @@
+{
+  "name": "Gremory",
+  "short_name": "Gremory",
+  "start_url": ".",
+  "scope": ".",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0e1118",
+  "theme_color": "#0e1118",
+  "icons": [
+    {
+      "src": "g-180.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    },
+    {
+      "src": "g-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "g-512-mask.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

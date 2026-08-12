@@ -8,11 +8,15 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>Gremory</title>
-<meta name="build" content="2026-08-12.1">
-<!-- el cuadrado de la pantalla de inicio: iOS se lo guarda al añadir la app,
-     así que si cambia hay que borrar el icono y volver a añadirlo -->
-<link rel="apple-touch-icon" href="icon-180.png">
-<link rel="icon" type="image/png" sizes="180x180" href="icon-180.png">
+<meta name="build" content="2026-08-12.2">
+<!-- El cuadrado de la pantalla de inicio. iOS se guarda el icono por URL y no
+     vuelve a pedirlo, así que si se cambia hay que darle un nombre de fichero
+     nuevo. El manifest es lo que mira el iPhone moderno; los dos "apple-touch"
+     son para los que no. -->
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" sizes="180x180" href="g-180.png">
+<link rel="apple-touch-icon-precomposed" sizes="180x180" href="g-180.png">
+<link rel="icon" type="image/png" sizes="512x512" href="g-512.png">
 <meta name="apple-mobile-web-app-title" content="Gremory">
 <meta name="application-name" content="Gremory">
 <style>
