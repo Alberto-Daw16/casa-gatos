@@ -4,7 +4,6 @@ App de gastos + compra + cuidados de los gatos, con catálogo de precios que se 
 
 Todo gratis: la app se sirve desde GitHub Pages y el rastreador corre en los servidores de GitHub Actions.
 
-**La app:** https://alberto-daw16.github.io/casa-gatos/
 
 ---
 
