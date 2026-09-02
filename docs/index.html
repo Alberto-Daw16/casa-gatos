@@ -8,7 +8,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>Gremory</title>
-<meta name="build" content="2026-09-02.1">
+<meta name="build" content="2026-09-02.2">
 <!-- El cuadrado de la pantalla de inicio. iOS se guarda el icono por URL y no
      vuelve a pedirlo, así que si se cambia hay que darle un nombre de fichero
      nuevo. El manifest es lo que mira el iPhone moderno; los dos "apple-touch"
@@ -472,7 +472,8 @@
   <section class="view on" id="v-fin">
     <div class="seg" id="finSeg">
       <button class="on" data-fin="mes">El mes</button>
-      <button data-fin="meta">La casa</button>
+      <button data-fin="meta">Botes</button>
+      <button data-fin="mio">Lo m&iacute;o</button>
     </div>
 
     <div id="sub-mes">
@@ -502,6 +503,11 @@
       <h2><span class="tick" style="background:var(--out)"></span>En qu&eacute; se va <span class="sum" id="sCat">0 &euro;</span></h2>
       <div class="mapa pase" id="byCat" data-pase></div>
       <div class="lcat" id="lCat"></div>
+    </div>
+
+    <div class="sec">
+      <h2><span class="tick" style="background:var(--gold)"></span>A d&oacute;nde va lo que sobra <span class="sum" id="sReparto"></span></h2>
+      <ul class="list" id="lReparto"></ul>
     </div>
 
     <div class="sec">
@@ -553,11 +559,20 @@
       <div class="sec">
         <h2><span class="tick" style="background:var(--gold)"></span>Extras aparte <span class="sum" id="sAportes"></span></h2>
         <ul class="list" id="lAportes"></ul>
-        <button class="add" id="addAporte">Meter un extra para la casa</button>
-        <button class="add" id="editMeta">Objetivo y desde cu&aacute;ndo</button>
+        <button class="add" id="addAporte">Meter un extra</button>
+        <button class="add" id="editMeta">La casa: objetivo y desde cu&aacute;ndo</button>
       </div>
 
-      <div class="sec" id="secMia">
+      <div class="sec">
+        <h2><span class="tick" style="background:var(--c-transporte)"></span>Los otros botes <span class="sum" id="sBotes"></span></h2>
+        <div id="lBotes"></div>
+        <button class="add" id="addBote">A&ntilde;adir un bote</button>
+        <div class="mini">Un bote de <b>ahorro</b> aparta una cantidad fija cada mes de lo que sobra (viajes). Uno de <b>presupuesto</b> es un tope mensual (ocio): lo que marqu&eacute;is como de ese bote resta, y el mes que viene vuelve a empezar.</div>
+      </div>
+    </div>
+
+    <div id="sub-mio" style="display:none">
+      <div class="sec" id="secMia" style="margin-top:6px">
         <h2><span class="tick" style="background:var(--c-transporte)"></span>Lo m&iacute;o
           <span class="sum" id="sMia"></span></h2>
         <div id="miaCuerpo"></div>
@@ -801,8 +816,9 @@ var DEF = {
   people:[{id:"p1",name:"Alberto"},{id:"p2",name:"Cristina"}], yo:"",
   /* el bote: la cuota que pone cada uno por defecto (id de persona -> euros) */
   cuotas:{},
-  /* la casa: objetivo y desde qué mes cuenta; lo ahorrado sale solo de lo que sobra */
-  meta:{nombre:"la casa", objetivo:0, desde:""}, aportes:[],
+  /* los botes comunes: la casa (se lleva lo que sobra), los de ahorro fijo al mes
+     (viajes) y los de presupuesto mensual (ocio). Los extras van a un bote. */
+  botes:[], aportes:[],
   /* la hucha de cada uno va cifrada con su propia clave; "pin" no se sube nunca */
   privado:{}, pin:"",
   /* ids de lo que se ha borrado: sin esto, fusionar (que es unir) lo resucita */
@@ -826,9 +842,10 @@ function load(){
   ["cats","shops","prices","tickets","shoplist","aportes"].forEach(function(c){
     if(!Array.isArray(d[c])) d[c] = [];
   });
-  ["months","care","goals","meta","privado","borrados"].forEach(function(c){
+  ["months","care","goals","privado","borrados"].forEach(function(c){
     if(!d[c] || typeof d[c] !== "object") d[c] = JSON.parse(JSON.stringify(DEF[c]));
   });
+  if(!Array.isArray(d.botes)) d.botes = [];
   if(!d.cuotas || typeof d.cuotas !== "object") d.cuotas = {};
   Object.keys(d.months).forEach(function(mk){
     var m = d.months[mk] || (d.months[mk] = {});
@@ -859,15 +876,19 @@ var S = load();
   /* --- el bote (sept 2026): cada uno pone una cuota; lo que sobra va a la casa solo --- */
   if(!S.cuotas || typeof S.cuotas!=="object"){ S.cuotas = {}; cambio = true; }
   (S.people||[]).forEach(function(p){ if(S.cuotas[p.id]===undefined){ S.cuotas[p.id] = 1000; cambio = true; } });
-  if(!S.meta || typeof S.meta!=="object"){ S.meta = {nombre:"la casa", objetivo:0, desde:""}; cambio = true; }
-  if(!S.meta.nombre){ S.meta.nombre = "la casa"; cambio = true; }
-  if(S.meta.hitos){ delete S.meta.hitos; cambio = true; }
-  if(!S.meta.desde){ cambio = true;
+  /* la meta de antes pasa a ser el bote principal, "la casa" */
+  if(!Array.isArray(S.botes)) S.botes = [];
+  if(!S.botes.some(function(b){ return b && b.tipo==="casa"; })){
+    var vm = (S.meta && typeof S.meta==="object") ? S.meta : {};
     var ks = Object.keys(S.months||{}).filter(function(k){
       var m = S.months[k]||{}; return (m.expenses||[]).length || (m.incomes||[]).length;
     }).sort();
-    S.meta.desde = ks[0] || mKey(new Date());
+    S.botes.unshift({id:"casa", nombre:vm.nombre||"la casa", tipo:"casa", objetivo:+vm.objetivo||0,
+                     desde:(vm.desde||ks[0]||mKey(new Date())).slice(0,7), t:new Date().toISOString()});
+    cambio = true;
   }
+  if(S.meta){ delete S.meta; cambio = true; }
+  (S.aportes||[]).forEach(function(a){ if(!a.bote){ a.bote = "casa"; cambio = true; } });
   /* los ingresos que creaba una aportación "de dinero nuevo" ya no tienen sentido:
      la paga extra va directa a la casa y no pasa por el bote */
   Object.keys(S.months||{}).forEach(function(k){
@@ -1102,9 +1123,12 @@ function totalesMes(k, hastaDia){
   var m = S.months[k] || {expenses:[],incomes:[],paid:{},received:{}};
   /* al bote entran las cuotas de los dos y los extras comunes; lo que lleve
      dueño (cosas viejas) no cuenta, que ahora lo personal va en la zona privada */
-  var expF = activeRec(S.recurring.expenses,k);
+  /* lo que se paga con cargo a un bote de ahorro (el viaje) no sale del mes:
+     ese dinero ya se apartó; sale del bote. Lo de un bote mensual (ocio) sí. */
+  function delMes(x){ var b = x.bote && boteDe(x.bote); return !(b && b.tipo==="ahorro"); }
+  var expF = activeRec(S.recurring.expenses,k).filter(delMes);
   function corta(list){
-    var l = (list||[]).filter(esComun);
+    var l = (list||[]).filter(esComun).filter(delMes);
     if(!hastaDia) return l;
     return l.filter(function(x){ return +(String(x.date||"").slice(8,10)||99) <= hastaDia; });
   }
@@ -1129,20 +1153,62 @@ function ponCuota(k, pid, v){
   if(!m.cuotas) m.cuotas = {};
   m.cuotas[pid] = {v:+v||0, t:new Date().toISOString()};
 }
-/* los meses que cuentan para la casa: desde "desde" hasta el mes de hoy */
-function mesesCasa(){
-  var ini = (meta().desde||"").slice(0,7) || mKey(today), fin = mKey(today), out = [], k = ini, n = 0;
-  if(ini > fin) return [fin];
+/* ---- los botes ---- */
+function botes(){ if(!Array.isArray(S.botes)) S.botes = []; return S.botes; }
+function boteCasa(){
+  var c = botes().filter(function(b){ return b.tipo==="casa"; })[0];
+  if(!c){ c = {id:"casa", nombre:"la casa", tipo:"casa", objetivo:0, desde:mKey(today)}; botes().unshift(c); }
+  return c;
+}
+function meta(){ if(!S.aportes) S.aportes = []; return boteCasa(); }
+function boteDe(id){ return botes().filter(function(b){ return b.id===id; })[0] || null; }
+function nombreBote(id){ var b = boteDe(id); return b ? b.nombre : ""; }
+/* los botes que están vivos en un mes (los que no son la casa) */
+function botesActivos(k){
+  return botes().filter(function(b){
+    return b.tipo!=="casa" && (b.desde||"0000-00").slice(0,7) <= k && (!b.hasta || b.hasta >= k);
+  });
+}
+/* lo que se aparta ese mes para los botes de ahorro (viajes): sale de lo que sobra */
+function apartadosMes(k){
+  return botesActivos(k).filter(function(b){ return b.tipo==="ahorro"; })
+    .reduce(function(a,b){ return a + (+b.mensual||0); }, 0);
+}
+/* lo gastado en un mes con cargo a un bote concreto (gastos comunes marcados) */
+function gastadoBote(k, id){
+  var m = S.months[k] || {};
+  var v = (m.expenses||[]).filter(function(x){ return esComun(x) && x.bote===id; });
+  var f = activeRec(S.recurring.expenses,k).filter(function(x){ return x.bote===id; });
+  return sum(v) + sum(f);
+}
+/* los meses que cuentan para un bote: desde su "desde" hasta hoy */
+function mesesBote(b){
+  var ini = (b.desde||"").slice(0,7) || mKey(today), fin = mKey(today), out = [], k = ini, n = 0;
+  if(b.hasta && b.hasta < fin) fin = b.hasta;
+  if(ini > fin) return [];
   while(k <= fin && n < 240){ out.push(k); k = mesRelativo(k,1); n++; }
   return out;
 }
+function mesesCasa(){ var m = mesesBote(boteCasa()); return m.length ? m : [mKey(today)]; }
 function sobranteMes(k){ var t = totalesMes(k); return t.ing - t.gas; }
-/* lo ahorrado para la casa: lo que ha ido sobrando del bote, mes a mes, más lo
-   que hayáis metido aparte (una paga extra) */
-function ahorradoCasa(){
-  var tot = mesesCasa().reduce(function(a,k){ return a + sobranteMes(k); }, 0);
-  return tot + totalHucha();
+/* lo que le toca a la casa un mes: lo que sobra menos lo apartado para los otros botes */
+function casaMes(k){ return sobranteMes(k) - apartadosMes(k); }
+function extrasBote(id){
+  return (S.aportes||[]).filter(function(a){ return (a.bote||"casa")===id; })
+    .reduce(function(acc,a){ return acc+(+a.amount||0); }, 0);
 }
+/* el saldo de un bote */
+function saldoBote(b){
+  if(b.tipo==="casa") return mesesCasa().reduce(function(a,k){ return a + casaMes(k); }, 0) + extrasBote(b.id);
+  if(b.tipo==="ahorro"){
+    var ks = mesesBote(b);
+    return ks.length * (+b.mensual||0) + extrasBote(b.id)
+         - Object.keys(S.months||{}).reduce(function(a,k){ return a + gastadoBote(k, b.id); }, 0);
+  }
+  return null;   // los mensuales no tienen saldo, tienen "lo que queda este mes"
+}
+function ahorradoCasa(){ return saldoBote(boteCasa()); }
+function totalHucha(){ return extrasBote("casa"); }
 function mesRelativo(k, n){
   return mKey(new Date(+k.slice(0,4), +k.slice(5,7)-1+n, 1));
 }
@@ -1197,12 +1263,6 @@ function pintaMosaico(k){
 /* ======================= LA CASA =======================
    El objetivo gordo. Se llena solo con lo que sobra del bote cada mes; una
    paga extra que queráis meter se apunta aparte y también suma. */
-function meta(){
-  if(!S.meta) S.meta = {nombre:"la casa", objetivo:0, desde:""};
-  if(!S.aportes) S.aportes = [];
-  return S.meta;
-}
-function totalHucha(){ return (S.aportes||[]).reduce(function(a,x){ return a+(+x.amount||0); },0); }
 /* los cuatro hitos son automáticos: un cuarto, la mitad, tres cuartos y todo */
 function hitosCasa(){
   var obj = +meta().objetivo || 0;
@@ -1214,7 +1274,7 @@ function hitosCasa(){
 /* en qué mes se pasó de cierta cantidad */
 function cuandoHito(v){
   var acc = totalHucha(), ks = mesesCasa();
-  for(var i=0;i<ks.length;i++){ acc += sobranteMes(ks[i]); if(acc >= v) return ks[i]; }
+  for(var i=0;i<ks.length;i++){ acc += casaMes(ks[i]); if(acc >= v) return ks[i]; }
   return null;
 }
 function nombreMes(k){ var d = parseD(k+"-01"); return MONTHS[d.getMonth()]+" "+d.getFullYear(); }
@@ -1251,27 +1311,45 @@ function renderMeta(){
       '</small></div><div class="vl">'+money(h.v)+'</div></div>';
   }).join("") : '<div class="empty">Ponle un objetivo a la casa y aparecen solos.</div>';
 
-  /* mes a mes: lo que ha sobrado (o faltado) del bote */
+  /* mes a mes: lo que le ha tocado a la casa cada mes */
   var ks = mesesCasa().slice().reverse();
   document.getElementById("sMeses").textContent = ks.length + (ks.length===1?" mes":" meses");
   document.getElementById("lMeses").innerHTML = ks.map(function(k){
-    var t = totalesMes(k), v = t.ing - t.gas, hoy = (k===mKey(today));
+    var t = totalesMes(k), v = casaMes(k), ap = apartadosMes(k), hoy = (k===mKey(today));
     return '<li><div class="it" data-vermes="'+k+'"><b>'+esc(nombreMes(k))+(hoy?' <span class="quien">en curso</span>':'')+'</b>'+
-      '<small>'+money(t.ing)+' entra · '+money(t.gas)+' sale</small></div>'+
+      '<small>'+money(t.ing)+' entra · '+money(t.gas)+' sale'+(ap>0.005?' · '+money(ap)+' a otros botes':'')+'</small></div>'+
       '<div class="amt '+(v>=0?"pos":"neg")+'">'+(v>=0?"+":"−")+money(Math.abs(v))+'</div></li>';
   }).join("");
 
+  /* los otros botes */
+  var otros = botes().filter(function(b){ return b.tipo!=="casa"; });
+  document.getElementById("sBotes").textContent = otros.length ? otros.length : "";
+  document.getElementById("lBotes").innerHTML = otros.length ? otros.map(function(b){
+    var kk = mKey(today), cuerpo;
+    if(b.tipo==="ahorro"){
+      var sal = saldoBote(b), ob = +b.objetivo||0, pc = ob>0 ? Math.max(0,Math.min(1, sal/ob)) : 0, cu = "";
+      for(var i=0;i<25;i++) cu += '<i class="'+(i<Math.round(pc*25)?"on":"")+'"></i>';
+      cuerpo = '<div class="n">'+money(sal)+'</div><div class="d">'+money(+b.mensual||0)+' al mes desde '+esc(nombreMes(b.desde).toLowerCase())+
+        (ob>0 ? ' · '+Math.round(pc*100)+' % de '+money(ob) : '')+'</div>'+(ob>0?'<div class="barra">'+cu+'</div>':'');
+    } else {
+      var g = gastadoBote(kk, b.id), tope = +b.mensual||0, q = tope - g, pc2 = tope>0 ? Math.max(0,Math.min(1,g/tope)) : 0, cu2 = "";
+      for(var j=0;j<25;j++) cu2 += '<i class="'+(j<Math.round(pc2*25)?"on":"")+'"></i>';
+      cuerpo = '<div class="n" style="color:'+(q>=0?"var(--gold)":"var(--neg)")+'">'+(q>=0?"quedan ":"pasados ")+money(Math.abs(q))+'</div>'+
+        '<div class="d">'+money(g)+' gastados de '+money(tope)+' este mes</div><div class="barra">'+cu2+'</div>';
+    }
+    return '<div class="privada" data-bote="'+b.id+'" style="margin-bottom:10px;cursor:pointer"><div class="et">'+esc(b.nombre)+' · '+(b.tipo==="ahorro"?"ahorro":"presupuesto")+'</div>'+cuerpo+'</div>';
+  }).join("") : '<div class="empty">Solo la casa. Añade uno para viajes o para el ocio.</div>';
+
   /* extras metidos aparte */
   var ap = (S.aportes||[]).slice().sort(function(a,b){ return (b.date||"").localeCompare(a.date||""); });
-  document.getElementById("sAportes").textContent = ap.length ? money(totalHucha()) : "";
+  document.getElementById("sAportes").textContent = ap.length ? ap.length+" apuntes" : "";
   document.getElementById("lAportes").innerHTML = ap.length ? ap.map(function(x){
     return '<li><div class="it" data-editaporte="'+x.id+'"><b>'+esc(x.nota||"Extra")+'</b>'+
-      '<small>'+shortDate(x.date)+'</small></div>'+
+      '<small>'+shortDate(x.date)+' · a '+esc(nombreBote(x.bote||"casa")||"la casa")+'</small></div>'+
       '<div class="amt pos">+'+money(x.amount)+'</div>'+
       '<button class="del" data-delaporte="'+x.id+'">✕</button></li>';
   }).join("") : '<div class="empty">Nada aparte: todo lo ahorrado viene de lo que sobra del bote.</div>';
 
-  renderMia();
 }
 function openMeta(){
   var m = meta();
@@ -1287,6 +1365,7 @@ function openMeta(){
     m.objetivo = num(document.getElementById("mt_o").value) || 0;
     var d = document.getElementById("mt_d").value;
     if(/^\d{4}-\d{2}$/.test(d)) m.desde = d;
+    toca(m);
     save(); closeSheet(); render(); toast("Guardado");
   };
 }
@@ -1297,8 +1376,13 @@ function openAporte(id){
     '<label>Cuánto (€)</label><input id="ap_v" type="number" inputmode="decimal" step="0.01" value="'+(a ? a.amount : "")+'">'+
     '<label>Qué es</label><input id="ap_n" placeholder="La paga extra, la venta de la bici…" value="'+esc(a ? (a.nota||"") : "")+'">'+
     '<label>Fecha</label><input id="ap_d" type="date" value="'+esc(a ? a.date : dKey(today))+'">'+
-    '<div class="mini">Dinero que va directo a la casa sin pasar por el bote. Lo que sobra del bote cada mes ya se suma solo: eso no hay que apuntarlo aquí.</div>'+
+    '<label>A qué bote</label><div class="depick" id="ap_b">'+botes().map(function(b){
+      return '<button data-b="'+b.id+'" class="'+(((a&&a.bote)||"casa")===b.id?"on":"")+'">'+esc(b.nombre)+'</button>'; }).join("")+'</div>'+
+    '<div class="mini">Dinero que va directo al bote sin pasar por el mes. Lo que sobra cada mes ya se reparte solo: eso no hay que apuntarlo aquí.</div>'+
     '<div class="btns"><button class="b-no" id="ap_no">Cancelar</button><button class="b-ok" id="ap_ok">Guardar</button></div>');
+  var bSel = (a&&a.bote)||"casa", cajaB = document.getElementById("ap_b");
+  cajaB.onclick = function(e){ var b = e.target.closest("[data-b]"); if(!b) return; bSel = b.dataset.b;
+    Array.prototype.forEach.call(cajaB.children, function(x){ x.className = (x.dataset.b===bSel)?"on":""; }); };
   document.getElementById("ap_no").onclick = closeSheet;
   document.getElementById("ap_ok").onclick = function(){
     var v = num(document.getElementById("ap_v").value);
@@ -1307,9 +1391,59 @@ function openAporte(id){
     obj.amount = v;
     obj.nota = document.getElementById("ap_n").value.trim();
     obj.date = document.getElementById("ap_d").value || dKey(today);
+    obj.bote = bSel;
     toca(obj);
     if(!a) S.aportes.push(obj);
     save(); closeSheet(); render(); toast("Para la casa");
+  };
+}
+/* un bote que no es la casa */
+function openBote(id){
+  var b = id ? boteDe(id) : null;
+  var tipo = b ? b.tipo : "ahorro";
+  openSheet('<h3>'+(b ? esc(b.nombre) : "Nuevo bote")+'</h3>'+
+    '<label>Nombre</label><input id="bo_n" placeholder="Viajes, Ocio…" value="'+esc(b?b.nombre:"")+'">'+
+    '<label>Qué tipo</label><div class="depick" id="bo_t">'+
+      '<button data-t="ahorro" class="'+(tipo==="ahorro"?"on":"")+'">Ahorro: aparta cada mes</button>'+
+      '<button data-t="mensual" class="'+(tipo==="mensual"?"on":"")+'">Presupuesto mensual</button></div>'+
+    '<label id="bo_lm">Cuánto al mes (€)</label><input id="bo_m" type="number" inputmode="decimal" step="10" value="'+(b?(b.mensual||""):"")+'">'+
+    '<div id="bo_obj"><label>Objetivo (€, opcional)</label><input id="bo_o" type="number" inputmode="decimal" step="100" value="'+(b&&b.objetivo?b.objetivo:"")+'"></div>'+
+    '<label>Desde</label><input id="bo_d" type="month" value="'+esc(((b&&b.desde)||mKey(cur)).slice(0,7))+'">'+
+    '<div class="mini" id="bo_txt"></div>'+
+    '<div class="btns"><button class="b-no" id="bo_no">Cancelar</button>'+(b?'<button class="b-no" id="bo_del">Quitar el bote</button>':'')+
+    '<button class="b-ok" id="bo_ok">Guardar</button></div>');
+  var caja = document.getElementById("bo_t");
+  function pinta(){
+    Array.prototype.forEach.call(caja.children, function(x){ x.className = (x.dataset.t===tipo)?"on":""; });
+    document.getElementById("bo_obj").style.display = tipo==="ahorro" ? "" : "none";
+    document.getElementById("bo_txt").textContent = tipo==="ahorro"
+      ? "Cada mes se aparta esa cantidad de lo que sobra del bote común, antes de que el resto vaya a la casa. Lo que paguéis marcado como de este bote sale de aquí, no del mes."
+      : "Un tope mensual. Los gastos que marquéis como de este bote van restando y veis cuánto os queda. El mes que viene vuelve a empezar.";
+  }
+  pinta();
+  caja.onclick = function(e){ var x = e.target.closest("[data-t]"); if(!x) return; tipo = x.dataset.t; pinta(); };
+  document.getElementById("bo_no").onclick = closeSheet;
+  var bd = document.getElementById("bo_del");
+  if(bd) bd.onclick = function(){
+    if(!confirm("¿Quitar «"+b.nombre+"»? Los gastos que estuvieran marcados como de este bote pasan a contar en el mes.")) return;
+    S.botes = botes().filter(function(x){ return x.id!==b.id; }); olvida(b.id);
+    Object.keys(S.months).forEach(function(mk){ (S.months[mk].expenses||[]).forEach(function(x){ if(x.bote===b.id){ delete x.bote; toca(x); } }); });
+    (S.recurring.expenses||[]).forEach(function(x){ if(x.bote===b.id){ delete x.bote; toca(x); } });
+    (S.aportes||[]).forEach(function(x){ if(x.bote===b.id){ x.bote = "casa"; toca(x); } });
+    save(); closeSheet(); render();
+  };
+  document.getElementById("bo_ok").onclick = function(){
+    var n = document.getElementById("bo_n").value.trim(), m = num(document.getElementById("bo_m").value);
+    if(!n){ toast("Ponle nombre"); return; }
+    if(!(m>0)){ toast("Pon cuánto al mes"); return; }
+    var o = tipo==="ahorro" ? (num(document.getElementById("bo_o").value)||0) : 0;
+    var d = document.getElementById("bo_d").value;
+    var nb = b || {id:uid()};
+    nb.nombre = n; nb.tipo = tipo; nb.mensual = m; nb.objetivo = o;
+    if(/^\d{4}-\d{2}$/.test(d)) nb.desde = d;
+    toca(nb);
+    if(!b) botes().push(nb);
+    save(); closeSheet(); render();
   };
 }
 /* la cuota de una persona en un mes concreto */
@@ -1669,7 +1803,27 @@ function renderFin(){
   document.getElementById("sCuotas").textContent = money(t.cuotas);
   document.getElementById("sGasF").textContent = money(t.expF);
   suma("sIngV", t.ingV, sum(mm.incomes||[]));
-  suma("sGasV", t.expV, sum(mm.expenses||[]));
+  /* lo pagado con cargo a un bote de ahorro no es del mes: se dice aparte */
+  var deBotes = sum((mm.expenses||[]).filter(function(x){ var b = x.bote && boteDe(x.bote); return esComun(x) && b && b.tipo==="ahorro"; }));
+  suma("sGasV", t.expV, sum(mm.expenses||[]) - deBotes);
+  if(deBotes > 0.005) document.getElementById("sGasV").textContent += "  ·  "+money(deBotes)+" de botes";
+  /* a dónde va lo que sobra este mes */
+  var act = botesActivos(k), sob = t.ing - t.gas, filas = [];
+  act.forEach(function(b){
+    if(b.tipo==="ahorro") filas.push('<li><div class="it" data-bote="'+b.id+'"><b>'+esc(b.nombre)+'</b><small>se aparta cada mes</small></div>'+
+      '<div class="amt pos">'+money(+b.mensual||0)+'</div></li>');
+    else {
+      var g = gastadoBote(k, b.id), q = (+b.mensual||0) - g;
+      filas.push('<li><div class="it" data-bote="'+b.id+'"><b>'+esc(b.nombre)+'</b><small>'+money(g)+' de '+money(+b.mensual||0)+' este mes</small></div>'+
+        '<div class="amt '+(q>=0?"pos":"neg")+'">'+(q>=0?"quedan ":"pasados ")+money(Math.abs(q))+'</div></li>');
+    }
+  });
+  var cm = casaMes(k);
+  filas.push('<li><div class="it" data-bote="casa"><b>'+esc(boteCasa().nombre)+'</b><small>lo que sobra después de los botes</small></div>'+
+    '<div class="amt '+(cm>=0?"pos":"neg")+'">'+(cm>=0?"+":"−")+money(Math.abs(cm))+'</div></li>');
+  document.getElementById("lReparto").innerHTML = filas.join("");
+  document.getElementById("sReparto").textContent = money(sob)+" sobran";
+
   /* el bote: quién pone qué este mes */
   document.getElementById("lCuotas").innerHTML = gente().map(function(pr){
     var v = cuotaDe(k, pr.id), def = +((S.cuotas||{})[pr.id])||0;
@@ -1759,7 +1913,7 @@ function rowsOne(id, list, kind){
   var s = list.slice().sort(function(a,b){ return (a.date||"").localeCompare(b.date||""); });
   ul.innerHTML = s.map(function(r){
     var sub2 = (r.date ? shortDate(r.date) : "") + (r.cat ? " · "+esc(r.cat) : "") +
-               (r.ticket ? " · ticket" : "") + (r.aporte ? " · a la hucha" : "");
+               (r.ticket ? " · ticket" : "") + (r.bote && boteDe(r.bote) ? " · "+esc(nombreBote(r.bote)) : "");
     /* si el ingreso viene de un aporte, se toca por donde se creó: en la hucha */
     var abre = r.aporte ? 'data-editaporte="'+r.aporte+'"'
               : r.ticket ? 'data-tkedit="'+r.ticket+'"'
@@ -2650,14 +2804,9 @@ function fusiona(local, remoto){
     if(r && r.b && (!l || (r.u||"") > (l.u||""))) out.privado[pid] = r;
   });
 
-  /* la casa: nombre, objetivo y desde cuándo. Un hueco nunca gana a un dato;
-     con dato en los dos, manda el móvil que se tocó más tarde. */
-  out.meta = out.meta || {nombre:"la casa", objetivo:0, desde:""};
-  var rmeta = remoto.meta || {}, remotoNuevo = (remoto.upd||"") > (local.upd||"");
-  ["nombre","desde"].forEach(function(f){
-    if(rmeta[f] && (!out.meta[f] || remotoNuevo)) out.meta[f] = rmeta[f];
-  });
-  if(+rmeta.objetivo > 0 && (!(+out.meta.objetivo > 0) || remotoNuevo)) out.meta.objetivo = +rmeta.objetivo;
+  /* los botes: como cualquier lista con id, gana el más tocado; la casa siempre está */
+  var remotoNuevo = (remoto.upd||"") > (local.upd||"");
+  out.botes = une(out.botes, remoto.botes).filter(function(b){ return !baja[b.id]; });
 
   /* las cuotas por defecto: por persona, manda el móvil más reciente si trae dato */
   out.cuotas = out.cuotas || {};
@@ -2810,7 +2959,8 @@ function render(){
   if(view==="fin"){
     document.getElementById("sub-mes").style.display = subFin==="mes" ? "" : "none";
     document.getElementById("sub-meta").style.display = subFin==="meta" ? "" : "none";
-    if(subFin==="mes") renderFin(); else renderMeta();
+    document.getElementById("sub-mio").style.display = subFin==="mio" ? "" : "none";
+    if(subFin==="mes") renderFin(); else if(subFin==="meta") renderMeta(); else renderMia();
   }
   if(view==="shop"){
     document.getElementById("sub-lista").style.display = sub==="lista"?"":"none";
@@ -2893,8 +3043,21 @@ function openMoney(type, id){
       }).join("")+'</div>'+
       '<div class="mini">Si lo marcas de uno, no entra en la caja común: sale aparte en el panel del mes.</div>';
   }
+  /* un gasto puede ir con cargo a un bote: de ocio (resta del tope) o de viajes (sale del ahorro) */
+  var otrosB = t.inc ? [] : botes().filter(function(b){ return b.tipo!=="casa"; });
+  var boteIni = item ? (item.bote||"") : "";
+  if(otrosB.length){
+    html += '<label>Con cargo a</label><div class="depick" id="f_bote">'+
+      '<button data-cargo="" class="'+(boteIni?"":"on")+'">El mes</button>'+
+      otrosB.map(function(b){ return '<button data-cargo="'+b.id+'" class="'+(boteIni===b.id?"on":"")+'">'+esc(b.nombre)+'</button>'; }).join("")+'</div>';
+  }
   html += '<div class="btns"><button class="b-no" id="f_cancel">Cancelar</button><button class="b-ok" id="f_save">Guardar</button></div>';
   openSheet(html);
+  var boteSel = boteIni, cajaBote = document.getElementById("f_bote");
+  if(cajaBote) cajaBote.onclick = function(e){
+    var b = e.target.closest("[data-cargo]"); if(!b) return; boteSel = b.dataset.cargo;
+    Array.prototype.forEach.call(cajaBote.children, function(x){ x.className = (x.dataset.cargo===boteSel)?"on":""; });
+  };
   var deSel = deIni, desdeSel = "ahora";
   var cajaDesde = document.getElementById("f_desde");
   if(cajaDesde) cajaDesde.onclick = function(e){
@@ -2926,6 +3089,7 @@ function openMoney(type, id){
     var antesImporte = obj.amount;
     if(t.rec) deSel = "";
     obj.name = name; obj.amount = Math.abs(amt); obj.de = deSel || "";
+    if(!t.inc){ if(boteSel) obj.bote = boteSel; else delete obj.bote; }
     toca(obj);
     if(t.rec){
       var dv = parseInt(document.getElementById("f_day").value,10);
@@ -3253,7 +3417,7 @@ document.addEventListener("click", function(e){
     "[data-add],[data-edit],[data-del],[data-flag],[data-day],[data-ct],[data-ht],[data-weight],"+
     "[data-editcat],[data-delcat],[data-delshop],[data-editprice],[data-litoggle],[data-liedit],[data-lidel],"+
     "[data-editper],[data-delper],[data-editaporte],[data-delaporte],[data-cuota],[data-vermes],"+
-    "[data-nomina],[data-editfijomio],[data-delfijomio],"+
+    "[data-nomina],[data-editfijomio],[data-delfijomio],[data-bote],"+
     "[data-editmia],[data-delmia],"+
     "[data-tkedit],[data-tkdel]");
   if(!el) return;
@@ -3289,6 +3453,7 @@ document.addEventListener("click", function(e){
   }
   if(d.weight){ openWeight(d.weight); return; }
   if(d.cuota){ openCuota(d.cuota, mKey(cur)); return; }
+  if(d.bote !== undefined){ if(d.bote==="casa") openMeta(); else openBote(d.bote); return; }
   if(d.vermes){ cur = parseD(d.vermes+"-01"); subFin = "mes";
     Array.prototype.forEach.call(document.querySelectorAll("#finSeg button"), function(x){ x.classList.toggle("on", x.dataset.fin==="mes"); });
     syncSel(); window.scrollTo(0,0); render(); return; }
@@ -3509,6 +3674,7 @@ Array.prototype.forEach.call(document.querySelectorAll("#finSeg button"), functi
   };
 });
 document.getElementById("editMeta").onclick = function(){ openMeta(); };
+document.getElementById("addBote").onclick = function(){ openBote(null); };
 document.getElementById("addAporte").onclick = function(){ openAporte(null); };
 Array.prototype.forEach.call(document.querySelectorAll("#shopSeg button"), function(b){
   b.onclick = function(){
