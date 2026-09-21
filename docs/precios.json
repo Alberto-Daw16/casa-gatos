@@ -1,6 +1,6 @@
 {
- "fecha": "2026-09-14",
- "generado": "2026-09-14T13:28:59.735Z",
+ "fecha": "2026-09-21",
+ "generado": "2026-09-21T13:28:18.092Z",
  "fuentes": [
   "https://radarsuper.com/precios/aceite-de-oliva-virgen-extra",
   "https://radarsuper.com/precios/arroz",
@@ -37,7 +37,7 @@
    "shop": "Ahorramás",
    "price": 4.26,
    "offer": null,
-   "fecha": "2026-09-14",
+   "fecha": "2026-09-21",
    "url": "https://radarsuper.com/precios/aceite-de-oliva-virgen-extra"
   },
   {
@@ -55,7 +55,7 @@
    "shop": "Carrefour",
    "price": 4.26,
    "offer": null,
-   "fecha": "2026-09-14",
+   "fecha": "2026-09-21",
    "url": "https://radarsuper.com/precios/aceite-de-oliva-virgen-extra"
   },
   {
@@ -64,7 +64,7 @@
    "shop": "Dia",
    "price": 4.6,
    "offer": null,
-   "fecha": "2026-09-14",
+   "fecha": "2026-09-21",
    "url": "https://radarsuper.com/precios/aceite-de-oliva-virgen-extra"
   },
   {
@@ -73,7 +73,7 @@
    "shop": "Mercadona",
    "price": 3.8,
    "offer": null,
-   "fecha": "2026-09-14",
+   "fecha": "2026-09-21",
    "url": "https://radarsuper.com/precios/aceite-de-oliva-virgen-extra"
   },
   {
@@ -659,9 +659,9 @@
    "prod": "Arroz redondo",
    "unit": "1kg",
    "shop": "Ahorramás",
-   "price": 1,
+   "price": 1.15,
    "offer": null,
-   "fecha": "2026-09-14",
+   "fecha": "2026-09-21",
    "url": "https://radarsuper.com/precios/arroz"
   },
   {
@@ -679,7 +679,7 @@
    "shop": "Carrefour",
    "price": 1.2,
    "offer": null,
-   "fecha": "2026-09-14",
+   "fecha": "2026-09-21",
    "url": "https://radarsuper.com/precios/arroz"
   },
   {
@@ -688,7 +688,7 @@
    "shop": "Dia",
    "price": 1.15,
    "offer": null,
-   "fecha": "2026-09-14",
+   "fecha": "2026-09-21",
    "url": "https://radarsuper.com/precios/arroz"
   },
   {
@@ -697,7 +697,7 @@
    "shop": "Mercadona",
    "price": 1.15,
    "offer": null,
-   "fecha": "2026-09-14",
+   "fecha": "2026-09-21",
    "url": "https://radarsuper.com/precios/arroz"
   },
   {
@@ -747,7 +747,7 @@
    "shop": "Carrefour",
    "price": 9.98,
    "offer": null,
-   "fecha": "2026-09-14",
+   "fecha": "2026-09-21",
    "url": "https://radarsuper.com/precios/atun-en-lata"
   },
   {
@@ -756,7 +756,7 @@
    "shop": "Dia",
    "price": 8.17,
    "offer": null,
-   "fecha": "2026-09-14",
+   "fecha": "2026-09-21",
    "url": "https://radarsuper.com/precios/atun-en-lata"
   },
   {
@@ -765,7 +765,7 @@
    "shop": "Mercadona",
    "price": 4.2,
    "offer": null,
-   "fecha": "2026-09-14",
+   "fecha": "2026-09-21",
    "url": "https://radarsuper.com/precios/atun-en-lata"
   },
   {
@@ -1921,7 +1921,7 @@
    "shop": "Carrefour",
    "price": 4.49,
    "offer": null,
-   "fecha": "2026-09-14",
+   "fecha": "2026-09-21",
    "url": "https://radarsuper.com/precios/cafe-molido"
   },
   {
@@ -1930,7 +1930,7 @@
    "shop": "Dia",
    "price": 9,
    "offer": null,
-   "fecha": "2026-09-14",
+   "fecha": "2026-09-21",
    "url": "https://radarsuper.com/precios/cafe-molido"
   },
   {
@@ -1939,7 +1939,7 @@
    "shop": "Mercadona",
    "price": 4.5,
    "offer": null,
-   "fecha": "2026-09-14",
+   "fecha": "2026-09-21",
    "url": "https://radarsuper.com/precios/cafe-molido"
   },
   {
@@ -3487,7 +3487,7 @@
    "shop": "Ahorramás",
    "price": 1.15,
    "offer": null,
-   "fecha": "2026-09-14",
+   "fecha": "2026-09-21",
    "url": "https://radarsuper.com/precios/espaguetis"
   },
   {
@@ -3503,9 +3503,9 @@
    "prod": "Espaguetis",
    "unit": "1kg",
    "shop": "Carrefour",
-   "price": 1.2,
+   "price": 1.1,
    "offer": null,
-   "fecha": "2026-09-14",
+   "fecha": "2026-09-21",
    "url": "https://radarsuper.com/precios/espaguetis"
   },
   {
@@ -3514,7 +3514,7 @@
    "shop": "Dia",
    "price": 1.15,
    "offer": null,
-   "fecha": "2026-09-14",
+   "fecha": "2026-09-21",
    "url": "https://radarsuper.com/precios/espaguetis"
   },
   {
@@ -3523,7 +3523,7 @@
    "shop": "Mercadona",
    "price": 0.8,
    "offer": null,
-   "fecha": "2026-09-14",
+   "fecha": "2026-09-21",
    "url": "https://radarsuper.com/precios/espaguetis"
   },
   {
@@ -4292,7 +4292,7 @@
    "shop": "Mercadona",
    "price": 2.85,
    "offer": null,
-   "fecha": "2026-09-14",
+   "fecha": "2026-09-21",
    "url": "https://radarsuper.com/precios/huevos"
   },
   {
@@ -5243,7 +5243,7 @@
    "shop": "Carrefour",
    "price": 0.94,
    "offer": null,
-   "fecha": "2026-09-14",
+   "fecha": "2026-09-21",
    "url": "https://radarsuper.com/precios/leche-entera"
   },
   {
@@ -5252,7 +5252,7 @@
    "shop": "Dia",
    "price": 0.96,
    "offer": null,
-   "fecha": "2026-09-14",
+   "fecha": "2026-09-21",
    "url": "https://radarsuper.com/precios/leche-entera"
   },
   {
@@ -5261,7 +5261,7 @@
    "shop": "Mercadona",
    "price": 0.96,
    "offer": null,
-   "fecha": "2026-09-14",
+   "fecha": "2026-09-21",
    "url": "https://radarsuper.com/precios/leche-entera"
   },
   {
@@ -7081,7 +7081,7 @@
    "shop": "Ahorramás",
    "price": 1.05,
    "offer": null,
-   "fecha": "2026-09-14",
+   "fecha": "2026-09-21",
    "url": "https://radarsuper.com/precios/pan-de-molde"
   },
   {
@@ -7099,7 +7099,7 @@
    "shop": "Carrefour",
    "price": 1.33,
    "offer": null,
-   "fecha": "2026-09-14",
+   "fecha": "2026-09-21",
    "url": "https://radarsuper.com/precios/pan-de-molde"
   },
   {
@@ -7108,7 +7108,7 @@
    "shop": "Dia",
    "price": 1.4,
    "offer": null,
-   "fecha": "2026-09-14",
+   "fecha": "2026-09-21",
    "url": "https://radarsuper.com/precios/pan-de-molde"
   },
   {
@@ -7117,7 +7117,7 @@
    "shop": "Mercadona",
    "price": 1.15,
    "offer": null,
-   "fecha": "2026-09-14",
+   "fecha": "2026-09-21",
    "url": "https://radarsuper.com/precios/pan-de-molde"
   },
   {
@@ -7183,7 +7183,7 @@
    "shop": "Carrefour",
    "price": 3.19,
    "offer": null,
-   "fecha": "2026-09-14",
+   "fecha": "2026-09-21",
    "url": "https://radarsuper.com/precios/papel-higienico"
   },
   {
@@ -7192,7 +7192,7 @@
    "shop": "Dia",
    "price": 2.35,
    "offer": null,
-   "fecha": "2026-09-14",
+   "fecha": "2026-09-21",
    "url": "https://radarsuper.com/precios/papel-higienico"
   },
   {
@@ -7201,7 +7201,7 @@
    "shop": "Mercadona",
    "price": 2.35,
    "offer": null,
-   "fecha": "2026-09-14",
+   "fecha": "2026-09-21",
    "url": "https://radarsuper.com/precios/papel-higienico"
   },
   {
@@ -7338,7 +7338,7 @@
    "shop": "Ahorramás",
    "price": 4.65,
    "offer": null,
-   "fecha": "2026-09-14",
+   "fecha": "2026-09-21",
    "url": "https://radarsuper.com/precios/patatas"
   },
   {
@@ -7656,7 +7656,7 @@
    "shop": "Ahorramás",
    "price": 4.55,
    "offer": null,
-   "fecha": "2026-09-14",
+   "fecha": "2026-09-21",
    "url": "https://radarsuper.com/precios/pechuga-de-pollo"
   },
   {
@@ -7674,7 +7674,7 @@
    "shop": "Carrefour",
    "price": 7.38,
    "offer": null,
-   "fecha": "2026-09-14",
+   "fecha": "2026-09-21",
    "url": "https://radarsuper.com/precios/pechuga-de-pollo"
   },
   {
@@ -7683,7 +7683,7 @@
    "shop": "Dia",
    "price": 11.75,
    "offer": null,
-   "fecha": "2026-09-14",
+   "fecha": "2026-09-21",
    "url": "https://radarsuper.com/precios/pechuga-de-pollo"
   },
   {
@@ -8171,7 +8171,7 @@
    "shop": "Ahorramás",
    "price": 1.49,
    "offer": null,
-   "fecha": "2026-09-14",
+   "fecha": "2026-09-21",
    "url": "https://radarsuper.com/precios/platanos"
   },
   {
@@ -8180,7 +8180,7 @@
    "shop": "Alcampo",
    "price": 1.45,
    "offer": null,
-   "fecha": "2026-09-14",
+   "fecha": "2026-09-21",
    "url": "https://radarsuper.com/precios/platanos"
   },
   {
@@ -8189,7 +8189,7 @@
    "shop": "Carrefour",
    "price": 2.25,
    "offer": null,
-   "fecha": "2026-09-14",
+   "fecha": "2026-09-21",
    "url": "https://radarsuper.com/precios/platanos"
   },
   {
@@ -8198,7 +8198,7 @@
    "shop": "Dia",
    "price": 2.89,
    "offer": null,
-   "fecha": "2026-09-14",
+   "fecha": "2026-09-21",
    "url": "https://radarsuper.com/precios/platanos"
   },
   {
@@ -10626,7 +10626,7 @@
    "shop": "Ahorramás",
    "price": 0.88,
    "offer": null,
-   "fecha": "2026-09-14",
+   "fecha": "2026-09-21",
    "url": "https://radarsuper.com/precios/tomate-frito"
   },
   {
@@ -10644,7 +10644,7 @@
    "shop": "Carrefour",
    "price": 1.13,
    "offer": null,
-   "fecha": "2026-09-14",
+   "fecha": "2026-09-21",
    "url": "https://radarsuper.com/precios/tomate-frito"
   },
   {
@@ -10653,7 +10653,7 @@
    "shop": "Dia",
    "price": 1.62,
    "offer": null,
-   "fecha": "2026-09-14",
+   "fecha": "2026-09-21",
    "url": "https://radarsuper.com/precios/tomate-frito"
   },
   {
@@ -10662,7 +10662,7 @@
    "shop": "Mercadona",
    "price": 1.13,
    "offer": null,
-   "fecha": "2026-09-14",
+   "fecha": "2026-09-21",
    "url": "https://radarsuper.com/precios/tomate-frito"
   },
   {
