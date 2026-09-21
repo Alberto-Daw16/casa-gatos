@@ -8,7 +8,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>Gremory</title>
-<meta name="build" content="2026-09-21.2">
+<meta name="build" content="2026-09-21.3">
 <!-- El cuadrado de la pantalla de inicio. iOS se guarda el icono por URL y no
      vuelve a pedirlo, así que si se cambia hay que darle un nombre de fichero
      nuevo. El manifest es lo que mira el iPhone moderno; los dos "apple-touch"
@@ -695,6 +695,10 @@
         sale de aquí, así que si la cambias en uno tienes que cambiarla en el otro. Si la olvidas, lo del móvil
         sigue intacto; lo de la nube ya no se puede leer.</div>
     </div>
+    <div class="card" id="cardAvisos">
+      <h2>Avisos <span class="sum" id="avisosInfo" style="font-size:12px;color:var(--dim)"></span></h2>
+      <div id="avisosBox"></div>
+    </div>
     <div class="card">
       <h2>Catálogo en la nube</h2>
       <label>URL del precios.json</label>
@@ -825,6 +829,8 @@ var DEF = {
   privado:{}, pin:"",
   /* lo tuyo: se queda en este móvil y no sube nunca a la nube */
   mio:{listo:false, nominas:{}, fijos:[], gastos:[], aportes:[], objetivo:0},
+  /* avisos: "push" es de este móvil (no sube); "avisos" son las preferencias de cada uno (sí sube) */
+  push:{on:false, endpoint:""}, avisos:{}, logrosAvisados:[],
   /* ids de lo que se ha borrado: sin esto, fusionar (que es unir) lo resucita */
   borrados:{}
 };
@@ -853,6 +859,9 @@ function load(){
   if(!d.mio || typeof d.mio !== "object") d.mio = JSON.parse(JSON.stringify(DEF.mio));
   ["fijos","gastos","aportes"].forEach(function(c){ if(!Array.isArray(d.mio[c])) d.mio[c] = []; });
   if(!d.mio.nominas || typeof d.mio.nominas !== "object") d.mio.nominas = {};
+  if(!d.push || typeof d.push !== "object") d.push = {on:false, endpoint:""};
+  if(!d.avisos || typeof d.avisos !== "object") d.avisos = {};
+  if(!Array.isArray(d.logrosAvisados)) d.logrosAvisados = [];
   if(!d.cuotas || typeof d.cuotas !== "object") d.cuotas = {};
   Object.keys(d.months).forEach(function(mk){
     var m = d.months[mk] || (d.months[mk] = {});
@@ -1413,6 +1422,7 @@ function openAporte(id){
     toca(obj);
     if(!a) S.aportes.push(obj);
     save(); closeSheet(); render(); toast("Para la casa");
+    if(!a) avisaOtro(nombreDe(miId())+" ha metido un extra", money(v)+" para la casa"+(obj.nota ? " · "+obj.nota : ""));
   };
 }
 /* un bote que no es la casa */
@@ -2661,12 +2671,47 @@ function renderSet(){
   if(lv) lv.innerHTML = S.yo ? '<div class="mini">Lo de la pestaña <b>Mío</b> se queda en este móvil y no se sincroniza.</div>' : "";
   var vn = document.getElementById("verNum");
   if(vn) vn.textContent = BUILD;
+  renderAvisos();
   document.getElementById("setUrl").value = S.catalogUrl || "";
   document.getElementById("setSync").value = S.syncUrl || "";
   document.getElementById("setPass").value = S.syncPass || "";
   var ni = document.getElementById("nubeInfo");
   var cuando = S.lastNube ? ("última: "+new Date(S.lastNube).toLocaleString("es-ES",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"})) : "sin sincronizar";
   if(ni) ni.textContent = ((S.syncPass||"").trim() ? "cifrado · " : "") + cuando;
+}
+
+function renderAvisos(){
+  var box = document.getElementById("avisosBox"), info = document.getElementById("avisosInfo");
+  if(!box) return;
+  var yo = miId(), on = !!(S.push && S.push.on);
+  info.textContent = on ? "activados aquí" : "";
+  if(!hayPush()){
+    box.innerHTML = '<div class="mini">'+(esApp() ? "Este iPhone no puede recibir avisos de apps web (hace falta iOS 16.4 o más)."
+      : "Para recibir avisos, añade Gremory a la pantalla de inicio (Compartir → Añadir a pantalla de inicio) y ábrela desde ahí.")+'</div>';
+    return;
+  }
+  var pref = yo ? prefAvisos(yo) : null;
+  var fila = function(k, lbl, sub){
+    return '<div class="r" style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--line)">'+
+      '<div><b>'+lbl+'</b><div class="mini" style="margin:2px 0 0">'+sub+'</div></div>'+
+      '<div class="depick" style="margin:0;flex:0 0 auto"><button data-avpref="'+k+'" data-v="1" class="'+(pref[k]?"on":"")+'">Sí</button><button data-avpref="'+k+'" data-v="0" class="'+(pref[k]?"":"on")+'">No</button></div></div>';
+  };
+  box.innerHTML =
+    (on ? '<button class="add" id="btnAvPrueba">Mandarme un aviso de prueba</button><button class="add" id="btnAvOff" style="color:var(--neg)">Quitar los avisos en este móvil</button>'
+        : '<button class="add" id="btnAvOn" style="color:var(--pos)">Activar avisos en este móvil</button>')+
+    (pref ? fila("gatos","Los gatos","A las 19:00 si algo va con retraso")+
+            fila("mes","El mes","Resumen el día 1 y un aviso a mitad de mes")+
+            fila("entre","Entre vosotros","Cuando el otro mete un extra o un gasto de 100 € o más") : '<div class="mini">Dime arriba quién usa este móvil para elegir qué avisos quieres.</div>')+
+    '<div class="mini" style="margin-top:8px">Los avisos los programa el móvil con lo que sabe en ese momento; la nube no lee vuestros datos. '+
+    (esApp() ? "" : "En iPhone solo llegan si la app está en la pantalla de inicio.")+'</div>';
+  var b;
+  if((b = document.getElementById("btnAvOn"))) b.onclick = activaAvisos;
+  if((b = document.getElementById("btnAvOff"))) b.onclick = quitaAvisos;
+  if((b = document.getElementById("btnAvPrueba"))) b.onclick = pruebaAviso;
+  box.onclick = function(e){
+    var t = e.target.closest("[data-avpref]"); if(!t || !yo) return;
+    ponPref(yo, t.dataset.avpref, t.dataset.v==="1"); renderAvisos(); subeCola();
+  };
 }
 
 /* =========== SINCRONIZACIÓN ENTRE LOS DOS MÓVILES ===========
@@ -2749,6 +2794,9 @@ function fusiona(local, remoto){
 
   // las huchas privadas viajan cifradas: gana el bloque más nuevo de cada uno
   out.privado = out.privado || {};
+  out.avisos = out.avisos || {};
+  Object.keys(remoto.avisos||{}).forEach(function(pid){ out.avisos[pid] = gana(out.avisos[pid], remoto.avisos[pid]); });
+  out.logrosAvisados = une((out.logrosAvisados||[]).map(function(k){ return {id:k}; }), (remoto.logrosAvisados||[]).map(function(k){ return {id:k}; })).map(function(x){ return x.id; });
   Object.keys(remoto.privado||{}).forEach(function(pid){
     var r = remoto.privado[pid], l = out.privado[pid];
     if(r && r.b && (!l || (r.u||"") > (l.u||""))) out.privado[pid] = r;
@@ -2850,7 +2898,7 @@ function sincroniza(manual){
       /* la URL y la contraseña no suben nunca: son la llave, no el contenido */
       var envio = JSON.parse(JSON.stringify(S));
       delete envio.syncUrl; delete envio.syncPass; delete envio.lastNube; delete envio.yo;
-      delete envio.pin; delete envio.mio;
+      delete envio.pin; delete envio.mio; delete envio.push;
       return pass ? cifra(envio, pass) : envio;
     })
     .then(function(cuerpo){
@@ -2864,6 +2912,7 @@ function sincroniza(manual){
       _deSync = true; save(); _deSync = false;    // este guardado no cuenta como "toqué la app"
       render();
       _sincronizando = false;
+      try { subeCola(); avisaLogros(); } catch(e){ console.error("avisos", e); }
       if(manual) toast("Sincronizado");
       /* si has apuntado algo mientras subía, ese cambio no viajó: se reprograma */
       if(_sucio){ _sucio = false; clearTimeout(_syncT); _syncT = setTimeout(function(){ sincroniza(false); }, 4000); }
@@ -2877,6 +2926,170 @@ function sincroniza(manual){
       else { _fallos++; if(_fallos===3) toast("No consigo sincronizar. Mira Ajustes."); }
       return false;
     });
+}
+
+/* =========== AVISOS (notificaciones push) ===========
+   El Worker no puede leer los datos (van cifrados), así que es el móvil el
+   que decide qué avisos tocan y los deja programados en la nube; el Worker
+   solo los suelta a su hora. Además, un apunte gordo avisa al otro al momento. */
+function nubeBase(){
+  try {
+    var u = new URL((S.syncUrl||"").trim());
+    var k = u.searchParams.get("k") || "";
+    if(!k) return null;
+    return {base:u.origin, k:k};
+  } catch(e){ return null; }
+}
+function apiNube(ruta, metodo, cuerpo){
+  var nb = nubeBase();
+  if(!nb) return Promise.reject(new Error("sin URL de sincronización"));
+  return fetch(nb.base+ruta+"?k="+encodeURIComponent(nb.k), {
+    method: metodo||"GET", cache:"no-store",
+    headers: cuerpo ? {"content-type":"application/json"} : undefined,
+    body: cuerpo ? JSON.stringify(cuerpo) : undefined
+  }).then(function(r){ if(!r.ok) throw new Error("HTTP "+r.status); return r.json(); });
+}
+function hayPush(){
+  return "serviceWorker" in navigator && "PushManager" in window && "Notification" in window;
+}
+function esApp(){ return window.navigator.standalone === true || (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches); }
+function prefAvisos(pid){
+  var p = (S.avisos||{})[pid];
+  return {gatos: !p || p.gatos!==false, mes: !p || p.mes!==false, entre: !p || p.entre!==false};
+}
+function ponPref(pid, k, v){
+  if(!S.avisos) S.avisos = {};
+  var p = S.avisos[pid] || (S.avisos[pid] = {});
+  p[k] = v; toca(p); save();
+}
+function b64uABytes(s){
+  s = s.replace(/-/g,"+").replace(/_/g,"/"); while(s.length % 4) s += "=";
+  var raw = atob(s), out = new Uint8Array(raw.length);
+  for(var i=0;i<raw.length;i++) out[i] = raw.charCodeAt(i);
+  return out;
+}
+function registraSW(){
+  return navigator.serviceWorker.register("sw.js").then(function(){ return navigator.serviceWorker.ready; });
+}
+function activaAvisos(){
+  if(!miId()){ toast("Dime en Ajustes quién usa este móvil"); return Promise.resolve(false); }
+  if(!nubeBase()){ toast("Primero la URL de sincronización"); return Promise.resolve(false); }
+  if(!hayPush()){ toast("Este navegador no puede recibir avisos"); return Promise.resolve(false); }
+  toast("Pidiendo permiso…");
+  return Notification.requestPermission().then(function(p){
+    if(p !== "granted") throw new Error("Sin permiso: actívalo en Ajustes del iPhone → Notificaciones → Gremory");
+    return registraSW();
+  }).then(function(reg){
+    return apiNube("/vapid").then(function(v){
+      return reg.pushManager.subscribe({userVisibleOnly:true, applicationServerKey: b64uABytes(v.pub)});
+    });
+  }).then(function(sub){
+    var j = sub.toJSON();
+    return apiNube("/sub", "POST", {pid: miId(), sub: j}).then(function(){
+      S.push = {on:true, endpoint: j.endpoint||""}; save();
+      renderSet(); subeCola();
+      toast("Avisos activados en este móvil");
+      return true;
+    });
+  }).catch(function(e){
+    toast(e && e.message ? e.message : "No he podido activar los avisos");
+    return false;
+  });
+}
+function quitaAvisos(){
+  var fin = function(){ S.push = {on:false, endpoint:""}; save(); renderSet(); toast("Avisos quitados"); };
+  apiNube("/sub", "POST", {pid: miId(), sub: null}).then(fin, fin);
+  if(hayPush()) navigator.serviceWorker.getRegistration().then(function(reg){
+    if(!reg) return; reg.pushManager.getSubscription().then(function(sb){ if(sb) sb.unsubscribe(); });
+  });
+}
+function pruebaAviso(){
+  toast("Enviando…");
+  apiNube("/prueba", "POST", {pid: miId()}).then(function(r){
+    toast(r.enviados ? "Enviado: te tiene que llegar en unos segundos" : "La nube no tiene este móvil apuntado. Quita y vuelve a activar.");
+  }, function(){ toast("No he podido hablar con la nube"); });
+}
+/* aviso inmediato al otro (o a los dos si para="todos") */
+function avisaOtro(titulo, cuerpo, para){
+  if(!nubeBase() || !miId()) return;
+  var otro = (S.people||[]).filter(function(p){ return p.id!==miId(); })[0];
+  if(para!=="todos" && (!otro || !prefAvisos(otro.id).entre)) return;
+  apiNube("/avisa", "POST", {de: miId(), para: para||"todos", titulo: titulo, cuerpo: cuerpo}).catch(function(){});
+}
+/* un logro nuevo se celebra en los dos móviles, una sola vez */
+function avisaLogros(){
+  if(!nubeBase()) return;
+  var vistos = S.logrosAvisados || [], nuevos = [];
+  logrosCasa().forEach(function(l){ if(l.dado && vistos.indexOf(l.k) < 0) nuevos.push(l); });
+  if(!nuevos.length) return;
+  /* la primera vez (móvil recién actualizado) no hay que avisar de todo lo viejo */
+  if(vistos.indexOf("init") < 0){ S.logrosAvisados = ["init"].concat(logrosCasa().filter(function(l){ return l.dado; }).map(function(l){ return l.k; })); save(); return; }
+  S.logrosAvisados = vistos.concat(nuevos.map(function(l){ return l.k; })); save();
+  var l = nuevos[nuevos.length-1];
+  apiNube("/avisa", "POST", {de:"", para:"todos", titulo:"Logro: "+l.label, cuerpo:"La casa ya lleva "+money(ahorradoCasa())+". "+(nuevos.length>1 ? "Y "+(nuevos.length-1)+" logro(s) más." : "¡Bien!"), tag:"logro:"+l.k}).catch(function(){});
+}
+/* qué avisos programados tocan en los próximos días, con los datos de ahora */
+function generaAvisos(){
+  var out = [], ahora = new Date(), ids = (S.people||[]).map(function(p){ return p.id; });
+  var quiere = function(tipo){ return ids.filter(function(id){ return prefAvisos(id)[tipo]; }); };
+  function hora(d, h){ var x = new Date(d.getFullYear(), d.getMonth(), d.getDate(), h, 0, 0); return x; }
+  /* gatos: a las 19:00 de cada día en que algo va con retraso, suponiendo que no se apunte nada más */
+  var pg = quiere("gatos");
+  if(pg.length){
+    for(var i=0;i<8;i++){
+      var d = new Date(ahora.getFullYear(), ahora.getMonth(), ahora.getDate()+i), cuando = hora(d,19);
+      if(cuando <= ahora) continue;
+      var r = weekRange(d), ws = r[0], we = r[1], restan = 7 - ((d.getDay()+6)%7);   // días de semana que quedan contando hoy
+      var partes = [];
+      S.cats.forEach(function(cat){
+        var faltan = [];
+        CAT_TASKS.forEach(function(x){
+          var n = countRange(ws, we, function(c){ return ((c.cats||{})[cat.id]||{})[x.k]; });
+          var goal = S.goals[x.k]||1, pend = goal - n;
+          if(pend > 0 && pend >= restan) faltan.push(x.label.toLowerCase()+(pend>1 ? " (faltan "+pend+" esta semana)" : ""));
+        });
+        if(faltan.length) partes.push(cat.name+": "+faltan.join(", "));
+      });
+      var nb = countRange(ws, we, function(c){ return (c.home||{}).bano; }), pb = (S.goals.bano||1) - nb;
+      if(pb > 0 && pb >= restan) partes.push("limpiar el baño");
+      var la = lastDone(function(c){ return (c.home||{}).arenero; }), ga = S.goals.arenero||15;
+      var dias = la===null ? null : la + i;
+      if(dias!==null && dias >= ga) partes.push("arenero a fondo (hace "+dias+" días)");
+      if(!partes.length) continue;
+      out.push({id:"gatos:"+dKey(d), cuando:cuando.toISOString(), para:pg, titulo:"Los gatos", cuerpo:partes.join(" · ")});
+    }
+  }
+  /* el mes: resumen el día 1 a las 10:00 y un "vais por la mitad" el 15 */
+  var pm = quiere("mes");
+  if(pm.length){
+    var k = mKey(ahora), t = totalesMes(k), sob = t.ing - t.gas;
+    var sig = new Date(ahora.getFullYear(), ahora.getMonth()+1, 1), c1 = hora(sig,10);
+    var kAnt = mesRelativo(k,-1), ta = totalesMes(kAnt), sobA = ta.ing - ta.gas, dif = sob - sobA;
+    var mAnt = MONTHS[parseD(kAnt+"-01").getMonth()];
+    var cmp = !(ta.ing>0||ta.gas>0) ? "" : Math.abs(dif) < 0.5 ? " · igual que "+mAnt : (dif>0 ? " · "+money(dif)+" más que "+mAnt : " · "+money(-dif)+" menos que "+mAnt);
+    out.push({id:"mes:"+k, cuando:c1.toISOString(), para:pm, titulo:nombreMes(k)+" cerrado",
+      cuerpo:(sob>=0 ? "Sobraron "+money(sob) : "Faltaron "+money(-sob))+cmp+". La casa va por "+money(ahorradoCasa())+"."});
+    var c15 = hora(new Date(ahora.getFullYear(), ahora.getMonth(), 15), 10);
+    if(c15 > ahora) out.push({id:"mitad:"+k, cuando:c15.toISOString(), para:pm, titulo:"Mitad de "+MONTHS[ahora.getMonth()],
+      cuerpo:"Lleváis "+money(t.gas)+" gastados; quedan "+money(sob)+" del bote."});
+    /* si acaba de empezar el mes y el resumen del anterior no salió aún, se programa (el Worker no lo repite) */
+    if(ahora.getDate() <= 2 && (ta.ing>0||ta.gas>0)){
+      var c0 = hora(new Date(ahora.getFullYear(), ahora.getMonth(), 1), 10);
+      out.push({id:"mes:"+kAnt, cuando:(c0 > ahora ? c0 : new Date(ahora.getTime()+60e3)).toISOString(), para:pm, titulo:nombreMes(kAnt)+" cerrado",
+        cuerpo:(sobA>=0 ? "Sobraron "+money(sobA) : "Faltaron "+money(-sobA))+". La casa va por "+money(ahorradoCasa())+"."});
+    }
+  }
+  return out;
+}
+var _colaT = null;
+function subeCola(){
+  if(!nubeBase()) return;
+  clearTimeout(_colaT);
+  _colaT = setTimeout(function(){
+    var avisos;
+    try { avisos = generaAvisos(); } catch(e){ console.error("generaAvisos", e); return; }
+    apiNube("/cola", "PUT", {avisos: avisos}).catch(function(){});
+  }, 1500);
 }
 
 /* =========== RENDER =========== */
@@ -3056,6 +3269,10 @@ function openMoney(type, id){
       var src = loc ? loc.arr : null;
       if(src && src !== dst){ var i2 = src.indexOf(obj); if(i2>-1) src.splice(i2,1); }
       if(dst.indexOf(obj) < 0) dst.push(obj);
+      if(!item){
+        if(t.inc) avisaOtro(nombreDe(miId())+" ha metido un extra al bote", money(obj.amount)+" · "+obj.name);
+        else if(obj.amount >= 100) avisaOtro(nombreDe(miId())+" ha apuntado un gasto", money(obj.amount)+" · "+obj.name);
+      }
     }
     save(); closeSheet(); render(); toast("Guardado");
   };
@@ -3685,6 +3902,7 @@ function autoPrecios(){
 render();
 /* al abrir, baja lo que haya hecho el otro móvil */
 if((S.syncUrl||"").trim()) setTimeout(function(){ sincroniza(false); }, 800);
+if(S.push && S.push.on && hayPush()) registraSW().catch(function(){});
 setTimeout(autoPrecios, 2500);
 })();
 </script>
