@@ -8,7 +8,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>Gremory</title>
-<meta name="build" content="2026-09-21.3">
+<meta name="build" content="2026-09-22.1">
 <!-- El cuadrado de la pantalla de inicio. iOS se guarda el icono por URL y no
      vuelve a pedirlo, así que si se cambia hay que darle un nombre de fichero
      nuevo. El manifest es lo que mira el iPhone moderno; los dos "apple-touch"
@@ -347,6 +347,19 @@
   .quick button{background:var(--acc);border:0;color:#12160a;border-radius:0;padding:0 18px;
     font-size:20px;font-weight:800;cursor:pointer}
 
+  .ev{padding:11px 0;border-top:1px solid var(--line);display:flex;gap:10px;align-items:center}
+  .ev:first-child{border-top:0}
+  .ev .t{flex:1;min-width:0}
+  .ev .t b{display:block;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .ev .t small{display:block;color:var(--dim);font-size:11.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .ev .t small i{font-style:normal}
+  .ev svg{flex:0 0 84px;height:30px;display:block}
+  .ev .n{flex:0 0 auto;text-align:right;font-weight:700;font-size:14px}
+  .ev .n small{display:block;font-weight:500;font-size:11px;color:var(--dim)}
+  .up{color:var(--neg)} .dn{color:var(--pos)}
+  .evtab{width:100%;border-collapse:collapse;font-size:13px;margin-top:6px}
+  .evtab td{padding:6px 0;border-top:1px solid var(--line)}
+  .evtab td:last-child{text-align:right;font-weight:700}
   .prow{padding:12px 0;border-top:1px solid var(--line)}
   .prow:first-child{border-top:0}
   .ptitle{display:flex;align-items:center;gap:8px;font-weight:700;font-size:14.5px;flex-wrap:wrap}
@@ -621,6 +634,11 @@
     </div>
 
     <div id="sub-precios">
+      <div class="card">
+        <h2>C&oacute;mo va lo que compr&aacute;is <span class="sum" id="evSum"></span></h2>
+        <div id="evList"></div>
+        <div class="mini">Sale de vuestros tickets: cada l&iacute;nea es un precio en un s&uacute;per y un d&iacute;a. Toca un producto para ver toda su historia.</div>
+      </div>
       <div class="card">
         <h2>Catálogo <span class="sum" id="prCount"></span></h2>
         <input id="prSearch" placeholder="Buscar producto…" autocomplete="off">
@@ -2076,7 +2094,9 @@ function addPrice(prod, shop, price, unit, date, src, offer){
      se comería a "Queso curado en lonchas"). El emparejado difuso queda para los
      tickets y para lo que escribes en la lista. */
   var n = (src === "catálogo") ? norm(prod) : matchNorm(norm(prod));
-  var i = S.prices.findIndex(function(p){ return p.norm===n && p.shop===shop; });
+  /* con el catálogo entero (miles de líneas) buscar una a una era cuadrático: índice */
+  var i = _idxPrecios ? (_idxPrecios[n+"|"+shop] !== undefined ? _idxPrecios[n+"|"+shop] : -1)
+                      : S.prices.findIndex(function(p){ return p.norm===n && p.shop===shop; });
   var d = date || dKey(today);
   var rec = {id:uid(), prod:canonName(n, prod.trim()), norm:n, shop:shop,
              price:price, offer:offer, unit:unit||"", date:d, src:src||"manual", hist:[]};
@@ -2087,13 +2107,16 @@ function addPrice(prod, shop, price, unit, date, src, offer){
       rec.id = old.id;
       if(price===null && old.price>0) rec.price = old.price;   // una oferta no borra el precio normal
       if(!rec.unit) rec.unit = old.unit;
-      rec.hist = (old.hist||[]).concat([{date:old.date, price:old.price, offer:old.offer}]).slice(-12);
+      var cambia = Math.abs((old.price||0)-(rec.price||0)) > 0.005 || Math.abs((old.offer||0)-(rec.offer||0)) > 0.005;
+      rec.hist = cambia ? (old.hist||[]).concat([{date:old.date, price:old.price, offer:old.offer}]).slice(-24) : (old.hist||[]);
+      if(old.nuevo) rec.nuevo = old.nuevo;
       S.prices[i] = rec;
     } else if(offer!==null && !old.offer){
       old.offer = offer;   // dato viejo pero aporta la oferta
     }
-  } else S.prices.push(rec);
+  } else { S.prices.push(rec); if(_idxPrecios) _idxPrecios[n+"|"+shop] = S.prices.length-1; }
 }
+var _idxPrecios = null;
 function mismoGrupo(name){
   var k = claveGrupo(name);
   return S.prices.filter(function(p){ return eff(p)!==null && claveGrupo(p.prod)===k; });
@@ -2168,6 +2191,7 @@ function groupPrices(q){
   return out.sort(function(a,b){ return a.prod.localeCompare(b.prod); });
 }
 function renderPrices(){
+  try { renderEvolucion(); } catch(e){ console.error("evolucion", e); }
   var q = norm(document.getElementById("prSearch").value);
   var groups = groupPrices(q);
   document.getElementById("prCount").textContent = S.prices.length + " precios" +
@@ -2231,6 +2255,108 @@ function renderPrices(){
     var refs = (g.refs>g.list.length) ? ' <em>('+g.refs+' referencias)</em>' : (g.unit?' <em>('+esc(g.unit)+')</em>':'');
     return '<div class="prow"><div class="ptitle">'+esc(g.prod)+refs+save2+'</div><div class="shops">'+shops+'</div></div>';
   }).join("");
+}
+
+/* =========== CÓMO VA LO QUE COMPRÁIS ===========
+   Cada línea de ticket es una observación: producto, súper, día, precio por
+   unidad. Con eso se ve si algo sube o baja, y dónde. El catálogo añade sus
+   propios puntos (los guardados en hist) cuando el producto coincide. */
+var EV_COLORES = ["#c9f24a","#7aa2ff","#ff8fa8","#ffb454","#9be7c4","#d3a4ff","#f2e94a","#8fd3ff"];
+function colorTienda(shop){
+  var i = Math.max(0, S.shops.indexOf(shop));
+  return EV_COLORES[i % EV_COLORES.length];
+}
+function obsTickets(){
+  var out = {};
+  (S.tickets||[]).forEach(function(t){
+    (t.lines||[]).forEach(function(l){
+      if(!l.name || !(l.price>0 || +l.off>0)) return;
+      var q = l.qty>0 ? l.qty : 1, u = l.price>0 ? l.price/q : (+l.off>0 ? (+l.off)/q : null);
+      if(!(u>0)) return;
+      var n = matchNorm(norm(l.name));
+      var o = out[n] || (out[n] = {norm:n, name:l.name.trim(), pts:[]});
+      if(t.date >= (o.ultima||"")){ o.name = l.name.trim(); o.ultima = t.date; }   // el nombre tal y como lo escribís vosotros
+      o.pts.push({date:t.date, shop:t.shop||"", price:r2(u), src:"ticket", oferta: l.off===true || (+l.off>0 && +l.off!==+l.price)});
+    });
+  });
+  Object.keys(out).forEach(function(n){ out[n].pts.sort(function(a,b){ return a.date.localeCompare(b.date); }); });
+  return out;
+}
+/* todos los puntos de un producto: tickets + lo que el catálogo ha ido guardando */
+function puntosDe(n){
+  var o = obsTickets()[n], pts = o ? o.pts.slice() : [];
+  S.prices.forEach(function(p){
+    if(p.norm!==n || p.src==="ticket") return;
+    (p.hist||[]).forEach(function(h){ if(h.price>0) pts.push({date:h.date, shop:p.shop, price:h.price, src:"catálogo"}); });
+    if(p.price>0) pts.push({date:p.date, shop:p.shop, price:p.price, src:"catálogo"});
+  });
+  pts.sort(function(a,b){ return a.date.localeCompare(b.date); });
+  return pts;
+}
+function sparkline(pts, w, h){
+  var tiendas = [], porT = {};
+  pts.forEach(function(p){ if(!porT[p.shop]){ porT[p.shop] = []; tiendas.push(p.shop); } porT[p.shop].push(p); });
+  var todos = pts.map(function(p){ return p.price; });
+  if(todos.length < 2) return '';
+  var min = Math.min.apply(null, todos), max = Math.max.apply(null, todos);
+  if(max-min < 0.01){ min -= 0.05; max += 0.05; }
+  var d0 = parseD(pts[0].date).getTime(), d1 = parseD(pts[pts.length-1].date).getTime();
+  if(d1-d0 < 86400e3) d1 = d0 + 86400e3;
+  var X = function(p){ return 2 + (w-4) * (parseD(p.date).getTime()-d0)/(d1-d0); };
+  var Y = function(p){ return 2 + (h-4) * (1 - (p.price-min)/(max-min)); };
+  var out = '<svg viewBox="0 0 '+w+' '+h+'" preserveAspectRatio="none">';
+  tiendas.forEach(function(t){
+    var l = porT[t], c = colorTienda(t);
+    if(l.length > 1) out += '<polyline fill="none" stroke="'+c+'" stroke-width="1.6" stroke-linejoin="round" points="'+l.map(function(p){ return X(p).toFixed(1)+","+Y(p).toFixed(1); }).join(" ")+'"/>';
+    out += l.map(function(p){ return '<circle cx="'+X(p).toFixed(1)+'" cy="'+Y(p).toFixed(1)+'" r="2" fill="'+c+'"/>'; }).join("");
+  });
+  return out + '</svg>';
+}
+function renderEvolucion(){
+  var box = document.getElementById("evList"), sum = document.getElementById("evSum");
+  if(!box) return;
+  var obs = obsTickets(), lista = Object.keys(obs).map(function(n){ return obs[n]; });
+  /* primero lo que se ha comprado más veces y más recientemente */
+  lista.sort(function(a,b){ return b.pts[b.pts.length-1].date.localeCompare(a.pts[a.pts.length-1].date) || b.pts.length - a.pts.length; });
+  var q = norm(document.getElementById("prSearch").value);
+  if(q) lista = lista.filter(function(o){ return o.norm.indexOf(q)>-1; });
+  sum.textContent = lista.length ? lista.length+" productos" : "";
+  if(!lista.length){
+    box.innerHTML = '<div class="empty">'+(q ? "Nada que coincida" : "Cuando guardéis tickets, aquí veréis cómo va el precio de cada cosa.")+'</div>';
+    return;
+  }
+  box.innerHTML = lista.slice(0, 60).map(function(o){
+    var pts = puntosDe(o.norm), ult = o.pts[o.pts.length-1];
+    /* comparación: el último precio en ese súper contra el anterior en el mismo súper */
+    var mismos = o.pts.filter(function(p){ return p.shop===ult.shop; }), ant = mismos.length>1 ? mismos[mismos.length-2] : null;
+    var dif = ant ? ult.price-ant.price : 0, cls = dif>0.005 ? "up" : (dif<-0.005 ? "dn" : "");
+    var txt = ant ? (Math.abs(dif)<=0.005 ? "igual que la última vez" : (dif>0?"▲ +":"▼ −")+money(Math.abs(dif))+" desde "+shortDate(ant.date)) : "primera vez en "+esc(ult.shop);
+    /* dónde ha salido más barato (último precio de cada súper) */
+    var ultPorT = {}; o.pts.forEach(function(p){ ultPorT[p.shop] = p; });
+    var ts = Object.keys(ultPorT).sort(function(a,b){ return ultPorT[a].price-ultPorT[b].price; });
+    var donde = ts.length>1 ? ' · <i style="color:'+colorTienda(ts[0])+'">'+esc(ts[0])+' más barato</i>' : '';
+    return '<div class="ev" data-evol="'+esc(o.norm)+'"><div class="t"><b>'+esc(o.name)+'</b><small>'+esc(ult.shop)+' · '+shortDate(ult.date)+' · '+o.pts.length+(o.pts.length===1?' compra':' compras')+donde+'</small></div>'+
+      sparkline(pts, 84, 30)+
+      '<div class="n">'+money(ult.price)+'<small class="'+cls+'">'+txt+'</small></div></div>';
+  }).join("");
+}
+function openEvolucion(n){
+  var obs = obsTickets()[n], pts = puntosDe(n);
+  if(!pts.length) return;
+  var name = obs ? obs.name : (canonName(n, n));
+  var ts = []; pts.forEach(function(p){ if(ts.indexOf(p.shop)<0) ts.push(p.shop); });
+  var leyenda = ts.map(function(t){ return '<span style="color:'+colorTienda(t)+'">● '+esc(t)+'</span>'; }).join("  ");
+  var min = pts.reduce(function(a,p){ return p.price<a.price?p:a; }), max = pts.reduce(function(a,p){ return p.price>a.price?p:a; });
+  var tabla = pts.slice().reverse().map(function(p){
+    return '<tr><td>'+shortDate(p.date)+'</td><td style="color:'+colorTienda(p.shop)+'">'+esc(p.shop)+(p.src==="catálogo"?' <small style="color:var(--dim)">catálogo</small>':'')+(p.oferta?' <small style="color:var(--gold)">oferta</small>':'')+'</td><td>'+money(p.price)+'</td></tr>';
+  }).join("");
+  openSheet('<h3>'+esc(name)+'</h3>'+
+    '<div style="height:90px;margin:6px 0 4px">'+sparkline(pts, 300, 90).replace('<svg ', '<svg style="width:100%;height:90px" ')+'</div>'+
+    '<div class="mini">'+leyenda+'</div>'+
+    '<div class="mini" style="margin-top:8px">Lo más barato: <b>'+money(min.price)+'</b> en '+esc(min.shop)+' ('+shortDate(min.date)+') · lo más caro: <b>'+money(max.price)+'</b> en '+esc(max.shop)+' ('+shortDate(max.date)+')</div>'+
+    '<table class="evtab">'+tabla+'</table>'+
+    '<div class="btns"><button class="b-no" id="ev_no">Cerrar</button></div>');
+  document.getElementById("ev_no").onclick = closeSheet;
 }
 
 /* =========== LISTA DE LA COMPRA =========== */
@@ -2899,6 +3025,8 @@ function sincroniza(manual){
       var envio = JSON.parse(JSON.stringify(S));
       delete envio.syncUrl; delete envio.syncPass; delete envio.lastNube; delete envio.yo;
       delete envio.pin; delete envio.mio; delete envio.push;
+      /* el catálogo lo baja cada móvil de precios.json: no hace falta subirlo (y pesa) */
+      envio.prices = (envio.prices||[]).filter(function(p){ return p.src !== "catálogo"; });
       return pass ? cifra(envio, pass) : envio;
     })
     .then(function(cuerpo){
@@ -3571,7 +3699,7 @@ document.addEventListener("click", function(e){
     "[data-editcat],[data-delcat],[data-delshop],[data-editprice],[data-litoggle],[data-liedit],[data-lidel],"+
     "[data-editper],[data-delper],[data-editaporte],[data-delaporte],[data-cuota],[data-vermes],"+
     "[data-nomina],[data-editfijomio],[data-delfijomio],[data-bote],[data-editgastomio],[data-delgastomio],"+
-    "[data-editmia],[data-delmia],"+
+    "[data-editmia],[data-delmia],[data-evol],"+
     "[data-tkedit],[data-tkdel]");
   if(!el) return;
   var m = mData(mKey(cur));
@@ -3663,6 +3791,7 @@ document.addEventListener("click", function(e){
     S.shops = S.shops.filter(function(x){ return x!==d.delshop; }); save(); render(); return;
   }
   if(d.editprice){ openPrice(d.editprice); return; }
+  if(d.evol){ openEvolucion(d.evol); return; }
   if(d.litoggle){
     var it = S.shoplist.filter(function(x){ return x.id===d.litoggle; })[0];
     if(it){ it.done = !it.done; toca(it); }
@@ -3713,12 +3842,16 @@ document.getElementById("prSeed").onclick = function(){
 function importCatalog(d, quiet){
   if(!d || !d.items){ toast("Ese catálogo no lo entiendo"); return 0; }
   var n = 0;
-  d.items.forEach(function(it){
-    if(S.shops.indexOf(it.shop)<0) S.shops.push(it.shop);
-    addPrice(it.prod, it.shop, +it.price || null, it.unit, it.fecha || d.fecha || dKey(today),
-             "catálogo", +(it.offer || it.oferta) || null);
-    n++;
-  });
+  _idxPrecios = {};
+  S.prices.forEach(function(p, i){ _idxPrecios[p.norm+"|"+p.shop] = i; });
+  try {
+    d.items.forEach(function(it){
+      if(S.shops.indexOf(it.shop)<0) S.shops.push(it.shop);
+      addPrice(it.prod, it.shop, +it.price || null, it.unit, it.fecha || d.fecha || dKey(today),
+               "catálogo", +(it.offer || it.oferta) || null);
+      n++;
+    });
+  } finally { _idxPrecios = null; }
   save(); render();
   if(!quiet) toast(n+" precios cargados");
   return n;
