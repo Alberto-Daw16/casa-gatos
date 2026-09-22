@@ -19,7 +19,11 @@ jobs:
         with:
           node-version: "20"
 
-      - name: Rastrear precios
+      - name: Catálogos completos (Mercadona y Dia)
+        run: node scripts/catalogos.mjs
+        continue-on-error: true      # si un súper no responde, se conserva lo anterior
+
+      - name: Rastrear precios (RadarSuper)
         run: node scripts/scrape.mjs
         continue-on-error: true      # si la web cambia, no rompemos nada
 
