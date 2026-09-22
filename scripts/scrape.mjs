@@ -67,9 +67,35 @@ function aNumero(s) {
 const norm = (s) =>
   String(s || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 function tiendaDe(txt) {
-  const t = norm(txt);
+  const t = norm(txt).replace(/\bdia\b/, "dia");
   for (const s of SHOPS) if (t.includes(norm(s))) return s;
   return null;
+}
+
+/* ---------- estrategia 0: el ranking de RadarSuper ----------
+   La página lleva una lista ordenada: súper, producto más barato por €/kg (o €/L,
+   €/ud), su tamaño y el precio. Se guarda el precio del envase (lo que se paga en
+   caja, comparable con un ticket) y el tamaño como unidad. */
+function deRanking(html) {
+  const out = [];
+  const limpio = html.replace(/<!-- -->/g, "");
+  /* el <ol> "ranking de hoy": producto concreto, marca · súper · tamaño, precio del envase y €/kg */
+  /* hay varios <ol> (migas de pan…): el bueno es el que lleva enlaces a fichas /p/ */
+  const ol = [...limpio.matchAll(/<ol[^>]*>([\s\S]*?)<\/ol>/g)].find((m) => m[1].includes('href="/p/'));
+  if (ol) {
+    const re = /<li[^>]*>[\s\S]*?<a href="\/p\/[^"]*"[^>]*>([^<]+)<\/a>\s*<p[^>]*>([^<]*)<\/p>[\s\S]*?<p[^>]*>([\d.,]+)\s*€<\/p>(?:\s*<p[^>]*>([\d.,]+)\s*€\/([a-zA-Zá]+)<\/p>)?/g;
+    let m;
+    while ((m = re.exec(ol[1]))) {
+      const partes = m[2].split("·").map((x) => x.trim());
+      const shop = partes.map(tiendaDe).find(Boolean);
+      if (!shop) continue;
+      const price = aNumero(m[3]);
+      if (!precioOk(price)) continue;
+      const tam = partes.length >= 3 ? partes[partes.length - 1] : "";
+      out.push({ shop, price, offer: null, detalle: m[1].trim(), tam, porUnidad: aNumero(m[4]), medida: (m[5] || "").toLowerCase() });
+    }
+  }
+  return out;
 }
 
 /* ---------- estrategia 1: JSON-LD ---------- */
@@ -164,7 +190,8 @@ function consolida(cands) {
     for (const c of lista) cuenta.set(c.price, (cuenta.get(c.price) || 0) + 1);
     const mejor = [...cuenta.entries()].sort((a, b) => b[1] - a[1] || a[0] - b[0])[0];
     const oferta = lista.find((c) => c.offer);
-    res.push({ shop, price: mejor[0], offer: oferta ? oferta.offer : null });
+    const primero = lista.find((c) => c.price === mejor[0]) || lista[0];
+    res.push({ shop, price: mejor[0], offer: oferta ? oferta.offer : null, detalle: primero.detalle, tam: primero.tam });
   }
   return res;
 }
@@ -178,6 +205,7 @@ async function rastrea(prod) {
     log("   (HTML volcado en /tmp/casa-gatos-debug.html)");
   }
   const estrategias = [
+    ["ranking", deRanking],
     ["json-ld", deJsonLd],
     ["json incrustado", deJsonIncrustado],
     ["texto", deTexto],
@@ -185,6 +213,21 @@ async function rastrea(prod) {
   for (const [nombre, fn] of estrategias) {
     let cands = [];
     try { cands = fn(html); } catch (e) { log("   " + nombre + ": error " + e.message); }
+    if (nombre === "ranking" && cands.length) {
+      /* el ranking trae productos reales con su tamaño: no hace falta el rango de precio creíble */
+      const enRango = cands;
+      log("   ✓ ranking: " + cands.length + " productos · " + [...new Set(cands.map((c) => c.shop))].join(", "));
+      if (!enRango.length) continue;
+      const salida = enRango.map((r) => ({ shop: r.shop, price: r.price, offer: null, prod: r.detalle, unit: r.tam, url: prod.url, fecha: HOY }));
+      /* y una entrada genérica por súper: la más barata por unidad, para comparar de un vistazo */
+      const porShop = new Map();
+      for (const r of enRango) {
+        const k = r.porUnidad || r.price, prev = porShop.get(r.shop);
+        if (!prev || k < (prev.porUnidad || prev.price)) porShop.set(r.shop, r);
+      }
+      for (const [shop, r] of porShop) salida.push({ shop, price: r.porUnidad && r.medida ? r.porUnidad : r.price, offer: null, prod: prod.prod, unit: r.porUnidad && r.medida ? r.medida : r.tam, url: prod.url, fecha: HOY });
+      return salida;
+    }
     if (cands.length) {
       const res = consolida(cands);
       log("   ✓ " + nombre + ": " + res.map((r) => r.shop + " " + r.price.toFixed(2)).join(", "));
@@ -193,7 +236,7 @@ async function rastrea(prod) {
       if (fuera) log("   ⚠ descartados " + fuera + " precios fuera del rango " + prod.min + "-" + prod.max + " €: " +
         res.filter((r) => !enRango.includes(r)).map((r) => r.shop + " " + r.price).join(", "));
       if (!enRango.length) { log("   – " + nombre + ": todo fuera de rango"); continue; }
-      return enRango.map((r) => ({ ...r, prod: prod.prod, unit: prod.unit, url: prod.url, fecha: HOY }));
+      return enRango.map((r) => ({ shop: r.shop, price: r.price, offer: r.offer, prod: prod.prod, unit: r.tam || prod.unit, detalle: r.detalle || undefined, url: prod.url, fecha: HOY }));
     }
     log("   – " + nombre + ": nada");
   }
@@ -221,7 +264,12 @@ if (!SOLO_MANUAL) {
 /* prioridad: manual > rastreado hoy > lo que ya había */
 const clave = (i) => norm(i.prod) + "|" + i.shop;
 const mapa = new Map();
-for (const i of anterior.items || []) mapa.set(clave(i), { ...i, origen: "anterior" });
+/* de una página que hoy ha respondido, lo de antes se sustituye entero (si no, se acumulan nombres viejos) */
+const urlsHoy = new Set(rastreados.map((i) => i.url));
+for (const i of anterior.items || []) {
+  if (i.url && urlsHoy.has(i.url)) continue;
+  mapa.set(clave(i), { ...i, origen: "anterior" });
+}
 for (const i of rastreados) {
   const prev = mapa.get(clave(i));
   mapa.set(clave(i), {
@@ -263,5 +311,5 @@ if (nuevos === 0 && !SOLO_MANUAL) {
 }
 
 if (DRY) { log("\n--dry: no escribo nada."); process.exit(0); }
-await fs.writeFile(OUT, JSON.stringify(salida, null, 1) + "\n");
+await fs.writeFile(OUT, JSON.stringify(salida) + "\n");
 log("\n✓ escrito " + path.relative(ROOT, OUT));

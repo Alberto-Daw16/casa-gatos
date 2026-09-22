@@ -1,5 +1,5 @@
 {
-  "_comentario": "Lista de productos que se rastrean cada lunes. 'min' y 'max' son el rango de precio creible: lo que caiga fuera se descarta (evita que se cuele el precio por unidad o el de otro formato).",
+  "_comentario": "Páginas de RadarSuper que se rastrean cada lunes. De cada una salen los productos concretos del ranking (con su tamaño y precio) y una entrada genérica por súper con el precio por kg/L/ud. 'min' y 'max' ya solo se usan si falla el ranking y hay que rascar el texto.",
   "productos": [
     {
       "prod": "Pechuga de pollo",
@@ -9,28 +9,28 @@
       "url": "https://radarsuper.com/precios/pechuga-de-pollo"
     },
     {
-      "prod": "Huevos docena M",
+      "prod": "Huevos",
       "unit": "12 ud",
       "min": 1.5,
       "max": 5,
       "url": "https://radarsuper.com/precios/huevos"
     },
     {
-      "prod": "Leche entera brick",
+      "prod": "Leche entera",
       "unit": "1L",
       "min": 0.6,
       "max": 2,
       "url": "https://radarsuper.com/precios/leche-entera"
     },
     {
-      "prod": "Pan de molde blanco",
+      "prod": "Pan de molde",
       "unit": "820g",
       "min": 0.8,
       "max": 3,
       "url": "https://radarsuper.com/precios/pan-de-molde"
     },
     {
-      "prod": "Arroz redondo",
+      "prod": "Arroz",
       "unit": "1kg",
       "min": 0.8,
       "max": 3,
@@ -51,35 +51,35 @@
       "url": "https://radarsuper.com/precios/aceite-de-oliva-virgen-extra"
     },
     {
-      "prod": "Atún en aceite pack latas",
+      "prod": "Atún en lata",
       "unit": "900g",
       "min": 3,
       "max": 12,
       "url": "https://radarsuper.com/precios/atun-en-lata"
     },
     {
-      "prod": "Patatas malla 3kg",
+      "prod": "Patatas",
       "unit": "3kg",
       "min": 2,
       "max": 8,
       "url": "https://radarsuper.com/precios/patatas"
     },
     {
-      "prod": "Plátano de Canarias",
+      "prod": "Plátanos",
       "unit": "kg",
       "min": 1.4,
       "max": 4.5,
       "url": "https://radarsuper.com/precios/platanos"
     },
     {
-      "prod": "Tomate frito 390g",
+      "prod": "Tomate frito",
       "unit": "390g",
       "min": 0.3,
       "max": 2,
       "url": "https://radarsuper.com/precios/tomate-frito"
     },
     {
-      "prod": "Café molido natural 500g",
+      "prod": "Café molido",
       "unit": "500g",
       "min": 2.5,
       "max": 9,
@@ -91,6 +91,265 @@
       "min": 1.5,
       "max": 8,
       "url": "https://radarsuper.com/precios/papel-higienico"
+    },
+    {
+      "prod": "Aceite de girasol",
+      "unit": "1L",
+      "min": 0.8,
+      "max": 4,
+      "url": "https://radarsuper.com/precios/aceite-de-girasol"
+    },
+    {
+      "prod": "Aceite de oliva",
+      "unit": "1L",
+      "min": 3,
+      "max": 10,
+      "url": "https://radarsuper.com/precios/aceite-de-oliva"
+    },
+    {
+      "prod": "Agua mineral",
+      "unit": "1,5L",
+      "min": 0.1,
+      "max": 1.2,
+      "url": "https://radarsuper.com/precios/agua-mineral"
+    },
+    {
+      "prod": "Alubias",
+      "unit": "bote",
+      "min": 0.4,
+      "max": 3,
+      "url": "https://radarsuper.com/precios/alubias"
+    },
+    {
+      "prod": "Azúcar",
+      "unit": "1kg",
+      "min": 0.7,
+      "max": 2.5,
+      "url": "https://radarsuper.com/precios/azucar"
+    },
+    {
+      "prod": "Bacalao",
+      "unit": "kg",
+      "min": 6,
+      "max": 25,
+      "url": "https://radarsuper.com/precios/bacalao"
+    },
+    {
+      "prod": "Bacon",
+      "unit": "200g",
+      "min": 1,
+      "max": 4,
+      "url": "https://radarsuper.com/precios/bacon"
+    },
+    {
+      "prod": "Café soluble",
+      "unit": "200g",
+      "min": 2,
+      "max": 9,
+      "url": "https://radarsuper.com/precios/cafe-soluble"
+    },
+    {
+      "prod": "Carne picada",
+      "unit": "kg",
+      "min": 4,
+      "max": 14,
+      "url": "https://radarsuper.com/precios/carne-picada"
+    },
+    {
+      "prod": "Cebollas",
+      "unit": "kg",
+      "min": 0.5,
+      "max": 3,
+      "url": "https://radarsuper.com/precios/cebollas"
+    },
+    {
+      "prod": "Cerveza",
+      "unit": "33cl",
+      "min": 0.2,
+      "max": 1.5,
+      "url": "https://radarsuper.com/precios/cerveza"
+    },
+    {
+      "prod": "Chorizo",
+      "unit": "kg",
+      "min": 5,
+      "max": 20,
+      "url": "https://radarsuper.com/precios/chorizo"
+    },
+    {
+      "prod": "Detergente",
+      "unit": "botella",
+      "min": 2,
+      "max": 12,
+      "url": "https://radarsuper.com/precios/detergente"
+    },
+    {
+      "prod": "Garbanzos",
+      "unit": "bote",
+      "min": 0.4,
+      "max": 3,
+      "url": "https://radarsuper.com/precios/garbanzos"
+    },
+    {
+      "prod": "Harina de trigo",
+      "unit": "1kg",
+      "min": 0.4,
+      "max": 2.5,
+      "url": "https://radarsuper.com/precios/harina-de-trigo"
+    },
+    {
+      "prod": "Jamón cocido",
+      "unit": "200g",
+      "min": 1,
+      "max": 5,
+      "url": "https://radarsuper.com/precios/jamon-cocido"
+    },
+    {
+      "prod": "Jamón serrano",
+      "unit": "100g",
+      "min": 1.5,
+      "max": 8,
+      "url": "https://radarsuper.com/precios/jamon-serrano"
+    },
+    {
+      "prod": "Leche desnatada",
+      "unit": "1L",
+      "min": 0.6,
+      "max": 2,
+      "url": "https://radarsuper.com/precios/leche-desnatada"
+    },
+    {
+      "prod": "Leche semidesnatada",
+      "unit": "1L",
+      "min": 0.6,
+      "max": 2,
+      "url": "https://radarsuper.com/precios/leche-semidesnatada"
+    },
+    {
+      "prod": "Lentejas",
+      "unit": "bote",
+      "min": 0.4,
+      "max": 3,
+      "url": "https://radarsuper.com/precios/lentejas"
+    },
+    {
+      "prod": "Lomo de cerdo",
+      "unit": "kg",
+      "min": 4,
+      "max": 14,
+      "url": "https://radarsuper.com/precios/lomo-de-cerdo"
+    },
+    {
+      "prod": "Macarrones",
+      "unit": "1kg",
+      "min": 0.7,
+      "max": 3.5,
+      "url": "https://radarsuper.com/precios/macarrones"
+    },
+    {
+      "prod": "Mantequilla",
+      "unit": "250g",
+      "min": 1.2,
+      "max": 5,
+      "url": "https://radarsuper.com/precios/mantequilla"
+    },
+    {
+      "prod": "Manzanas",
+      "unit": "kg",
+      "min": 1,
+      "max": 4.5,
+      "url": "https://radarsuper.com/precios/manzanas"
+    },
+    {
+      "prod": "Margarina",
+      "unit": "500g",
+      "min": 0.8,
+      "max": 4,
+      "url": "https://radarsuper.com/precios/margarina"
+    },
+    {
+      "prod": "Merluza",
+      "unit": "kg",
+      "min": 5,
+      "max": 25,
+      "url": "https://radarsuper.com/precios/merluza"
+    },
+    {
+      "prod": "Naranjas",
+      "unit": "kg",
+      "min": 0.7,
+      "max": 4,
+      "url": "https://radarsuper.com/precios/naranjas"
+    },
+    {
+      "prod": "Pan",
+      "unit": "ud",
+      "min": 0.3,
+      "max": 2,
+      "url": "https://radarsuper.com/precios/pan"
+    },
+    {
+      "prod": "Pechuga de pavo",
+      "unit": "200g",
+      "min": 1.2,
+      "max": 5,
+      "url": "https://radarsuper.com/precios/pechuga-de-pavo"
+    },
+    {
+      "prod": "Queso curado",
+      "unit": "kg",
+      "min": 8,
+      "max": 30,
+      "url": "https://radarsuper.com/precios/queso-curado"
+    },
+    {
+      "prod": "Queso fresco",
+      "unit": "250g",
+      "min": 0.8,
+      "max": 4,
+      "url": "https://radarsuper.com/precios/queso-fresco"
+    },
+    {
+      "prod": "Sal",
+      "unit": "1kg",
+      "min": 0.2,
+      "max": 1.5,
+      "url": "https://radarsuper.com/precios/sal"
+    },
+    {
+      "prod": "Salmón",
+      "unit": "kg",
+      "min": 8,
+      "max": 30,
+      "url": "https://radarsuper.com/precios/salmon"
+    },
+    {
+      "prod": "Tomates",
+      "unit": "kg",
+      "min": 0.8,
+      "max": 5,
+      "url": "https://radarsuper.com/precios/tomates"
+    },
+    {
+      "prod": "Yogur griego",
+      "unit": "4 ud",
+      "min": 1,
+      "max": 4,
+      "url": "https://radarsuper.com/precios/yogur-griego"
+    },
+    {
+      "prod": "Yogur natural",
+      "unit": "4 ud",
+      "min": 0.6,
+      "max": 3,
+      "url": "https://radarsuper.com/precios/yogur-natural"
+    },
+    {
+      "prod": "Zumo de naranja",
+      "unit": "1L",
+      "min": 0.8,
+      "max": 4,
+      "url": "https://radarsuper.com/precios/zumo-de-naranja"
     }
   ]
 }
