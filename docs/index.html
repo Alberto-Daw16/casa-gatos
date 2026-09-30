@@ -8,7 +8,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>Gremory</title>
-<meta name="build" content="2026-09-30.3">
+<meta name="build" content="2026-09-30.4">
 <!-- El cuadrado de la pantalla de inicio. iOS se guarda el icono por URL y no
      vuelve a pedirlo, así que si se cambia hay que darle un nombre de fichero
      nuevo. El manifest es lo que mira el iPhone moderno; los dos "apple-touch"
@@ -501,7 +501,7 @@
   .cmtx small{font-size:11px;line-height:1.35;color:var(--dim)}
   .cmpr{text-align:right;white-space:nowrap}
   .cmpr b{display:block;font:700 13.5px "Space Mono",monospace}
-  .cmpr small{font-size:9.5px;color:var(--dim);font-family:"Space Mono",monospace;text-transform:uppercase;letter-spacing:1px}
+  .cmpr small{display:block;font-size:9.5px;color:var(--dim);font-family:"Space Mono",monospace;text-transform:uppercase;letter-spacing:1px}
   .cmhead{display:grid;grid-template-columns:150px minmax(0,1fr);gap:14px;align-items:start}
   @media (max-width:360px){ .cmhead{grid-template-columns:110px minmax(0,1fr)} .cmhead img{width:110px!important;height:153px!important} }
   .cmsec{margin:18px 0 6px;font-family:"Space Mono",monospace;font-size:9px;color:var(--dim);text-transform:uppercase;letter-spacing:1.6px}
@@ -3650,7 +3650,7 @@ function cmFila(f){
   if(!f) return null;
   var x = (CM.idx.f||{})[f[0]] || null;
   return {id:f[0], n:f[1], corto:cmCorto(f[1]), exp:f[2], expN:(CM.idx.exp||{})[f[2]]||"", bajo:f[3], tend:f[4], a1:f[5], a7:f[6], a30:f[7],
-    bajoF:f[8], tendF:f[9], num: x ? x[0] : "", img: x && x[1] ? "https://assets.tcgdex.net/"+x[1] : "", clave: x ? x[2] : "",
+    bajoF:f[8], tendF:f[9], num: x ? x[0] : "", img: x && x[1] ? "https://assets.tcgdex.net/"+x[1] : (f.img || ""), clave: x ? x[2] : "",
     lang: CM_LANG[f[2]] || "", sellado: !!f.sellado, tipo: f.tipo || ""};
 }
 function cmNumTxt(c){ return c.num ? (c.num.indexOf("CC")===0 ? "Classic "+c.num.slice(2) : "30C "+c.num) : ""; }
@@ -3673,6 +3673,7 @@ function cmCarga(forzar){
     /* el sellado va aparte pero con la misma forma, para vigilarlo igual */
     CM.sel = (d.s||[]).map(function(x){
       var f = [x[0], x[1], x[2], x[4], x[5], x[6], x[7], x[8], null, null]; f.sellado = true; f.tipo = x[3];
+      f.img = x[9] ? "https://tcgplayer-cdn.tcgplayer.com/product/"+x[9]+"_200w.jpg" : "";
       CM.porId[x[0]] = f; return {f:f, n:norm(x[1]+" "+x[3])};
     });
     CM.cargando = false; renderCartas();
@@ -3692,6 +3693,7 @@ function cmGuardaVig(){
 function cmVigDe(id){ return (CM.vig||[]).filter(function(v){ return +v.id===+id; })[0] || null; }
 /* qué está haciendo el precio, en euros y sin porcentajes raros */
 function cmSenal(c){
+  if(c.sellado) return {k:"n", t:"Precio actual", d:"Cardmarket no publica medias de ventas del producto sellado: solo el precio de ahora y el más barato."};
   if(c.a7==null && c.a1==null) return {k:"n", t:"Sin ventas esta semana", d:"El precio es orientativo: casi no se vende."};
   if(c.a1==null) return {k:"n", t:"Sin ventas ayer", d:"Esta semana se ha vendido de media a "+cmNum(c.a7)+"."};
   var r = c.a7 ? c.a1/c.a7 : 1, m = (c.a7 && c.a30) ? c.a7/c.a30 : 1;
@@ -3703,7 +3705,7 @@ function cmSenal(c){
 function cmColorSenal(k){ return k==="sube" ? "var(--neg)" : k==="baja" ? "var(--pos)" : "var(--dim)"; }
 function cmImg(c, grande){
   var w = grande ? 150 : 46, h = Math.round(w*1.39);
-  if(c.img) return '<img src="'+esc(grande ? c.img.replace("/low.webp", "/high.webp") : c.img)+'" alt="" loading="lazy" style="width:'+w+'px;height:'+h+'px;object-fit:cover;display:block;background:var(--card2)" onerror="this.style.visibility=\'hidden\'">';
+  if(c.img) return '<img src="'+esc(grande ? c.img.replace("/low.webp", "/high.webp").replace("_200w.jpg", "_in_400x400.jpg") : c.img)+'" alt="" loading="lazy" style="width:'+w+'px;height:'+h+'px;object-fit:'+(c.sellado?"contain":"cover")+';display:block;background:var(--card2)" onerror="this.style.visibility=\'hidden\'">';
   return '<div style="width:'+w+'px;height:'+h+'px;background:var(--card2);border:1px solid var(--line2);display:flex;align-items:center;justify-content:center;color:var(--dim);font:700 9px \'Space Mono\',monospace;text-align:center;padding:4px">'+(c.sellado ? esc(c.tipo||"Sellado") : "Sin foto")+'</div>';
 }
 /* fila estilo TCG Pocket: foto a la izquierda, nombre y precio a la derecha */
@@ -3713,8 +3715,8 @@ function cmFilaHtml(c, extra){
   return '<div class="cmrow" data-cm="'+c.id+'">'+cmImg(c)+
     '<div class="cmtx"><b>'+esc(c.corto)+(v ? ' <span class="pill ok" style="font-size:8px;padding:3px 6px;vertical-align:2px">vigilada</span>' : '')+'</b>'+
       '<small>'+esc(sub)+'</small>'+
-      '<small style="color:'+cmColorSenal(s.k)+'">'+s.t+(c.a7!=null ? ' · la semana '+cmNum(c.a7) : '')+'</small>'+(extra ? '<small>'+extra+'</small>' : '')+'</div>'+
-    '<div class="cmpr"><b>'+cmNum(c.tend)+'</b><small>precio</small></div></div>';
+      (c.sellado ? '' : '<small style="color:'+cmColorSenal(s.k)+'">'+s.t+(c.a7!=null ? ' · la semana '+cmNum(c.a7) : '')+'</small>')+(extra ? '<small>'+extra+'</small>' : '')+'</div>'+
+    '<div class="cmpr"><b>'+cmNum(c.bajo!=null ? c.bajo : c.tend)+'</b><small>'+(c.bajo!=null ? "desde" : "precio")+'</small>'+(c.bajo!=null && c.tend!=null ? '<small style="text-transform:none;letter-spacing:0">normal '+cmNum(c.tend)+'</small>' : '')+'</div></div>';
 }
 function renderCartas(){
   var box = document.getElementById("cmBox"); if(!box) return;
@@ -3756,7 +3758,7 @@ function cmPasa(f){
 }
 function cmOrdena(l){
   var num = function(f){ var x = (CM.idx.f||{})[f[0]]; if(!x) return 9999; var n = parseInt(String(x[0]).replace(/\D/g,""),10)||0; return (String(x[0]).indexOf("CC")===0 ? 500 : 0) + n; };
-  if(CM.orden==="barato") l.sort(function(a,b){ return (a[4]||0)-(b[4]||0); });
+  if(CM.orden==="barato") l.sort(function(a,b){ return (a[3]!=null?a[3]:a[4]||0)-(b[3]!=null?b[3]:b[4]||0); });
   else if(CM.orden==="caro") l.sort(function(a,b){ return (b[4]||0)-(a[4]||0); });
   else l.sort(function(a,b){ return num(a)-num(b) || (b[4]||0)-(a[4]||0); });
   return l;
@@ -3823,7 +3825,7 @@ function cmEbay(q, n){
 }
 /* texto de búsqueda para eBay, Wallapop y Vinted */
 function cmQuery(c){
-  var q = c.corto + (c.num ? " "+c.num.replace("CC","") : "") + (c.exp && CM_30[c.exp] ? " 30th" : "");
+  var q = c.corto + (c.num ? " "+c.num.replace("CC","") : "") + (c.exp && CM_30[c.exp] && !c.sellado ? " 30th" : "");
   if(CM_LANGK[c.exp]==="jp") q += " japanese"; if(CM_LANGK[c.exp]==="cn") q += " chinese";
   return q;
 }
@@ -3865,7 +3867,7 @@ function cmFicha(id){
       }).join("")+'</div><div class="mini">Cardmarket junta el inglés y el español en la misma ficha y el mismo precio: el idioma se elige en cada anuncio. «Desde» es el anuncio más barato ahora, en cualquier estado.</div>' : '';
   openSheet('<div class="cmhead">'+cmImg(c, true)+'<div style="min-width:0">'+
       '<h3 style="margin:0 0 6px">'+esc(c.corto)+'</h3><div class="mini" style="margin:0">'+esc([cmNumTxt(c), c.sellado ? c.tipo : "", c.expN, c.lang].filter(Boolean).join(" · "))+'</div>'+
-      '<div style="margin-top:10px;font:700 22px \'Space Mono\',monospace">'+cmNum(c.tend)+'</div><div class="mini" style="margin:0">precio en Cardmarket (tendencia)</div>'+
+      '<div style="margin-top:10px;font:700 22px \'Space Mono\',monospace">'+cmNum(c.bajo!=null ? c.bajo : c.tend)+'</div><div class="mini" style="margin:0">'+(c.bajo!=null ? 'la más barata ahora en Cardmarket · precio normal '+cmNum(c.tend) : 'precio en Cardmarket')+'</div>'+
       '<div style="margin-top:8px;color:'+cmColorSenal(s.k)+';font-weight:700">'+s.t+'</div><div class="mini" style="margin-top:2px">'+esc(s.d)+'</div></div></div>'+
     (c.sellado ? '' : '<div class="cmsec">Sin gradear · por idioma</div>'+tablaIdiomas)+
     '<div id="cmHist" style="margin-top:8px"></div>'+
