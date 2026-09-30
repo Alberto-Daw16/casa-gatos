@@ -21,9 +21,18 @@ const CATALOGO = "https://downloads.s3.cardmarket.com/productCatalog/productList
 let BASE = (process.env.GREMORY_URL || "").replace(/\/+$/, "");
 let K = process.env.GREMORY_K || "";
 const UP = process.env.GREMORY_UP || "";
-if(process.env.GREMORY_SYNC){
-  try { const u = new URL(process.env.GREMORY_SYNC.trim()); BASE = u.origin; K = u.searchParams.get("k") || K; }
-  catch(e){ console.error("GREMORY_SYNC no es una URL válida"); }
+{
+  /* admite la URL de Ajustes tal cual (…/?k=clave) y también "https://…workers.dev clave" o la clave en otra línea */
+  const bruto = (process.env.GREMORY_SYNC || "").trim();
+  if(bruto){
+    const url = (bruto.match(/https?:\/\/[^\s"'<>]+/) || [""])[0];
+    try {
+      const u = new URL(url); BASE = u.origin;
+      K = u.searchParams.get("k") || (u.hash.match(/k=([^&]+)/) || [])[1] || K;
+    } catch(e){}
+    if(!K){ const resto = bruto.replace(url, "").replace(/[?&]?k=/, "").trim(); if(/^[\w.~-]{6,}$/.test(resto)) K = resto; }
+  }
+  console.log(`GREMORY_SYNC: ${bruto ? bruto.length + " caracteres" : "vacío"} · Worker: ${BASE ? new URL(BASE).host : "no encontrado"} · clave: ${K ? "sí" : "no"}`);
 }
 const FORZAR = process.env.FORZAR === "1";
 const LOCAL = process.env.LOCAL || "";          // pruebas: carpeta con los json ya bajados, no sube nada
