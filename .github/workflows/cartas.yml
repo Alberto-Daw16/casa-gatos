@@ -23,7 +23,5 @@ jobs:
       - name: Guía de Cardmarket → Worker
         run: node scripts/cardmarket.mjs
         env:
-          GREMORY_URL: ${{ secrets.GREMORY_URL }}
-          GREMORY_K: ${{ secrets.GREMORY_K }}
-          GREMORY_UP: ${{ secrets.GREMORY_UP }}
+          GREMORY_SYNC: ${{ secrets.GREMORY_SYNC }}
           FORZAR: ${{ github.event.inputs.forzar == 'true' && '1' || '0' }}
