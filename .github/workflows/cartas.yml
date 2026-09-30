@@ -1,0 +1,29 @@
+name: Precios de cartas (Cardmarket)
+
+on:
+  schedule:
+    # cada hora; Cardmarket publica su guía una vez al día y el script solo trabaja cuando hay una nueva
+    - cron: "17 * * * *"
+  workflow_dispatch:
+    inputs:
+      forzar:
+        description: "Rehacer aunque la guía no haya cambiado"
+        type: boolean
+        default: false
+
+jobs:
+  cartas:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Guía de Cardmarket → Worker
+        run: node scripts/cardmarket.mjs
+        env:
+          GREMORY_URL: ${{ secrets.GREMORY_URL }}
+          GREMORY_K: ${{ secrets.GREMORY_K }}
+          GREMORY_UP: ${{ secrets.GREMORY_UP }}
+          FORZAR: ${{ github.event.inputs.forzar == 'true' && '1' || '0' }}
