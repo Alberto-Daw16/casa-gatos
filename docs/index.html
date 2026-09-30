@@ -8,7 +8,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>Gremory</title>
-<meta name="build" content="2026-09-23.3">
+<meta name="build" content="2026-09-30.1">
 <!-- El cuadrado de la pantalla de inicio. iOS se guarda el icono por URL y no
      vuelve a pedirlo, así que si se cambia hay que darle un nombre de fichero
      nuevo. El manifest es lo que mira el iPhone moderno; los dos "apple-touch"
@@ -855,7 +855,7 @@ var DEF = {
   shops:["Mercadona","Lidl","Aldi","Carrefour","Alcampo","Dia","Consum","Eroski"],
   recurring:{expenses:[],incomes:[]},
   months:{}, care:{}, prices:[], tickets:[], shoplist:[],
-  goals:{malta:2,cepillado:3,bano:1,arenero:15},
+  goals:{malta:1,cepillado:2,bano:1,arenero:15,v:2},
   useOffers:false, agrupar:true, catalogUrl:"", lastSync:"",
   syncUrl:"", syncPass:"", upd:"", lastNube:"", lastCat:"", lastAuto:"",
   /* quiénes sois; "yo" es de este móvil y no se sube nunca */
@@ -973,6 +973,8 @@ var S = load();
     });
   });
   if(S.goals && S.goals.dientes!==undefined){ delete S.goals.dientes; cambio = true; }
+  /* 30/9: cepillado 2 veces por semana y malta 1 (antes 3 y 2); v marca que ya se aplicó */
+  if(S.goals && S.goals.v!==2){ S.goals.cepillado = 2; S.goals.malta = 1; S.goals.v = 2; cambio = true; }
   /* los fijos son de los dos por definición: si algún día se marcaron de uno, se suelta */
   ["incomes","expenses"].forEach(function(col){
     ((S.recurring||{})[col]||[]).forEach(function(x){ if(x.de) x.de = ""; });
@@ -3186,6 +3188,8 @@ function fusiona(local, remoto){
   // ajustes: manda el móvil que se tocó más tarde
   if((remoto.upd||"") > (local.upd||"")){
     if(remoto.goals) out.goals = remoto.goals;
+    /* si el otro móvil aún trae los objetivos viejos, se ponen los nuevos */
+    if(out.goals && out.goals.v!==2){ out.goals.cepillado = 2; out.goals.malta = 1; out.goals.v = 2; }
     if(remoto.shops) out.shops = remoto.shops;
     if(remoto.catalogUrl) out.catalogUrl = remoto.catalogUrl;
     if(remoto.useOffers!==undefined) out.useOffers = remoto.useOffers;
