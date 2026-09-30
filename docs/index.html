@@ -8,7 +8,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>Gremory</title>
-<meta name="build" content="2026-09-30.1">
+<meta name="build" content="2026-09-30.2">
 <!-- El cuadrado de la pantalla de inicio. iOS se guarda el icono por URL y no
      vuelve a pedirlo, así que si se cambia hay que darle un nombre de fichero
      nuevo. El manifest es lo que mira el iPhone moderno; los dos "apple-touch"
@@ -489,6 +489,7 @@
     *,*::before,*::after{animation-duration:.001ms !important;animation-delay:0s !important;
       transition-duration:.001ms !important}
   }
+  a.chip{text-decoration:none;display:inline-block}
 </style>
 </head>
 <body>
@@ -695,6 +696,19 @@
     </div>
   </section>
 
+  <!-- ============ CARTAS ============ -->
+  <section class="view" id="v-cards">
+    <div class="seg" id="cmSeg">
+      <button class="on" data-cm="buscar">Buscar</button>
+      <button data-cm="vig">Vigiladas</button>
+      <button data-cm="radar">Radar</button>
+    </div>
+    <div class="card">
+      <h2>Cartas <span class="sum" id="cmCab" style="font-size:11px;color:var(--dim);font-family:'Space Mono',monospace"></span></h2>
+      <div id="cmBox"></div>
+    </div>
+  </section>
+
   <!-- ============ AJUSTES ============ -->
   <section class="view" id="v-set">
     <div class="card" id="cardSobres" style="border-color:rgba(201,242,74,.35)">
@@ -782,6 +796,7 @@
   <button class="on" data-view="fin"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l5-5 4 3 7-8"/><path d="M3 21h18"/></svg>Dinero</button>
   <button data-view="shop"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 7h14l-1.2 12H6.2z"/><path d="M9 7V5a3 3 0 016 0v2"/></svg>Compra</button>
   <button data-view="care"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M6.4 6.4 5.9 2.9 9.2 5.2"/><path d="M12.2 5.5 15.1 3.2 13.7 7"/><path d="M5.7 9.2a4.05 4.05 0 1 1 8.1 0 4.05 4.05 0 0 1-8.1 0"/><path d="M8.3 8.6v.7"/><path d="M11.2 8.6v.7"/><path d="M7.3 12.6c-1.9 1.9-2.6 4.7-2.6 8h9.7c0-3.6.8-5.7 2.4-7.3"/><path d="M14.4 20.6c4.4.2 6.4-3.6 4.2-5.6"/></svg>Gatos</button>
+  <button data-view="cards"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="7.5" y="3" width="12" height="16.5" rx="1.5"/><path d="M4.5 6.5v12A2.5 2.5 0 0 0 7 21h9.5"/><path d="M11 8.5h5M11 12h5"/></svg>Cartas</button>
   <button data-view="set"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6l1.5 1.5M16.9 16.9l1.5 1.5M18.4 5.6l-1.5 1.5M7.1 16.9l-1.5 1.5"/></svg>Ajustes</button>
 </nav>
 
@@ -3594,7 +3609,233 @@ function render(){
   }
   if(view==="care"){ renderCal(); renderDay(); renderStats(); }
   if(view==="set") renderSet();
+  if(view==="cards") renderCartas();
   pasada();
+}
+
+/* =========== CARTAS · MERCADO =========== */
+/* Precios de Cardmarket (la guía oficial de cada día, que deja lista GitHub Actions en vuestro Worker),
+   el histórico que vamos guardando, las vigiladas con precio objetivo y eBay en directo. */
+var CM = {idx:null, porId:null, lista:null, cargando:false, err:"", vig:null, vigErr:"", ebay:{}, hist:{}, sub:"buscar", filtro:"todo", q:""};
+var CM_30 = {6601:1, 6602:1, 6603:1, 6604:1, 6767:1, 6628:1};
+function cmNum(n){ return n==null ? "—" : money(n); }
+function cmCorto(nombre){ return String(nombre||"").split(" [")[0]; }
+function cmUrl(ruta){ var nb = nubeBase(); return nb ? nb.base+ruta+(ruta.indexOf("?")>-1?"&":"?")+"k="+encodeURIComponent(nb.k) : null; }
+function cmFila(f){ return f ? {id:f[0], n:f[1], corto:cmCorto(f[1]), exp:f[2], expN:(CM.idx.exp||{})[f[2]]||"", bajo:f[3], tend:f[4], a1:f[5], a7:f[6], a30:f[7], bajoF:f[8], tendF:f[9]} : null; }
+function cmCarga(forzar){
+  if(CM.cargando || (CM.idx && !forzar)) return;
+  var u = cmUrl("/cm/indice");
+  if(!u){ CM.err = "Para ver precios hace falta la sincronización puesta en Ajustes."; renderCartas(); return; }
+  CM.cargando = true; CM.err = ""; renderCartas();
+  fetch(u, {cache: forzar ? "no-store" : "default"}).then(function(r){
+    if(r.status===404) throw new Error("Todavía no hay precios: GitHub Actions aún no ha subido la primera guía.");
+    if(!r.ok) throw new Error("HTTP "+r.status); return r.json();
+  }).then(function(d){
+    CM.idx = d; CM.porId = {};
+    CM.lista = d.c.map(function(f){ CM.porId[f[0]] = f; return {f:f, n:norm(f[1]+" "+((d.exp||{})[f[2]]||""))}; });
+    CM.cargando = false; renderCartas();
+  }).catch(function(e){ CM.cargando = false; CM.err = e.message; renderCartas(); });
+  cmCargaVig();
+}
+function cmCargaVig(){
+  var u = cmUrl("/cm/vigila"); if(!u) return;
+  fetch(u, {cache:"no-store"}).then(function(r){ return r.json(); }).then(function(d){
+    CM.vig = d.lista || []; renderCartas();
+  }).catch(function(e){ CM.vigErr = e.message; });
+}
+function cmGuardaVig(){
+  var u = cmUrl("/cm/vigila"); if(!u) return;
+  fetch(u, {method:"PUT", headers:{"content-type":"application/json"}, body: JSON.stringify({lista: CM.vig||[]})})
+    .then(function(r){ if(!r.ok) throw new Error("HTTP "+r.status); toast("Vigiladas guardadas"); })
+    .catch(function(e){ toast("No se pudo guardar: "+e.message); });
+}
+function cmVigDe(id){ return (CM.vig||[]).filter(function(v){ return +v.id===+id; })[0] || null; }
+/* qué está haciendo el precio, dicho en cristiano */
+function cmSenal(c){
+  if(c.a1==null || c.a7==null) return {t:"Sin ventas recientes: el precio es orientativo", k:"n"};
+  var r = c.a1/c.a7, m = c.a30 ? c.a7/c.a30 : 1;
+  if(r >= 1.2) return {t:"Sube: ayer se vendió un "+Math.round((r-1)*100)+"% por encima de la media de la semana", k:"bad"};
+  if(r <= 0.8) return {t:"Baja: ayer se vendió un "+Math.round((1-r)*100)+"% por debajo de la media de la semana", k:"ok"};
+  if(m <= 0.85) return {t:"Viene bajando: la semana está un "+Math.round((1-m)*100)+"% por debajo del mes", k:"ok"};
+  if(m >= 1.15) return {t:"Viene subiendo: la semana está un "+Math.round((m-1)*100)+"% por encima del mes", k:"bad"};
+  return {t:"Estable", k:"n"};
+}
+function cmFilaHtml(c, extra){
+  var v = cmVigDe(c.id);
+  return '<div class="prow" data-cm="'+c.id+'" style="cursor:pointer"><div class="ptitle">'+esc(c.corto)+
+    (v ? ' <span class="pill ok">vigilada</span>' : '')+'<em>'+esc(c.expN)+'</em><span style="margin-left:auto" class="mono">'+cmNum(c.tend)+'</span></div>'+
+    '<div class="mini" style="margin-top:3px">ayer '+cmNum(c.a1)+' · semana '+cmNum(c.a7)+' · mes '+cmNum(c.a30)+(extra||"")+'</div></div>';
+}
+function renderCartas(){
+  var box = document.getElementById("cmBox"); if(!box) return;
+  Array.prototype.forEach.call(document.querySelectorAll("#cmSeg button"), function(b){ b.classList.toggle("on", b.dataset.cm===CM.sub); });
+  if(!CM.idx && !CM.cargando && !CM.err){ cmCarga(); return; }
+  var cab = document.getElementById("cmCab");
+  if(CM.cargando){ box.innerHTML = '<div class="empty">Cargando precios…</div>'; cab.textContent = ""; return; }
+  if(CM.err){ box.innerHTML = '<div class="empty">'+esc(CM.err)+'</div><button class="add" id="cmReintenta">Reintentar</button>'; cab.textContent = "";
+    document.getElementById("cmReintenta").onclick = function(){ cmCarga(true); }; return; }
+  var cr = CM.idx.creado ? new Date(CM.idx.creado) : null;
+  cab.textContent = cr ? "Cardmarket · guía del "+cr.toLocaleDateString("es-ES",{day:"numeric",month:"short"})+" a las "+cr.toLocaleTimeString("es-ES",{hour:"2-digit",minute:"2-digit"}) : "";
+  if(CM.sub==="buscar") return cmBuscar(box);
+  if(CM.sub==="vig") return cmVigiladas(box);
+  return cmRadar(box);
+}
+function cmChips(){
+  return '<div class="chips" id="cmChips">'+[["todo","Todo"],["30","30 aniversario"],["vig","Vigiladas"]].map(function(x){
+    return '<div class="chip'+(CM.filtro===x[0]?" on":"")+'" data-f="'+x[0]+'">'+x[1]+'</div>'; }).join("")+'</div>';
+}
+function cmFiltra(f){ return CM.filtro==="30" ? !!CM_30[f[2]] : CM.filtro==="vig" ? !!cmVigDe(f[0]) : true; }
+function cmBuscar(box){
+  if(!document.getElementById("cmQ")){
+    box.innerHTML = '<input id="cmQ" placeholder="Busca una carta: Lugia, Charizard, Mew ex…" autocomplete="off">'+cmChips()+'<div id="cmRes" style="margin-top:10px"></div>';
+    var q = document.getElementById("cmQ"); q.value = CM.q;
+    q.oninput = function(){ CM.q = q.value; cmPintaRes(); };
+    cmEnlazaChips(cmPintaRes);
+  }
+  cmPintaRes();
+}
+function cmEnlazaChips(luego){
+  Array.prototype.forEach.call(document.querySelectorAll("#cmChips .chip"), function(ch){
+    ch.onclick = function(){ CM.filtro = ch.dataset.f;
+      Array.prototype.forEach.call(document.querySelectorAll("#cmChips .chip"), function(x){ x.classList.toggle("on", x===ch); }); luego(); };
+  });
+}
+function cmPintaRes(){
+  var res = document.getElementById("cmRes"); if(!res) return;
+  var palabras = norm(CM.q).split(/\s+/).filter(Boolean);
+  if(!palabras.length && CM.filtro==="todo"){ res.innerHTML = '<div class="empty">Escribe el nombre de una carta. Salen todas las cartas sueltas de Pokémon que tienen precio en Cardmarket ('+CM.lista.length.toLocaleString("es-ES")+').</div>'; return; }
+  var out = [];
+  for(var i=0; i<CM.lista.length && out.length<400; i++){
+    var it = CM.lista[i]; if(!cmFiltra(it.f)) continue;
+    var ok = true; for(var j=0;j<palabras.length;j++){ if(it.n.indexOf(palabras[j])<0){ ok=false; break; } }
+    if(ok) out.push(it.f);
+  }
+  out.sort(function(a,b){ return (b[4]||0)-(a[4]||0); });
+  res.innerHTML = out.length ? out.slice(0,80).map(function(f){ return cmFilaHtml(cmFila(f)); }).join("") +
+    (out.length>80 ? '<div class="mini">Y '+(out.length-80)+' más: afina la búsqueda.</div>' : '') : '<div class="empty">Nada que coincida</div>';
+  cmEnlazaFilas(res);
+}
+function cmEnlazaFilas(el){
+  Array.prototype.forEach.call(el.querySelectorAll("[data-cm]"), function(r){ r.onclick = function(){ cmFicha(+r.dataset.cm); }; });
+}
+function cmVigiladas(box){
+  if(!CM.vig){ box.innerHTML = '<div class="empty">Cargando vigiladas…</div>'; cmCargaVig(); return; }
+  if(!CM.vig.length){ box.innerHTML = '<div class="empty">Aún no vigiláis ninguna. Busca una carta, ábrela y dale a «Vigilar» con el precio al que la compraríais.</div>'; return; }
+  var html = '<button class="add" id="cmEbayTodas" style="margin-top:0;color:var(--acc);border-color:var(--acc)">Mirar eBay ahora en todas</button><div id="cmVigL" style="margin-top:6px">';
+  html += CM.vig.map(function(v){
+    var c = cmFila(CM.porId[v.id]) || {id:v.id, corto:cmCorto(v.n), expN:v.exp, tend:null, a1:null, a7:null, a30:null};
+    var e = CM.ebay[v.id], extra = "";
+    if(v.obj) extra += ' · objetivo <b style="color:var(--txt)">'+cmNum(v.obj)+'</b>';
+    if(e && e.items) extra += e.items.length ? ' · eBay desde <b style="color:'+(v.obj && e.items[0].total<=v.obj ? "var(--pos)" : "var(--txt)")+'">'+cmNum(e.items[0].total)+'</b>' : ' · eBay: nada ahora';
+    else if(e && e.cargando) extra += ' · mirando eBay…';
+    return cmFilaHtml(c, extra);
+  }).join("")+'</div><div class="mini">Cada hora se miran solas en eBay las que tienen objetivo, y os llega un aviso si aparece una por debajo. Con la guía de Cardmarket de cada mañana también avisa si se vende por debajo del objetivo.</div>';
+  box.innerHTML = html; cmEnlazaFilas(box);
+  document.getElementById("cmEbayTodas").onclick = function(){ cmEbayTodas(); };
+}
+function cmEbayTodas(){
+  var cola = (CM.vig||[]).slice();
+  function sig(){
+    var v = cola.shift(); if(!v){ return; }
+    CM.ebay[v.id] = {cargando:true}; if(CM.sub==="vig") renderCartas();
+    cmEbay(v.q || cmCorto(v.n), 5).then(function(d){ CM.ebay[v.id] = d; }).catch(function(e){ CM.ebay[v.id] = {error:e.message}; })
+      .then(function(){ if(CM.sub==="vig") renderCartas(); sig(); });
+  }
+  sig();
+}
+function cmEbay(q, n){
+  var u = cmUrl("/ebay?q="+encodeURIComponent(q)+"&n="+(n||20));
+  if(!u) return Promise.reject(new Error("sin sincronización"));
+  return fetch(u, {cache:"no-store"}).then(function(r){ return r.json().then(function(d){ if(!r.ok) throw new Error(d.error||("HTTP "+r.status)); return d; }); });
+}
+function cmRadar(box){
+  /* se calcula aquí, sobre todo el índice, para que el filtro (30 aniversario, vigiladas) tenga sus propias listas.
+     Solo cartas con ventas en el día, la semana y el mes, y que valgan algo */
+  var liq = CM.idx.c.filter(function(f){ return f[4]>=3 && f[5]!=null && f[6]!=null && f[7]!=null && cmFiltra(f); });
+  var top = function(l, orden){ return l.sort(orden).slice(0,20).map(function(f){ return f[0]; }); };
+  var R = {
+    chollos: top(liq.filter(function(f){ return f[7]>=5 && f[5]<=0.75*f[7]; }), function(a,b){ return a[5]/a[7]-b[5]/b[7]; }),
+    suben: top(liq.filter(function(f){ return f[5]/f[6]>=1.2 && f[6]/f[7]>=1.05; }), function(a,b){ return b[5]/b[6]-a[5]/a[6]; }),
+    bajan: top(liq.filter(function(f){ return f[6]/f[7]<=0.8; }), function(a,b){ return a[6]/a[7]-b[6]/b[7]; })
+  };
+  var filtro = function(ids){ return ids; };
+  function bloque(tit, sub, ids, extra){
+    var l = filtro(ids);
+    return '<div class="card" style="background:var(--card2);margin:10px 0"><h2>'+tit+'<span class="sum">'+l.length+'</span></h2><div class="mini" style="margin:-6px 0 6px">'+sub+'</div>'+
+      (l.length ? l.map(function(id){ var c = cmFila(CM.porId[id]); return cmFilaHtml(c, extra(c)); }).join("") : '<div class="empty">Nada hoy</div>')+'</div>';
+  }
+  var pct = function(a,b){ return (a!=null && b) ? Math.round((a/b-1)*100) : 0; };
+  box.innerHTML = cmChips()+
+    bloque("Se vendieron baratas ayer", "Ayer se vendieron muy por debajo de su media del mes. Puede ser una ganga puntual o que empiezan a bajar: miradlas antes de comprar.", R.chollos,
+      function(c){ return ' · <b style="color:var(--pos)">'+pct(c.a1,c.a30)+'%</b> vs mes'; })+
+    bloque("Suben", "Ayer se vendieron bastante más caras que la media de la semana, y la semana ya iba por encima del mes. Si tenéis alguna, puede ser momento de vender.", R.suben,
+      function(c){ return ' · <b style="color:var(--neg)">+'+pct(c.a1,c.a7)+'%</b> vs semana'; })+
+    bloque("Bajan", "La semana está bastante por debajo del mes. Si queréis comprar una de estas, suele compensar esperar a que se asiente.", R.bajan,
+      function(c){ return ' · <b style="color:var(--pos)">'+pct(c.a7,c.a30)+'%</b> semana vs mes'; })+
+    '<div class="mini">Solo entran cartas que se han vendido esta semana y valen más de 3 €. No es asesoramiento: son los datos de Cardmarket de hoy.</div>';
+  cmEnlazaChips(function(){ cmRadar(box); });
+  cmEnlazaFilas(box);
+}
+/* la ficha de una carta */
+function cmFicha(id){
+  var c = cmFila(CM.porId[id]); if(!c){ toast("Esa carta no está en la guía de hoy"); return; }
+  var v = cmVigDe(id), s = cmSenal(c), q = (v && v.q) || c.corto;
+  var cmLink = "https://www.cardmarket.com/es/Pokemon/Products/Singles?idExpansion="+c.exp+"&searchString="+encodeURIComponent(c.corto);
+  var num = function(l, n, fuerte){ return '<div class="stat" style="padding:7px 0"><div class="lab"><b style="font-weight:500;font-size:13px">'+l+'</b></div><span class="mono" style="'+(fuerte?"font-weight:700;color:var(--txt)":"color:var(--dim)")+'">'+cmNum(n)+'</span></div>'; };
+  openSheet('<h3>'+esc(c.corto)+'</h3><div class="mini" style="margin-top:-8px">'+esc(c.expN)+' · '+esc(c.n)+'</div>'+
+    '<div style="margin-top:10px"><span class="pill '+s.k+'">'+esc(s.t)+'</span></div>'+
+    '<div style="margin-top:8px">'+num("Tendencia", c.tend, true)+num("Media de ventas de ayer", c.a1)+num("Media de la semana", c.a7)+num("Media del mes", c.a30)+
+      num("Más barata ahora (cualquier idioma y estado)", c.bajo)+(c.tendF ? num("Tendencia de la versión reverse/holo", c.tendF) : "")+'</div>'+
+    '<div id="cmHist" style="margin-top:6px"></div>'+
+    '<label>Vigilar · la compraría por (€)</label><div class="row2"><input id="cmObj" type="number" inputmode="decimal" step="0.01" placeholder="p. ej. '+(c.tend?Math.floor(c.tend*0.8):"")+'" value="'+(v&&v.obj?v.obj:"")+'">'+
+      '<button class="b-ok" id="cmVigBtn" style="border:0">'+(v?"Guardar":"Vigilar")+'</button></div>'+
+    '<label>Búsqueda en eBay, Wallapop y Vinted</label><input id="cmQv" value="'+esc(q)+'">'+
+    (v ? '<button class="add" id="cmQuita">Dejar de vigilar</button>' : '')+
+    '<button class="add" id="cmEbayBtn" style="color:var(--acc);border-color:var(--acc)">Ver eBay ahora</button><div id="cmEbayL"></div>'+
+    '<div class="chips" style="margin-top:12px"><a class="chip" target="_blank" rel="noopener" href="'+cmLink+'">Cardmarket</a>'+
+      '<a class="chip" target="_blank" rel="noopener" id="cmWa" href="#">Wallapop</a><a class="chip" target="_blank" rel="noopener" id="cmVi" href="#">Vinted</a></div>'+
+    '<div class="mini">Wallapop y Vinted no se pueden vigilar desde aquí: guardad la búsqueda en su app con avisos y comparad con la tendencia de arriba.</div>'+
+    '<div class="btns"><button class="b-no" id="cmCierra">Cerrar</button></div>');
+  var qv = document.getElementById("cmQv");
+  function enlaces(){ document.getElementById("cmWa").href = "https://es.wallapop.com/app/search?keywords="+encodeURIComponent(qv.value);
+    document.getElementById("cmVi").href = "https://www.vinted.es/catalog?search_text="+encodeURIComponent(qv.value); }
+  qv.oninput = enlaces; enlaces();
+  document.getElementById("cmCierra").onclick = closeSheet;
+  document.getElementById("cmVigBtn").onclick = function(){
+    var obj = parseFloat(String(document.getElementById("cmObj").value).replace(",", ".")) || null;
+    CM.vig = (CM.vig||[]).filter(function(x){ return +x.id!==+id; });
+    CM.vig.unshift({id:id, n:c.n, exp:c.expN, obj:obj, q:qv.value.trim()!==c.corto ? qv.value.trim() : "", t:new Date().toISOString()});
+    cmGuardaVig(); closeSheet(); renderCartas();
+  };
+  var qb = document.getElementById("cmQuita");
+  if(qb) qb.onclick = function(){ CM.vig = (CM.vig||[]).filter(function(x){ return +x.id!==+id; }); cmGuardaVig(); closeSheet(); renderCartas(); };
+  document.getElementById("cmEbayBtn").onclick = function(){
+    var el = document.getElementById("cmEbayL"); el.innerHTML = '<div class="empty">Mirando eBay…</div>';
+    cmEbay(qv.value.trim() || c.corto, 12).then(function(d){
+      if(!d.items.length){ el.innerHTML = '<div class="empty">Ahora mismo no hay anuncios con esa búsqueda</div>'; return; }
+      el.innerHTML = d.items.map(function(it){
+        var dif = c.tend ? Math.round((it.total/c.tend-1)*100) : null;
+        return '<a class="prow" target="_blank" rel="noopener" href="'+esc(it.url)+'" style="display:flex;gap:10px;text-decoration:none;color:inherit">'+
+          (it.img ? '<img src="'+esc(it.img)+'" alt="" style="width:44px;height:60px;object-fit:cover;flex:0 0 auto">' : '')+
+          '<div style="min-width:0;flex:1"><div style="font-size:13px;line-height:1.3">'+esc(it.titulo)+'</div>'+
+          '<div class="mini" style="margin-top:3px"><b style="color:var(--txt)">'+cmNum(it.total)+'</b> con envío · '+esc(it.pais)+(it.estado?' · '+esc(it.estado):'')+(it.subasta?' · subasta':'')+
+          (dif!=null ? ' · <b style="color:'+(dif<=-15?"var(--pos)":dif>=15?"var(--neg)":"var(--dim)")+'">'+(dif>0?"+":"")+dif+'%</b> vs Cardmarket' : '')+'</div></div></a>';
+      }).join("")+'<div class="mini">Anuncios de eBay España y Alemania que se envían a España, del más barato al más caro. Revisad idioma y estado en el anuncio.</div>';
+    }).catch(function(e){ el.innerHTML = '<div class="empty">'+esc(e.message)+'</div>'; });
+  };
+  /* histórico, si esta carta es de las que seguimos */
+  var t = id % 32, pinta = function(h){
+    var el = document.getElementById("cmHist"); if(!el) return;
+    var l = (h||{})[id]; if(!l || l.length<2){ el.innerHTML = '<div class="mini">'+(l ? "El histórico empieza hoy: en unos días veréis aquí la gráfica." : "Esta carta aún no tiene histórico (se guarda del 30 aniversario, de las vigiladas y de las de más valor).")+'</div>'; return; }
+    var W = 320, H = 70, vals = l.map(function(x){ return x[2]; }).filter(function(x){ return x!=null; });
+    var mn = Math.min.apply(null, vals), mx = Math.max.apply(null, vals); if(mx-mn<0.01){ mn-=1; mx+=1; }
+    var X = function(i){ return 3 + (W-6)*i/(l.length-1); }, Y = function(p){ return 3 + (H-6)*(1-(p-mn)/(mx-mn)); };
+    var pts = l.map(function(x,i){ return x[2]==null ? null : X(i).toFixed(1)+","+Y(x[2]).toFixed(1); }).filter(Boolean).join(" ");
+    el.innerHTML = '<svg viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="none" style="width:100%;height:70px;display:block"><polyline fill="none" stroke="var(--acc)" stroke-width="1.8" points="'+pts+'"/></svg>'+
+      '<div class="mini" style="display:flex;justify-content:space-between;margin-top:2px"><span>'+esc(shortDate(l[0][0]))+'</span><span>tendencia '+cmNum(mn)+' – '+cmNum(mx)+'</span><span>'+esc(shortDate(l[l.length-1][0]))+'</span></div>';
+  };
+  if(CM.hist[t]) pinta(CM.hist[t]);
+  else { var u = cmUrl("/cm/hist/"+t); if(u) fetch(u).then(function(r){ return r.ok ? r.json() : {}; }).then(function(h){ CM.hist[t] = h; pinta(h); }).catch(function(){}); }
 }
 
 /* =========== SHEETS =========== */
@@ -4295,6 +4536,9 @@ Array.prototype.forEach.call(document.querySelectorAll("#finSeg button"), functi
     Array.prototype.forEach.call(document.querySelectorAll("#finSeg button"), function(x){ x.classList.remove("on"); });
     b.classList.add("on"); subFin = b.dataset.fin; render();
   };
+});
+Array.prototype.forEach.call(document.querySelectorAll("#cmSeg button"), function(b){
+  b.onclick = function(){ CM.sub = b.dataset.cm; document.getElementById("cmBox").innerHTML = ""; renderCartas(); };
 });
 document.getElementById("editMeta").onclick = function(){ openMeta(); };
 
