@@ -40,6 +40,8 @@ const LOCAL = process.env.LOCAL || "";          // pruebas: carpeta con los json
 const EXPANSIONES = JSON.parse(readFileSync(new URL("./cm-expansiones.json", import.meta.url), "utf8"));
 /* número, imagen (TCGdex) y carta equivalente en los otros idiomas, para el 30 aniversario */
 const FICHAS = JSON.parse(readFileSync(new URL("./cm-fichas30.json", import.meta.url), "utf8"));
+/* foto del sellado: id del producto en TCGplayer (su CDN de imágenes es público) */
+const FOTOS_SEL = JSON.parse(readFileSync(new URL("./cm-sellado-fotos.json", import.meta.url), "utf8"));
 /* colecciones que se siguen enteras en el histórico (30 aniversario en todos sus idiomas) */
 const SEGUIDAS = new Set([6601, 6602, 6603, 6604, 6767, 6628]);
 /* producto sellado que se sigue: todo el del 30 aniversario, en todos sus idiomas */
@@ -108,7 +110,7 @@ async function main(){
   const sellado = [];
   for(const g of guia.priceGuides){
     const p = S.get(g.idProduct); if(!p) continue;
-    sellado.push([p.idProduct, p.name, p.idExpansion, p.categoryName.replace(/^Pokémon\s*/, ""), r2(g.low), r2(g.trend), r2(g.avg1), r2(g.avg7), r2(g.avg30)]);
+    sellado.push([p.idProduct, p.name, p.idExpansion, p.categoryName.replace(/^Pokémon\s*/, ""), r2(g.low), r2(g.trend), r2(g.avg1), r2(g.avg7), r2(g.avg30), FOTOS_SEL[p.idProduct] || null]);
     usadas[p.idExpansion] = EXPANSIONES[p.idExpansion] || ("Expansión " + p.idExpansion);
   }
   const fichas = {};
