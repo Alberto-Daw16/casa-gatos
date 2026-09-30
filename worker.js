@@ -78,7 +78,9 @@ export default {
             "cache-control":"private, max-age=600", ...CORS}});
         }
         if (req.method === "PUT"){
-          if (!env.SUBIDA || url.searchParams.get("up") !== env.SUBIDA) return json({error:"subida"}, 403);
+          // se sube con la misma clave de sincronización (o con el secreto SUBIDA)
+          const okSubida = env.SUBIDA && url.searchParams.get("up") === env.SUBIDA;
+          if (!okSubida && !claveOk(env, k)) return json({error:"subida"}, 403);
           const buf = await req.arrayBuffer();
           if (buf.byteLength > 20 * 1024 * 1024) return json({error:"demasiado grande"}, 413);
           await kv.put(clv, buf);
