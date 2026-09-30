@@ -9,18 +9,22 @@
      3) calcula el radar (chollos, las que suben y las que bajan),
      4) lo guarda todo en vuestro Worker, en privado (no en el repo público),
      5) y avisa al móvil si alguna vigilada baja de vuestro precio objetivo.
-   Secretos del repo (Settings → Secrets and variables → Actions):
-     GREMORY_URL  la dirección del Worker (https://….workers.dev)
-     GREMORY_K    la clave de sincronización (la k de la URL de Ajustes)
-     GREMORY_UP   el secreto SUBIDA del Worker
+   Un solo secreto en el repo (Settings → Secrets and variables → Actions):
+     GREMORY_SYNC  la URL de sincronización tal cual sale en Ajustes de la app
+                   (https://….workers.dev/?k=vuestra-clave)
    ───────────────────────────────────────────────────────────────────────── */
 import { gzipSync, gunzipSync } from "node:zlib";
 import { readFileSync, existsSync } from "node:fs";
 
 const GUIA = "https://downloads.s3.cardmarket.com/productCatalog/priceGuide/price_guide_6.json";
 const CATALOGO = "https://downloads.s3.cardmarket.com/productCatalog/productList/products_singles_6.json";
-const BASE = (process.env.GREMORY_URL || "").replace(/\/+$/, "");
-const K = process.env.GREMORY_K || "", UP = process.env.GREMORY_UP || "";
+let BASE = (process.env.GREMORY_URL || "").replace(/\/+$/, "");
+let K = process.env.GREMORY_K || "";
+const UP = process.env.GREMORY_UP || "";
+if(process.env.GREMORY_SYNC){
+  try { const u = new URL(process.env.GREMORY_SYNC.trim()); BASE = u.origin; K = u.searchParams.get("k") || K; }
+  catch(e){ console.error("GREMORY_SYNC no es una URL válida"); }
+}
 const FORZAR = process.env.FORZAR === "1";
 const LOCAL = process.env.LOCAL || "";          // pruebas: carpeta con los json ya bajados, no sube nada
 const EXPANSIONES = JSON.parse(readFileSync(new URL("./cm-expansiones.json", import.meta.url), "utf8"));
@@ -39,7 +43,7 @@ async function gzget(url){
 }
 async function sube(ruta, obj, meta){
   const cuerpo = gzipSync(Buffer.from(JSON.stringify(obj)), {level: 9});
-  const url = `${BASE}${ruta}?up=${encodeURIComponent(UP)}` + (meta ? "&meta=" + encodeURIComponent(JSON.stringify(meta)) : "");
+  const url = `${BASE}${ruta}?` + (UP ? "up=" + encodeURIComponent(UP) : "k=" + encodeURIComponent(K)) + (meta ? "&meta=" + encodeURIComponent(JSON.stringify(meta)) : "");
   const r = await fetch(url, {method: "PUT", body: cuerpo, headers: {"content-type": "application/gzip"}});
   if(!r.ok) throw new Error(`subir ${ruta} → HTTP ${r.status} ${await r.text()}`);
   console.log(`subido ${ruta}: ${(cuerpo.length / 1024).toFixed(0)} KB`);
@@ -54,7 +58,7 @@ const hoy = () => new Date().toISOString().slice(0, 10);
 const eur = n => n == null ? "—" : n.toLocaleString("es-ES", {minimumFractionDigits: 2, maximumFractionDigits: 2}) + " €";
 
 async function main(){
-  if(!LOCAL && (!BASE || !K || !UP)) throw new Error("Faltan los secretos GREMORY_URL, GREMORY_K o GREMORY_UP");
+  if(!LOCAL && (!BASE || !K)) throw new Error("Falta el secreto GREMORY_SYNC (la URL de sincronización de Ajustes)");
 
   /* 1) ¿hay guía nueva? */
   let lm = "";
