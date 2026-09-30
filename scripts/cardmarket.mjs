@@ -18,6 +18,7 @@ import { readFileSync, existsSync } from "node:fs";
 
 const GUIA = "https://downloads.s3.cardmarket.com/productCatalog/priceGuide/price_guide_6.json";
 const CATALOGO = "https://downloads.s3.cardmarket.com/productCatalog/productList/products_singles_6.json";
+const SELLADO = "https://downloads.s3.cardmarket.com/productCatalog/productList/products_nonsingles_6.json";
 let BASE = (process.env.GREMORY_URL || "").replace(/\/+$/, "");
 let K = process.env.GREMORY_K || "";
 const UP = process.env.GREMORY_UP || "";
@@ -37,8 +38,12 @@ const UP = process.env.GREMORY_UP || "";
 const FORZAR = process.env.FORZAR === "1";
 const LOCAL = process.env.LOCAL || "";          // pruebas: carpeta con los json ya bajados, no sube nada
 const EXPANSIONES = JSON.parse(readFileSync(new URL("./cm-expansiones.json", import.meta.url), "utf8"));
+/* número, imagen (TCGdex) y carta equivalente en los otros idiomas, para el 30 aniversario */
+const FICHAS = JSON.parse(readFileSync(new URL("./cm-fichas30.json", import.meta.url), "utf8"));
 /* colecciones que se siguen enteras en el histórico (30 aniversario en todos sus idiomas) */
 const SEGUIDAS = new Set([6601, 6602, 6603, 6604, 6767, 6628]);
+/* producto sellado que se sigue: todo el del 30 aniversario, en todos sus idiomas */
+const SELLADO_EXP = new Set([6601, 6602, 6603, 6604, 6767, 6628, 6774, 6514]);
 const DIAS_HIST = 400;
 
 const w = (ruta, extra = "") => `${BASE}${ruta}?k=${encodeURIComponent(K)}${extra}`;
@@ -83,6 +88,8 @@ async function main(){
   const guia = LOCAL ? JSON.parse(readFileSync(LOCAL + "/price_guide_6.json", "utf8")) : await jget(GUIA);
   const cat = LOCAL ? JSON.parse(readFileSync(LOCAL + "/products_singles_6.json", "utf8")) : await jget(CATALOGO);
   const P = new Map(cat.products.map(p => [p.idProduct, p]));
+  const sel = LOCAL ? JSON.parse(readFileSync(LOCAL + "/products_nonsingles_6.json", "utf8")) : await jget(SELLADO);
+  const S = new Map(sel.products.filter(p => SELLADO_EXP.has(p.idExpansion)).map(p => [p.idProduct, p]));
   const vig = LOCAL ? [] : ((await jget(w("/cm/vigila")).catch(() => ({lista: []}))).lista || []);
   const vigIds = new Set(vig.map(v => +v.id));
 
@@ -97,6 +104,16 @@ async function main(){
     usadas[p.idExpansion] = EXPANSIONES[p.idExpansion] || ("Expansión " + p.idExpansion);
   }
 
+  /* 3b) sellado del 30 aniversario: [id, nombre, expansión, tipo, bajo, tendencia, media1, media7, media30] */
+  const sellado = [];
+  for(const g of guia.priceGuides){
+    const p = S.get(g.idProduct); if(!p) continue;
+    sellado.push([p.idProduct, p.name, p.idExpansion, p.categoryName.replace(/^Pokémon\s*/, ""), r2(g.low), r2(g.trend), r2(g.avg1), r2(g.avg7), r2(g.avg30)]);
+    usadas[p.idExpansion] = EXPANSIONES[p.idExpansion] || ("Expansión " + p.idExpansion);
+  }
+  const fichas = {};
+  for(const f of filas){ const x = FICHAS[f[0]]; if(x) fichas[f[0]] = x; }
+
   /* 4) radar. Ojo: "más barato" en la guía es el anuncio más barato en cualquier idioma y estado
         (un japonés destrozado a 0,02 €), así que no sirve para cazar chollos. El radar mira las
         ventas: media de ayer (a1), de la semana (a7) y del mes (a30), solo en cartas que se venden. */
@@ -109,7 +126,8 @@ async function main(){
     .sort((a, b) => a[6] / a[7] - b[6] / b[7]).slice(0, 60).map(f => f[0]);
 
   const creado = guia.createdAt || new Date().toISOString();
-  const indice = {v: 1, creado, lm, exp: usadas, c: filas, radar: {chollos, suben, bajan}};
+  const indice = {v: 2, creado, lm, exp: usadas, c: filas, s: sellado, f: fichas, radar: {chollos, suben, bajan}};
+  console.log(`${sellado.length} productos sellados del 30 aniversario, ${Object.keys(fichas).length} cartas con foto`);
   console.log(`${filas.length} cartas, ${Object.keys(usadas).length} expansiones; chollos ${chollos.length}, suben ${suben.length}, bajan ${bajan.length}`);
 
   /* 5) histórico por trozos (id % 32), así la app baja solo el trozo de la carta que mira:
@@ -119,6 +137,8 @@ async function main(){
   filas.forEach(f => { if(SEGUIDAS.has(f[2])) seguir.add(f[0]); });
   liquidas.slice().sort((a, b) => b[4] - a[4]).slice(0, 1200).forEach(f => seguir.add(f[0]));
   const porId = new Map(filas.map(f => [f[0], f]));
+  /* el sellado entra en el histórico y en los avisos con la misma forma que una carta */
+  for(const x of sellado){ porId.set(x[0], [x[0], x[1], x[2], x[4], x[5], x[6], x[7], x[8]]); seguir.add(x[0]); }
   const lim = new Date(Date.now() - DIAS_HIST * 864e5).toISOString().slice(0, 10);
   const TROZOS = 32, trozos = [];
   for(let t = 0; t < TROZOS; t++) trozos.push(LOCAL ? {} : ((await gzget(w("/cm/hist/" + t))) || {}));
