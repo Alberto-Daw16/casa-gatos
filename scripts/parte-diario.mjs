@@ -5,7 +5,7 @@
    días anteriores y deja dos ficheros:
      OUT/hist.json     histórico actualizado (se publica junto a la página)
      OUT/resumen.json  lo que ha cambiado, listo para escribir el parte
-   Uso:  PREV=hist.json OUT=salida node parte-diario.mjs
+   Uso:  PREV=hist.json OUT=salida node parte-diario.mjs   (lo lanza cartas.yml; FORZAR=1 rehace el día)
    No necesita claves: todo son ficheros públicos.
    ───────────────────────────────────────────────────────────────────────── */
 import { readFileSync, writeFileSync, mkdirSync, existsSync } from "node:fs";
@@ -86,6 +86,7 @@ for(const id in sel){
 }
 
 const nuevo = !(prev.dias || []).some(d => d.f === fecha);
+if(!nuevo && process.env.FORZAR !== "1"){ console.log(`guía del ${fecha} YA VISTA: no hay guía nueva, no se toca nada`); process.exit(0); }
 const dias = (prev.dias || []).filter(d => d.f < fecha);
 const ayer = dias[dias.length - 1] || null;
 dias.push(hoy);
