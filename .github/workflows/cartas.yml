@@ -2,7 +2,7 @@ name: Precios de cartas (Cardmarket)
 
 on:
   schedule:
-    # cada hora; Cardmarket publica su guía una vez al día y el script solo trabaja cuando hay una nueva
+    # cada hora; Cardmarket publica su guía una vez al día y los scripts solo trabajan cuando hay una nueva
     - cron: "17 * * * *"
   workflow_dispatch:
     inputs:
@@ -10,6 +10,10 @@ on:
         description: "Rehacer aunque la guía no haya cambiado"
         type: boolean
         default: false
+
+# permiso para guardar en el repo el parte del mercado (data/parte), una vez al día
+permissions:
+  contents: write
 
 jobs:
   cartas:
@@ -25,3 +29,18 @@ jobs:
         env:
           GREMORY_SYNC: ${{ secrets.GREMORY_SYNC }}
           FORZAR: ${{ github.event.inputs.forzar == 'true' && '1' || '0' }}
+      - name: Parte diario del mercado (datos públicos)
+        run: node scripts/parte-diario.mjs
+        env:
+          PREV: data/parte/hist.json
+          OUT: data/parte
+          FORZAR: ${{ github.event.inputs.forzar == 'true' && '1' || '0' }}
+      - name: Guardar el parte en el repo
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898283+github-actions[bot]@users.noreply.github.com"
+          git add data/parte
+          if git diff --cached --quiet; then echo "Sin parte nuevo"; exit 0; fi
+          git commit -m "Parte del mercado $(date -u +%d/%m/%Y)"
+          git pull --rebase
+          git push
