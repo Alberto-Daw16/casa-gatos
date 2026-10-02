@@ -1,0 +1,1007 @@
+{
+ "fecha": "2026-10-02",
+ "ultimoDia": "2026-09-30",
+ "guiaNueva": true,
+ "diasDeHistorico": 2,
+ "mercado": {
+  "EN": {
+   "cartas": 191,
+   "vendidasAyer": 188,
+   "ayerContraSemana": 0.88,
+   "semanaContraMes": 1,
+   "tendenciaContraAyer": 1
+  },
+  "JP": {
+   "cartas": 176,
+   "vendidasAyer": 151,
+   "ayerContraSemana": 1,
+   "semanaContraMes": 1,
+   "tendenciaContraAyer": 0.96
+  }
+ },
+ "suben": [
+  {
+   "id": 907924,
+   "nombre": "Buzzwole GX",
+   "num": "CC013",
+   "idioma": "JP",
+   "desde": 7.5,
+   "normal": 6.95,
+   "ayer": null,
+   "semana": null,
+   "mes": null,
+   "antes": 6.11,
+   "cambio": 13.75
+  },
+  {
+   "id": 907673,
+   "nombre": "Mew ex",
+   "num": "066",
+   "idioma": "EN",
+   "desde": 1.98,
+   "normal": 3.04,
+   "ayer": 6.7,
+   "semana": 8.46,
+   "mes": 8.46,
+   "antes": 2.82,
+   "cambio": 7.8
+  },
+  {
+   "id": 907919,
+   "nombre": "Rayquaza EX",
+   "num": "CC016",
+   "idioma": "JP",
+   "desde": 19.99,
+   "normal": 24.78,
+   "ayer": null,
+   "semana": null,
+   "mes": null,
+   "antes": 23.05,
+   "cambio": 7.51
+  },
+  {
+   "id": 907952,
+   "nombre": "Crobat",
+   "num": "CC011",
+   "idioma": "EN",
+   "desde": 4.39,
+   "normal": 5.33,
+   "ayer": 9.65,
+   "semana": 11.25,
+   "mes": 11.25,
+   "antes": 5.03,
+   "cambio": 5.96
+  },
+  {
+   "id": 907960,
+   "nombre": "Greninja BREAK",
+   "num": "CC009",
+   "idioma": "EN",
+   "desde": 4.9,
+   "normal": 5.89,
+   "ayer": 13.16,
+   "semana": 15.5,
+   "mes": 15.5,
+   "antes": 5.56,
+   "cambio": 5.94
+  }
+ ],
+ "bajan": [
+  {
+   "id": 907913,
+   "nombre": "Uxie Lv.55",
+   "num": "CC010",
+   "idioma": "JP",
+   "desde": 5,
+   "normal": 7.9,
+   "ayer": null,
+   "semana": null,
+   "mes": null,
+   "antes": 9.31,
+   "cambio": -15.15
+  },
+  {
+   "id": 907882,
+   "nombre": "Galarian Meowth",
+   "num": "141",
+   "idioma": "JP",
+   "desde": 3.5,
+   "normal": 5.14,
+   "ayer": 10.13,
+   "semana": 10.58,
+   "mes": 10.58,
+   "antes": 5.64,
+   "cambio": -8.87
+  },
+  {
+   "id": 907904,
+   "nombre": "Erika's Jigglypuff",
+   "num": "CC015",
+   "idioma": "JP",
+   "desde": 8.3,
+   "normal": 9.88,
+   "ayer": null,
+   "semana": null,
+   "mes": null,
+   "antes": 10.84,
+   "cambio": -8.86
+  },
+  {
+   "id": 907927,
+   "nombre": "Raikou",
+   "num": "CC012",
+   "idioma": "JP",
+   "desde": 10.39,
+   "normal": 11.46,
+   "ayer": 20.89,
+   "semana": 22.94,
+   "mes": 22.94,
+   "antes": 12.43,
+   "cambio": -7.8
+  },
+  {
+   "id": 907911,
+   "nombre": "Metagross δ Delta Species",
+   "num": "CC003",
+   "idioma": "JP",
+   "desde": 9.49,
+   "normal": 9.69,
+   "ayer": 30,
+   "semana": 30,
+   "mes": 30,
+   "antes": 10.45,
+   "cambio": -7.27
+  },
+  {
+   "id": 907925,
+   "nombre": "Pikachu & Zekrom GX",
+   "num": "CC008",
+   "idioma": "JP",
+   "desde": 23.9,
+   "normal": 25.58,
+   "ayer": 39.99,
+   "semana": 39.99,
+   "mes": 39.99,
+   "antes": 27.5,
+   "cambio": -6.98
+  },
+  {
+   "id": 907874,
+   "nombre": "Toxtricity",
+   "num": "134",
+   "idioma": "JP",
+   "desde": 2.5,
+   "normal": 3.21,
+   "ayer": 10,
+   "semana": 9.33,
+   "mes": 9.33,
+   "antes": 3.42,
+   "cambio": -6.14
+  },
+  {
+   "id": 907891,
+   "nombre": "Pikachu ex",
+   "num": "149",
+   "idioma": "JP",
+   "desde": 50,
+   "normal": 55.61,
+   "ayer": 177,
+   "semana": 177,
+   "mes": 177,
+   "antes": 59.21,
+   "cambio": -6.08
+  }
+ ],
+ "vigiladas": [
+  {
+   "id": 907739,
+   "nombre": "Lapras",
+   "num": "131",
+   "idioma": "EN",
+   "desde": 3.4,
+   "normal": 7.77,
+   "ayer": 14.04,
+   "semana": 16.04,
+   "mes": 16.04,
+   "serie": [
+    [
+     "2026-09-30",
+     7.89
+    ],
+    [
+     "2026-10-02",
+     7.77
+    ]
+   ],
+   "cambioTresDias": -1.52,
+   "estado": "se está parando"
+  },
+  {
+   "id": 907740,
+   "nombre": "Articuno",
+   "num": "132",
+   "idioma": "EN",
+   "desde": 4.4,
+   "normal": 7.78,
+   "ayer": 12.12,
+   "semana": 13.97,
+   "mes": 13.97,
+   "serie": [
+    [
+     "2026-09-30",
+     7.88
+    ],
+    [
+     "2026-10-02",
+     7.78
+    ]
+   ],
+   "cambioTresDias": -1.27,
+   "estado": "se está parando"
+  },
+  {
+   "id": 907741,
+   "nombre": "Zapdos",
+   "num": "133",
+   "idioma": "EN",
+   "desde": 4.8,
+   "normal": 7.77,
+   "ayer": 11.61,
+   "semana": 12.73,
+   "mes": 12.73,
+   "serie": [
+    [
+     "2026-09-30",
+     7.88
+    ],
+    [
+     "2026-10-02",
+     7.77
+    ]
+   ],
+   "cambioTresDias": -1.4,
+   "estado": "se está parando"
+  },
+  {
+   "id": 907738,
+   "nombre": "Moltres",
+   "num": "130",
+   "idioma": "EN",
+   "desde": 4.29,
+   "normal": 7.85,
+   "ayer": 12.22,
+   "semana": 13.37,
+   "mes": 13.37,
+   "serie": [
+    [
+     "2026-09-30",
+     7.82
+    ],
+    [
+     "2026-10-02",
+     7.85
+    ]
+   ],
+   "cambioTresDias": 0.38,
+   "estado": "se está parando"
+  },
+  {
+   "id": 907753,
+   "nombre": "Maushold",
+   "num": "146",
+   "idioma": "EN",
+   "desde": 1.97,
+   "normal": 7.21,
+   "ayer": 12.42,
+   "semana": 14.18,
+   "mes": 14.18,
+   "serie": [
+    [
+     "2026-09-30",
+     7.14
+    ],
+    [
+     "2026-10-02",
+     7.21
+    ]
+   ],
+   "cambioTresDias": 0.98,
+   "estado": "se está parando"
+  },
+  {
+   "id": 907966,
+   "nombre": "Mew VMAX",
+   "num": "CC026",
+   "idioma": "EN",
+   "desde": 10.89,
+   "normal": 17.98,
+   "ayer": 15.81,
+   "semana": 18.13,
+   "mes": 18.13,
+   "serie": [
+    [
+     "2026-09-30",
+     17.59
+    ],
+    [
+     "2026-10-02",
+     17.98
+    ]
+   ],
+   "cambioTresDias": 2.22,
+   "estado": "se está parando"
+  },
+  {
+   "id": 907950,
+   "nombre": "Palkia LV.X",
+   "num": "CC022",
+   "idioma": "EN",
+   "desde": 7.5,
+   "normal": 11.2,
+   "ayer": 16.13,
+   "semana": 16.57,
+   "mes": 16.57,
+   "serie": [
+    [
+     "2026-09-30",
+     11.37
+    ],
+    [
+     "2026-10-02",
+     11.2
+    ]
+   ],
+   "cambioTresDias": -1.5,
+   "estado": "se está parando"
+  },
+  {
+   "id": 907956,
+   "nombre": "N",
+   "num": "CC021",
+   "idioma": "EN",
+   "desde": 6.29,
+   "normal": 10.33,
+   "ayer": 18.03,
+   "semana": 18.17,
+   "mes": 18.17,
+   "serie": [
+    [
+     "2026-09-30",
+     10.35
+    ],
+    [
+     "2026-10-02",
+     10.33
+    ]
+   ],
+   "cambioTresDias": -0.19,
+   "estado": "se está parando"
+  },
+  {
+   "id": 907947,
+   "nombre": "Dark Tyranitar",
+   "num": "CC006",
+   "idioma": "EN",
+   "desde": 12.5,
+   "normal": 14.04,
+   "ayer": 25.54,
+   "semana": 30.36,
+   "mes": 30.36,
+   "serie": [
+    [
+     "2026-09-30",
+     13.69
+    ],
+    [
+     "2026-10-02",
+     14.04
+    ]
+   ],
+   "cambioTresDias": 2.56,
+   "estado": "se está parando"
+  },
+  {
+   "id": 907957,
+   "nombre": "Rayquaza EX",
+   "num": "CC016",
+   "idioma": "EN",
+   "desde": 20,
+   "normal": 21.95,
+   "ayer": 33.52,
+   "semana": 41.79,
+   "mes": 41.79,
+   "serie": [
+    [
+     "2026-09-30",
+     21.59
+    ],
+    [
+     "2026-10-02",
+     21.95
+    ]
+   ],
+   "cambioTresDias": 1.67,
+   "estado": "se está parando"
+  },
+  {
+   "id": 907871,
+   "nombre": "Lapras",
+   "num": "131",
+   "idioma": "JP",
+   "desde": 5.5,
+   "normal": 7.57,
+   "ayer": 10.95,
+   "semana": 10.11,
+   "mes": 10.11,
+   "serie": [
+    [
+     "2026-09-30",
+     7.92
+    ],
+    [
+     "2026-10-02",
+     7.57
+    ]
+   ],
+   "cambioTresDias": -4.42,
+   "estado": "sigue bajando"
+  }
+ ],
+ "minimos": [],
+ "sellado": [
+  {
+   "id": 890359,
+   "nombre": "30th Celebration JP Booster",
+   "idioma": "JP",
+   "tipo": "Booster",
+   "desde": 6.9,
+   "normal": 6.04,
+   "desdeAntes": 6.9,
+   "normalAntes": 6.07,
+   "cambioNormal": -0.49
+  },
+  {
+   "id": 890360,
+   "nombre": "30th Celebration Booster",
+   "idioma": "EN",
+   "tipo": "Booster",
+   "desde": 7.5,
+   "normal": 13.04,
+   "desdeAntes": 7.5,
+   "normalAntes": 13.22,
+   "cambioNormal": -1.36
+  },
+  {
+   "id": 891464,
+   "nombre": "30th Celebration JP Booster Box",
+   "idioma": "JP",
+   "tipo": "Display",
+   "desde": 109.9,
+   "normal": 133.57,
+   "desdeAntes": 109.9,
+   "normalAntes": 139.04,
+   "cambioNormal": -3.93
+  },
+  {
+   "id": 891473,
+   "nombre": "30th Celebration JP Futuristic Box",
+   "idioma": "JP",
+   "tipo": "Box Set",
+   "desde": 470,
+   "normal": 414.03,
+   "desdeAntes": 399.99,
+   "normalAntes": 412.91,
+   "cambioNormal": 0.27
+  },
+  {
+   "id": 891488,
+   "nombre": "30th Celebration Espeon ex and Umbreon ex Premium Deck Set",
+   "idioma": "EN",
+   "tipo": "Box Set",
+   "desde": 125,
+   "normal": 178.23,
+   "desdeAntes": 125,
+   "normalAntes": 182.64,
+   "cambioNormal": -2.41
+  },
+  {
+   "id": 895551,
+   "nombre": "30th Celebration Elite Trainer Box",
+   "idioma": "EN",
+   "tipo": "Elite Trainer Boxes",
+   "desde": 80,
+   "normal": 133.91,
+   "desdeAntes": 85,
+   "normalAntes": 135.27,
+   "cambioNormal": -1.01
+  },
+  {
+   "id": 895552,
+   "nombre": "30th Celebration Pokémon Center Elite Trainer Box",
+   "idioma": "EN",
+   "tipo": "Elite Trainer Boxes",
+   "desde": 175,
+   "normal": 343.61,
+   "desdeAntes": 175,
+   "normalAntes": 327.85,
+   "cambioNormal": 4.81
+  },
+  {
+   "id": 895553,
+   "nombre": "30th Celebration Poster Collection",
+   "idioma": "EN",
+   "tipo": "Box Set",
+   "desde": 25.99,
+   "normal": 39.48,
+   "desdeAntes": 22.99,
+   "normalAntes": 39.75,
+   "cambioNormal": -0.68
+  },
+  {
+   "id": 895554,
+   "nombre": "30th Celebration: Alolan Exeggutor Tech Sticker Collection",
+   "idioma": "EN",
+   "tipo": "Blisters",
+   "desde": 28,
+   "normal": 38.48,
+   "desdeAntes": 25,
+   "normalAntes": 38.79,
+   "cambioNormal": -0.8
+  },
+  {
+   "id": 895555,
+   "nombre": "30th Celebration: Lucario Tech Sticker Collection",
+   "idioma": "EN",
+   "tipo": "Blisters",
+   "desde": 28.95,
+   "normal": 38.49,
+   "desdeAntes": 29.8,
+   "normalAntes": 38.79,
+   "cambioNormal": -0.77
+  },
+  {
+   "id": 895556,
+   "nombre": "30th Celebration: Eevee 2-Pack Blister",
+   "idioma": "EN",
+   "tipo": "Blisters",
+   "desde": 15,
+   "normal": 34.37,
+   "desdeAntes": 17.9,
+   "normalAntes": 34.51,
+   "cambioNormal": -0.41
+  },
+  {
+   "id": 895557,
+   "nombre": "30th Celebration: Sylveon ex Box",
+   "idioma": "EN",
+   "tipo": "Box Set",
+   "desde": 30.9,
+   "normal": 51.9,
+   "desdeAntes": 30,
+   "normalAntes": 51.35,
+   "cambioNormal": 1.07
+  },
+  {
+   "id": 895558,
+   "nombre": "30th Celebration: Greninja ex Box",
+   "idioma": "EN",
+   "tipo": "Box Set",
+   "desde": 29.99,
+   "normal": 50.27,
+   "desdeAntes": 29.49,
+   "normalAntes": 50,
+   "cambioNormal": 0.54
+  },
+  {
+   "id": 895559,
+   "nombre": "30th Celebration: Knock Out Collection",
+   "idioma": "EN",
+   "tipo": "Box Set",
+   "desde": 30,
+   "normal": 30.35,
+   "desdeAntes": 30,
+   "normalAntes": 29.32,
+   "cambioNormal": 3.51
+  },
+  {
+   "id": 895560,
+   "nombre": "30th Celebration Binder Collection",
+   "idioma": "EN",
+   "tipo": "Box Set",
+   "desde": 49.9,
+   "normal": 70.51,
+   "desdeAntes": 49.9,
+   "normalAntes": 70.02,
+   "cambioNormal": 0.7
+  },
+  {
+   "id": 895561,
+   "nombre": "30th Celebration Booster Bundle",
+   "idioma": "EN",
+   "tipo": "Display",
+   "desde": 64.99,
+   "normal": 86.05,
+   "desdeAntes": 62.9,
+   "normalAntes": 86.85,
+   "cambioNormal": -0.92
+  },
+  {
+   "id": 895562,
+   "nombre": "30th Celebration: Espeon ex Battle Deck",
+   "idioma": "EN",
+   "tipo": "Theme Decks",
+   "desde": 35,
+   "normal": 56.51,
+   "desdeAntes": 35,
+   "normalAntes": 56.6,
+   "cambioNormal": -0.16
+  },
+  {
+   "id": 895563,
+   "nombre": "30th Celebration: Umbreon ex Battle Deck",
+   "idioma": "EN",
+   "tipo": "Theme Decks",
+   "desde": 35,
+   "normal": 55,
+   "desdeAntes": 35,
+   "normalAntes": 55.71,
+   "cambioNormal": -1.27
+  },
+  {
+   "id": 895564,
+   "nombre": "30th Celebration: Mew & Alolan Exeggutor Mini Tin",
+   "idioma": "EN",
+   "tipo": "Tins",
+   "desde": 24.99,
+   "normal": 31.2,
+   "desdeAntes": 24.99,
+   "normalAntes": 31.28,
+   "cambioNormal": -0.26
+  },
+  {
+   "id": 895565,
+   "nombre": "30th Celebration: Espeon & Meowth Mini Tin",
+   "idioma": "EN",
+   "tipo": "Tins",
+   "desde": 24.99,
+   "normal": 31.08,
+   "desdeAntes": 24.99,
+   "normalAntes": 31.18,
+   "cambioNormal": -0.32
+  },
+  {
+   "id": 895566,
+   "nombre": "30th Celebration: Greninja & Volbeat Mini Tin",
+   "idioma": "EN",
+   "tipo": "Tins",
+   "desde": 19.99,
+   "normal": 31.37,
+   "desdeAntes": 19.99,
+   "normalAntes": 31.6,
+   "cambioNormal": -0.73
+  },
+  {
+   "id": 895567,
+   "nombre": "30th Celebration: Lapras & Drifloon Mini Tin",
+   "idioma": "EN",
+   "tipo": "Tins",
+   "desde": 24.99,
+   "normal": 30.16,
+   "desdeAntes": 19.99,
+   "normalAntes": 30.23,
+   "cambioNormal": -0.23
+  },
+  {
+   "id": 895568,
+   "nombre": "30th Celebration: Mewtwo & Scraggy Mini Tin",
+   "idioma": "EN",
+   "tipo": "Tins",
+   "desde": 19.99,
+   "normal": 29.63,
+   "desdeAntes": 19.99,
+   "normalAntes": 29.98,
+   "cambioNormal": -1.17
+  },
+  {
+   "id": 895569,
+   "nombre": "30th Celebration: Moltres & Articuno Mini Tin",
+   "idioma": "EN",
+   "tipo": "Tins",
+   "desde": 19.99,
+   "normal": 31.21,
+   "desdeAntes": 19.99,
+   "normalAntes": 31.4,
+   "cambioNormal": -0.61
+  },
+  {
+   "id": 895570,
+   "nombre": "30th Celebration: Pikachu & Toxtricity Mini Tin",
+   "idioma": "EN",
+   "tipo": "Tins",
+   "desde": 19.99,
+   "normal": 31.1,
+   "desdeAntes": 19.99,
+   "normalAntes": 31.34,
+   "cambioNormal": -0.77
+  },
+  {
+   "id": 895571,
+   "nombre": "30th Celebration: Umbreon & Alolan Meowth Mini Tin",
+   "idioma": "EN",
+   "tipo": "Tins",
+   "desde": 24.99,
+   "normal": 29.9,
+   "desdeAntes": 24.99,
+   "normalAntes": 29.99,
+   "cambioNormal": -0.3
+  },
+  {
+   "id": 895572,
+   "nombre": "30th Celebration: Pikachu & Vivillon Mini Tin",
+   "idioma": "EN",
+   "tipo": "Tins",
+   "desde": 19.99,
+   "normal": 30.96,
+   "desdeAntes": 19.99,
+   "normalAntes": 31.09,
+   "cambioNormal": -0.42
+  },
+  {
+   "id": 895573,
+   "nombre": "30th Celebration: Zapdos & Hisuian Zorua Mini Tin",
+   "idioma": "EN",
+   "tipo": "Tins",
+   "desde": 19.99,
+   "normal": 31.65,
+   "desdeAntes": 19.99,
+   "normalAntes": 31.93,
+   "cambioNormal": -0.88
+  },
+  {
+   "id": 895574,
+   "nombre": "30th Celebration: Ditto Premium Collection",
+   "idioma": "EN",
+   "tipo": "Box Set",
+   "desde": 99.9,
+   "normal": 125.52,
+   "desdeAntes": 99.9,
+   "normalAntes": 125.53,
+   "cambioNormal": -0.01
+  },
+  {
+   "id": 895575,
+   "nombre": "30th Celebration: Mewtwo Figure Collection",
+   "idioma": "EN",
+   "tipo": "Box Set",
+   "desde": 94.99,
+   "normal": 116.11,
+   "desdeAntes": 94.99,
+   "normalAntes": 116.66,
+   "cambioNormal": -0.47
+  },
+  {
+   "id": 895576,
+   "nombre": "30th Celebration: Mew Figure Collection",
+   "idioma": "EN",
+   "tipo": "Box Set",
+   "desde": 94.99,
+   "normal": 115.8,
+   "desdeAntes": 94.99,
+   "normalAntes": 115.51,
+   "cambioNormal": 0.25
+  },
+  {
+   "id": 895577,
+   "nombre": "30th Celebration: Espeon ex Ultra-Premium Collection",
+   "idioma": "EN",
+   "tipo": "Box Set",
+   "desde": 419.9,
+   "normal": 470.77,
+   "desdeAntes": 419.9,
+   "normalAntes": 470.77,
+   "cambioNormal": 0
+  },
+  {
+   "id": 895578,
+   "nombre": "30th Celebration: Umbreon ex Ultra-Premium Collection",
+   "idioma": "EN",
+   "tipo": "Box Set",
+   "desde": 450,
+   "normal": 550.9,
+   "desdeAntes": 450,
+   "normalAntes": 550.9,
+   "cambioNormal": 0
+  },
+  {
+   "id": 895584,
+   "nombre": "30th Celebration: Mini Tin Display",
+   "idioma": "EN",
+   "tipo": "Tins",
+   "desde": 264.99,
+   "normal": 316.66,
+   "desdeAntes": 264.99,
+   "normalAntes": 317.09,
+   "cambioNormal": -0.14
+  },
+  {
+   "id": 895745,
+   "nombre": "30th Celebration Greninja ex Tin",
+   "idioma": "EN",
+   "tipo": "Tins",
+   "desde": 31,
+   "normal": 53.95,
+   "desdeAntes": 30,
+   "normalAntes": 54.16,
+   "cambioNormal": -0.39
+  },
+  {
+   "id": 895746,
+   "nombre": "30th Celebration Sylveon ex Tin",
+   "idioma": "EN",
+   "tipo": "Tins",
+   "desde": 31,
+   "normal": 53.3,
+   "desdeAntes": 28.99,
+   "normalAntes": 53.37,
+   "cambioNormal": -0.13
+  },
+  {
+   "id": 908412,
+   "nombre": "30th Celebration: Silver Coin (2-Pack Blister)",
+   "idioma": "EN",
+   "tipo": "Coins",
+   "desde": 0.02,
+   "normal": 0.11,
+   "desdeAntes": 0.02,
+   "normalAntes": 0.14,
+   "cambioNormal": -21.43
+  },
+  {
+   "id": 908413,
+   "nombre": "30th Celebration: Orange Coin (Knock Out Collection)",
+   "idioma": "EN",
+   "tipo": "Coins",
+   "desde": 0.5,
+   "normal": 0.39,
+   "desdeAntes": 0.5,
+   "normalAntes": 0.55,
+   "cambioNormal": -29.09
+  },
+  {
+   "id": 908414,
+   "nombre": "30th Celebration: Espeon Coin",
+   "idioma": "EN",
+   "tipo": "Coins",
+   "desde": 2.49,
+   "normal": 2.49,
+   "desdeAntes": 2.49,
+   "normalAntes": 2.49,
+   "cambioNormal": 0
+  },
+  {
+   "id": 908415,
+   "nombre": "30th Celebration: Umbreon Coin",
+   "idioma": "EN",
+   "tipo": "Coins",
+   "desde": 2.49,
+   "normal": 2.49,
+   "desdeAntes": 2.49,
+   "normalAntes": 2.49,
+   "cambioNormal": 0
+  },
+  {
+   "id": 908787,
+   "nombre": "30th Celebration: Elite Trainer Box Coin",
+   "idioma": "EN",
+   "tipo": "Coins",
+   "desde": 0.02,
+   "normal": 0.82,
+   "desdeAntes": 0.02,
+   "normalAntes": 0.98,
+   "cambioNormal": -16.33
+  },
+  {
+   "id": 908913,
+   "nombre": "30th Celebration JP Booster Box Case",
+   "idioma": "JP",
+   "tipo": "Display",
+   "desde": 1299,
+   "normal": null,
+   "desdeAntes": 1299,
+   "normalAntes": null,
+   "cambioNormal": null
+  },
+  {
+   "id": 909368,
+   "nombre": "30th Celebration: Full Set",
+   "idioma": "EN",
+   "tipo": "PCG Set",
+   "desde": 1999,
+   "normal": null,
+   "desdeAntes": 2500,
+   "normalAntes": null,
+   "cambioNormal": null
+  },
+  {
+   "id": 909369,
+   "nombre": "30th Celebration: Main Set",
+   "idioma": "EN",
+   "tipo": "PCG Set",
+   "desde": 35,
+   "normal": 43.75,
+   "desdeAntes": 40,
+   "normalAntes": 70,
+   "cambioNormal": -37.5
+  },
+  {
+   "id": 909370,
+   "nombre": "30th Celebration: Pikachu Set",
+   "idioma": "EN",
+   "tipo": "PCG Set",
+   "desde": 75,
+   "normal": 80.56,
+   "desdeAntes": 75,
+   "normalAntes": 84.75,
+   "cambioNormal": -4.94
+  },
+  {
+   "id": 909598,
+   "nombre": "30th Celebration 10 Elite Trainer Box Case",
+   "idioma": "EN",
+   "tipo": "Elite Trainer Boxes",
+   "desde": 950,
+   "normal": 1457.29,
+   "desdeAntes": 950,
+   "normalAntes": 1464.97,
+   "cambioNormal": -0.52
+  }
+ ],
+ "selladoMovido": [
+  {
+   "id": 908412,
+   "nombre": "30th Celebration: Silver Coin (2-Pack Blister)",
+   "idioma": "EN",
+   "tipo": "Coins",
+   "desde": 0.02,
+   "normal": 0.11,
+   "desdeAntes": 0.02,
+   "normalAntes": 0.14,
+   "cambioNormal": -21.43
+  },
+  {
+   "id": 908413,
+   "nombre": "30th Celebration: Orange Coin (Knock Out Collection)",
+   "idioma": "EN",
+   "tipo": "Coins",
+   "desde": 0.5,
+   "normal": 0.39,
+   "desdeAntes": 0.5,
+   "normalAntes": 0.55,
+   "cambioNormal": -29.09
+  },
+  {
+   "id": 908787,
+   "nombre": "30th Celebration: Elite Trainer Box Coin",
+   "idioma": "EN",
+   "tipo": "Coins",
+   "desde": 0.02,
+   "normal": 0.82,
+   "desdeAntes": 0.02,
+   "normalAntes": 0.98,
+   "cambioNormal": -16.33
+  },
+  {
+   "id": 909369,
+   "nombre": "30th Celebration: Main Set",
+   "idioma": "EN",
+   "tipo": "PCG Set",
+   "desde": 35,
+   "normal": 43.75,
+   "desdeAntes": 40,
+   "normalAntes": 70,
+   "cambioNormal": -37.5
+  }
+ ],
+ "leccionDeHoy": "Los estados de una carta en Cardmarket (Mint, Near Mint, Excellent...) y cuánto cambian el precio",
+ "leccionNumero": 2
+}
