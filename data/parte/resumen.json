@@ -1,8 +1,8 @@
 {
- "fecha": "2026-10-02",
- "ultimoDia": "2026-09-30",
+ "fecha": "2026-10-03",
+ "ultimoDia": "2026-10-02",
  "guiaNueva": true,
- "diasDeHistorico": 2,
+ "diasDeHistorico": 3,
  "mercado": {
   "EN": {
    "cartas": 191,
@@ -16,7 +16,7 @@
    "vendidasAyer": 151,
    "ayerContraSemana": 1,
    "semanaContraMes": 1,
-   "tendenciaContraAyer": 0.96
+   "tendenciaContraAyer": 0.97
   }
  },
  "suben": [
@@ -26,79 +26,40 @@
    "num": "CC013",
    "idioma": "JP",
    "desde": 7.5,
-   "normal": 6.95,
+   "normal": 7.45,
    "ayer": null,
    "semana": null,
    "mes": null,
-   "antes": 6.11,
-   "cambio": 13.75
-  },
-  {
-   "id": 907673,
-   "nombre": "Mew ex",
-   "num": "066",
-   "idioma": "EN",
-   "desde": 1.98,
-   "normal": 3.04,
-   "ayer": 6.7,
-   "semana": 8.46,
-   "mes": 8.46,
-   "antes": 2.82,
-   "cambio": 7.8
-  },
-  {
-   "id": 907919,
-   "nombre": "Rayquaza EX",
-   "num": "CC016",
-   "idioma": "JP",
-   "desde": 19.99,
-   "normal": 24.78,
-   "ayer": null,
-   "semana": null,
-   "mes": null,
-   "antes": 23.05,
-   "cambio": 7.51
-  },
-  {
-   "id": 907952,
-   "nombre": "Crobat",
-   "num": "CC011",
-   "idioma": "EN",
-   "desde": 4.39,
-   "normal": 5.33,
-   "ayer": 9.65,
-   "semana": 11.25,
-   "mes": 11.25,
-   "antes": 5.03,
-   "cambio": 5.96
-  },
-  {
-   "id": 907960,
-   "nombre": "Greninja BREAK",
-   "num": "CC009",
-   "idioma": "EN",
-   "desde": 4.9,
-   "normal": 5.89,
-   "ayer": 13.16,
-   "semana": 15.5,
-   "mes": 15.5,
-   "antes": 5.56,
-   "cambio": 5.94
+   "antes": 6.95,
+   "cambio": 7.19
   }
  ],
  "bajan": [
   {
-   "id": 907913,
-   "nombre": "Uxie Lv.55",
-   "num": "CC010",
+   "id": 907920,
+   "nombre": "Genesect EX",
+   "num": "CC004",
    "idioma": "JP",
-   "desde": 5,
-   "normal": 7.9,
+   "desde": 2.8,
+   "normal": 3.79,
    "ayer": null,
    "semana": null,
    "mes": null,
-   "antes": 9.31,
-   "cambio": -15.15
+   "antes": 4.28,
+   "cambio": -11.45
+  },
+  {
+   "id": 907929,
+   "nombre": "Arceus VSTAR",
+   "num": "CC027",
+   "idioma": "JP",
+   "desde": 5.98,
+   "normal": 8.79,
+   "ayer": null,
+   "semana": null,
+   "mes": null,
+   "antes": 9.82,
+   "cambio": -10.49
   },
   {
    "id": 907882,
@@ -106,38 +67,51 @@
    "num": "141",
    "idioma": "JP",
    "desde": 3.5,
-   "normal": 5.14,
+   "normal": 4.71,
    "ayer": 10.13,
    "semana": 10.58,
    "mes": 10.58,
-   "antes": 5.64,
-   "cambio": -8.87
+   "antes": 5.14,
+   "cambio": -8.37
   },
   {
-   "id": 907904,
-   "nombre": "Erika's Jigglypuff",
-   "num": "CC015",
-   "idioma": "JP",
-   "desde": 8.3,
-   "normal": 9.88,
+   "id": 909510,
+   "nombre": "Mew",
+   "num": "065",
+   "idioma": "EN",
+   "desde": 2799,
+   "normal": 2230.82,
    "ayer": null,
    "semana": null,
    "mes": null,
-   "antes": 10.84,
-   "cambio": -8.86
+   "antes": 2411.9,
+   "cambio": -7.51
   },
   {
-   "id": 907927,
-   "nombre": "Raikou",
-   "num": "CC012",
+   "id": 907928,
+   "nombre": "Mew VMAX",
+   "num": "CC026",
    "idioma": "JP",
-   "desde": 10.39,
-   "normal": 11.46,
-   "ayer": 20.89,
-   "semana": 22.94,
-   "mes": 22.94,
-   "antes": 12.43,
-   "cambio": -7.8
+   "desde": 20,
+   "normal": 18.18,
+   "ayer": 65,
+   "semana": 65,
+   "mes": 65,
+   "antes": 19.55,
+   "cambio": -7.01
+  },
+  {
+   "id": 907899,
+   "nombre": "Mewtwo ex",
+   "num": "157",
+   "idioma": "JP",
+   "desde": 55,
+   "normal": 59.31,
+   "ayer": 114.98,
+   "semana": 114.98,
+   "mes": 114.98,
+   "antes": 63.61,
+   "cambio": -6.76
   },
   {
    "id": 907911,
@@ -145,51 +119,25 @@
    "num": "CC003",
    "idioma": "JP",
    "desde": 9.49,
-   "normal": 9.69,
+   "normal": 9.04,
    "ayer": 30,
    "semana": 30,
    "mes": 30,
-   "antes": 10.45,
-   "cambio": -7.27
+   "antes": 9.69,
+   "cambio": -6.71
   },
   {
-   "id": 907925,
-   "nombre": "Pikachu & Zekrom GX",
-   "num": "CC008",
+   "id": 907927,
+   "nombre": "Raikou",
+   "num": "CC012",
    "idioma": "JP",
-   "desde": 23.9,
-   "normal": 25.58,
-   "ayer": 39.99,
-   "semana": 39.99,
-   "mes": 39.99,
-   "antes": 27.5,
-   "cambio": -6.98
-  },
-  {
-   "id": 907874,
-   "nombre": "Toxtricity",
-   "num": "134",
-   "idioma": "JP",
-   "desde": 2.5,
-   "normal": 3.21,
-   "ayer": 10,
-   "semana": 9.33,
-   "mes": 9.33,
-   "antes": 3.42,
-   "cambio": -6.14
-  },
-  {
-   "id": 907891,
-   "nombre": "Pikachu ex",
-   "num": "149",
-   "idioma": "JP",
-   "desde": 50,
-   "normal": 55.61,
-   "ayer": 177,
-   "semana": 177,
-   "mes": 177,
-   "antes": 59.21,
-   "cambio": -6.08
+   "desde": 10.39,
+   "normal": 10.73,
+   "ayer": 20.89,
+   "semana": 22.94,
+   "mes": 22.94,
+   "antes": 11.46,
+   "cambio": -6.37
   }
  ],
  "vigiladas": [
@@ -199,7 +147,7 @@
    "num": "131",
    "idioma": "EN",
    "desde": 3.4,
-   "normal": 7.77,
+   "normal": 7.81,
    "ayer": 14.04,
    "semana": 16.04,
    "mes": 16.04,
@@ -211,9 +159,13 @@
     [
      "2026-10-02",
      7.77
+    ],
+    [
+     "2026-10-03",
+     7.81
     ]
    ],
-   "cambioTresDias": -1.52,
+   "cambioTresDias": -1.01,
    "estado": "se está parando"
   },
   {
@@ -221,8 +173,8 @@
    "nombre": "Articuno",
    "num": "132",
    "idioma": "EN",
-   "desde": 4.4,
-   "normal": 7.78,
+   "desde": 5,
+   "normal": 7.72,
    "ayer": 12.12,
    "semana": 13.97,
    "mes": 13.97,
@@ -234,9 +186,13 @@
     [
      "2026-10-02",
      7.78
+    ],
+    [
+     "2026-10-03",
+     7.72
     ]
    ],
-   "cambioTresDias": -1.27,
+   "cambioTresDias": -2.03,
    "estado": "se está parando"
   },
   {
@@ -245,7 +201,7 @@
    "num": "133",
    "idioma": "EN",
    "desde": 4.8,
-   "normal": 7.77,
+   "normal": 7.7,
    "ayer": 11.61,
    "semana": 12.73,
    "mes": 12.73,
@@ -257,9 +213,13 @@
     [
      "2026-10-02",
      7.77
+    ],
+    [
+     "2026-10-03",
+     7.7
     ]
    ],
-   "cambioTresDias": -1.4,
+   "cambioTresDias": -2.28,
    "estado": "se está parando"
   },
   {
@@ -268,7 +228,7 @@
    "num": "130",
    "idioma": "EN",
    "desde": 4.29,
-   "normal": 7.85,
+   "normal": 7.77,
    "ayer": 12.22,
    "semana": 13.37,
    "mes": 13.37,
@@ -280,9 +240,13 @@
     [
      "2026-10-02",
      7.85
+    ],
+    [
+     "2026-10-03",
+     7.77
     ]
    ],
-   "cambioTresDias": 0.38,
+   "cambioTresDias": -0.64,
    "estado": "se está parando"
   },
   {
@@ -291,7 +255,7 @@
    "num": "146",
    "idioma": "EN",
    "desde": 1.97,
-   "normal": 7.21,
+   "normal": 6.93,
    "ayer": 12.42,
    "semana": 14.18,
    "mes": 14.18,
@@ -303,9 +267,13 @@
     [
      "2026-10-02",
      7.21
+    ],
+    [
+     "2026-10-03",
+     6.93
     ]
    ],
-   "cambioTresDias": 0.98,
+   "cambioTresDias": -2.94,
    "estado": "se está parando"
   },
   {
@@ -314,7 +282,7 @@
    "num": "CC026",
    "idioma": "EN",
    "desde": 10.89,
-   "normal": 17.98,
+   "normal": 18.54,
    "ayer": 15.81,
    "semana": 18.13,
    "mes": 18.13,
@@ -326,18 +294,22 @@
     [
      "2026-10-02",
      17.98
+    ],
+    [
+     "2026-10-03",
+     18.54
     ]
    ],
-   "cambioTresDias": 2.22,
-   "estado": "se está parando"
+   "cambioTresDias": 5.4,
+   "estado": "sube"
   },
   {
    "id": 907950,
    "nombre": "Palkia LV.X",
    "num": "CC022",
    "idioma": "EN",
-   "desde": 7.5,
-   "normal": 11.2,
+   "desde": 9.99,
+   "normal": 11.07,
    "ayer": 16.13,
    "semana": 16.57,
    "mes": 16.57,
@@ -349,9 +321,13 @@
     [
      "2026-10-02",
      11.2
+    ],
+    [
+     "2026-10-03",
+     11.07
     ]
    ],
-   "cambioTresDias": -1.5,
+   "cambioTresDias": -2.64,
    "estado": "se está parando"
   },
   {
@@ -360,7 +336,7 @@
    "num": "CC021",
    "idioma": "EN",
    "desde": 6.29,
-   "normal": 10.33,
+   "normal": 9.99,
    "ayer": 18.03,
    "semana": 18.17,
    "mes": 18.17,
@@ -372,18 +348,22 @@
     [
      "2026-10-02",
      10.33
+    ],
+    [
+     "2026-10-03",
+     9.99
     ]
    ],
-   "cambioTresDias": -0.19,
-   "estado": "se está parando"
+   "cambioTresDias": -3.48,
+   "estado": "sigue bajando"
   },
   {
    "id": 907947,
    "nombre": "Dark Tyranitar",
    "num": "CC006",
    "idioma": "EN",
-   "desde": 12.5,
-   "normal": 14.04,
+   "desde": 14.5,
+   "normal": 14.18,
    "ayer": 25.54,
    "semana": 30.36,
    "mes": 30.36,
@@ -395,10 +375,14 @@
     [
      "2026-10-02",
      14.04
+    ],
+    [
+     "2026-10-03",
+     14.18
     ]
    ],
-   "cambioTresDias": 2.56,
-   "estado": "se está parando"
+   "cambioTresDias": 3.58,
+   "estado": "sube"
   },
   {
    "id": 907957,
@@ -406,7 +390,7 @@
    "num": "CC016",
    "idioma": "EN",
    "desde": 20,
-   "normal": 21.95,
+   "normal": 22.33,
    "ayer": 33.52,
    "semana": 41.79,
    "mes": 41.79,
@@ -418,10 +402,14 @@
     [
      "2026-10-02",
      21.95
+    ],
+    [
+     "2026-10-03",
+     22.33
     ]
    ],
-   "cambioTresDias": 1.67,
-   "estado": "se está parando"
+   "cambioTresDias": 3.43,
+   "estado": "sube"
   },
   {
    "id": 907871,
@@ -429,7 +417,7 @@
    "num": "131",
    "idioma": "JP",
    "desde": 5.5,
-   "normal": 7.57,
+   "normal": 7.2,
    "ayer": 10.95,
    "semana": 10.11,
    "mes": 10.11,
@@ -441,35 +429,172 @@
     [
      "2026-10-02",
      7.57
+    ],
+    [
+     "2026-10-03",
+     7.2
     ]
    ],
-   "cambioTresDias": -4.42,
+   "cambioTresDias": -9.09,
    "estado": "sigue bajando"
   }
  ],
- "minimos": [],
+ "minimos": [
+  {
+   "id": 907738,
+   "nombre": "Moltres",
+   "num": "130",
+   "idioma": "EN",
+   "desde": 4.29,
+   "normal": 7.77,
+   "ayer": 12.22,
+   "semana": 13.37,
+   "mes": 13.37
+  },
+  {
+   "id": 907740,
+   "nombre": "Articuno",
+   "num": "132",
+   "idioma": "EN",
+   "desde": 5,
+   "normal": 7.72,
+   "ayer": 12.12,
+   "semana": 13.97,
+   "mes": 13.97
+  },
+  {
+   "id": 907741,
+   "nombre": "Zapdos",
+   "num": "133",
+   "idioma": "EN",
+   "desde": 4.8,
+   "normal": 7.7,
+   "ayer": 11.61,
+   "semana": 12.73,
+   "mes": 12.73
+  },
+  {
+   "id": 907749,
+   "nombre": "Galarian Meowth",
+   "num": "141",
+   "idioma": "EN",
+   "desde": 4.4,
+   "normal": 6.01,
+   "ayer": 11.19,
+   "semana": 12.84,
+   "mes": 12.84
+  },
+  {
+   "id": 907752,
+   "nombre": "Hisuian Zorua",
+   "num": "145",
+   "idioma": "EN",
+   "desde": 2.5,
+   "normal": 4.37,
+   "ayer": 8.39,
+   "semana": 10.36,
+   "mes": 10.36
+  },
+  {
+   "id": 907753,
+   "nombre": "Maushold",
+   "num": "146",
+   "idioma": "EN",
+   "desde": 1.97,
+   "normal": 6.93,
+   "ayer": 12.42,
+   "semana": 14.18,
+   "mes": 14.18
+  },
+  {
+   "id": 907755,
+   "nombre": "Greninja ex",
+   "num": "148",
+   "idioma": "EN",
+   "desde": 14.9,
+   "normal": 17.83,
+   "ayer": 36.11,
+   "semana": 43.05,
+   "mes": 43.05
+  },
+  {
+   "id": 907756,
+   "nombre": "Pikachu ex",
+   "num": "149",
+   "idioma": "EN",
+   "desde": 49.99,
+   "normal": 57.43,
+   "ayer": 125.7,
+   "semana": 138.28,
+   "mes": 138.28
+  },
+  {
+   "id": 907757,
+   "nombre": "Pikachu ex",
+   "num": "150",
+   "idioma": "EN",
+   "desde": 48,
+   "normal": 62.51,
+   "ayer": 127.15,
+   "semana": 155.73,
+   "mes": 155.73
+  },
+  {
+   "id": 907758,
+   "nombre": "Sylveon ex",
+   "num": "153",
+   "idioma": "EN",
+   "desde": 38,
+   "normal": 41.15,
+   "ayer": 85.79,
+   "semana": 100.69,
+   "mes": 100.69
+  },
+  {
+   "id": 907760,
+   "nombre": "Salamence ex",
+   "num": "156",
+   "idioma": "EN",
+   "desde": 14,
+   "normal": 15.79,
+   "ayer": 29.58,
+   "semana": 36.38,
+   "mes": 36.38
+  },
+  {
+   "id": 907761,
+   "nombre": "Mewtwo ex",
+   "num": "151",
+   "idioma": "EN",
+   "desde": 39,
+   "normal": 31.93,
+   "ayer": 110.94,
+   "semana": 135.31,
+   "mes": 135.31
+  }
+ ],
  "sellado": [
   {
    "id": 890359,
    "nombre": "30th Celebration JP Booster",
    "idioma": "JP",
    "tipo": "Booster",
-   "desde": 6.9,
-   "normal": 6.04,
+   "desde": 7.5,
+   "normal": 5.97,
    "desdeAntes": 6.9,
-   "normalAntes": 6.07,
-   "cambioNormal": -0.49
+   "normalAntes": 6.04,
+   "cambioNormal": -1.16
   },
   {
    "id": 890360,
    "nombre": "30th Celebration Booster",
    "idioma": "EN",
    "tipo": "Booster",
-   "desde": 7.5,
-   "normal": 13.04,
+   "desde": 6.75,
+   "normal": 13.14,
    "desdeAntes": 7.5,
-   "normalAntes": 13.22,
-   "cambioNormal": -1.36
+   "normalAntes": 13.04,
+   "cambioNormal": 0.77
   },
   {
    "id": 891464,
@@ -477,10 +602,10 @@
    "idioma": "JP",
    "tipo": "Display",
    "desde": 109.9,
-   "normal": 133.57,
+   "normal": 136.83,
    "desdeAntes": 109.9,
-   "normalAntes": 139.04,
-   "cambioNormal": -3.93
+   "normalAntes": 133.57,
+   "cambioNormal": 2.44
   },
   {
    "id": 891473,
@@ -488,21 +613,21 @@
    "idioma": "JP",
    "tipo": "Box Set",
    "desde": 470,
-   "normal": 414.03,
-   "desdeAntes": 399.99,
-   "normalAntes": 412.91,
-   "cambioNormal": 0.27
+   "normal": 415.99,
+   "desdeAntes": 470,
+   "normalAntes": 414.03,
+   "cambioNormal": 0.47
   },
   {
    "id": 891488,
    "nombre": "30th Celebration Espeon ex and Umbreon ex Premium Deck Set",
    "idioma": "EN",
    "tipo": "Box Set",
-   "desde": 125,
-   "normal": 178.23,
+   "desde": 168.95,
+   "normal": 173.73,
    "desdeAntes": 125,
-   "normalAntes": 182.64,
-   "cambioNormal": -2.41
+   "normalAntes": 178.23,
+   "cambioNormal": -2.52
   },
   {
    "id": 895551,
@@ -510,10 +635,10 @@
    "idioma": "EN",
    "tipo": "Elite Trainer Boxes",
    "desde": 80,
-   "normal": 133.91,
-   "desdeAntes": 85,
-   "normalAntes": 135.27,
-   "cambioNormal": -1.01
+   "normal": 133.04,
+   "desdeAntes": 80,
+   "normalAntes": 133.91,
+   "cambioNormal": -0.65
   },
   {
    "id": 895552,
@@ -521,10 +646,10 @@
    "idioma": "EN",
    "tipo": "Elite Trainer Boxes",
    "desde": 175,
-   "normal": 343.61,
+   "normal": 348.48,
    "desdeAntes": 175,
-   "normalAntes": 327.85,
-   "cambioNormal": 4.81
+   "normalAntes": 343.61,
+   "cambioNormal": 1.42
   },
   {
    "id": 895553,
@@ -532,10 +657,10 @@
    "idioma": "EN",
    "tipo": "Box Set",
    "desde": 25.99,
-   "normal": 39.48,
-   "desdeAntes": 22.99,
-   "normalAntes": 39.75,
-   "cambioNormal": -0.68
+   "normal": 39.1,
+   "desdeAntes": 25.99,
+   "normalAntes": 39.48,
+   "cambioNormal": -0.96
   },
   {
    "id": 895554,
@@ -543,10 +668,10 @@
    "idioma": "EN",
    "tipo": "Blisters",
    "desde": 28,
-   "normal": 38.48,
-   "desdeAntes": 25,
-   "normalAntes": 38.79,
-   "cambioNormal": -0.8
+   "normal": 37.91,
+   "desdeAntes": 28,
+   "normalAntes": 38.48,
+   "cambioNormal": -1.48
   },
   {
    "id": 895555,
@@ -554,10 +679,10 @@
    "idioma": "EN",
    "tipo": "Blisters",
    "desde": 28.95,
-   "normal": 38.49,
-   "desdeAntes": 29.8,
-   "normalAntes": 38.79,
-   "cambioNormal": -0.77
+   "normal": 37.83,
+   "desdeAntes": 28.95,
+   "normalAntes": 38.49,
+   "cambioNormal": -1.71
   },
   {
    "id": 895556,
@@ -566,9 +691,9 @@
    "tipo": "Blisters",
    "desde": 15,
    "normal": 34.37,
-   "desdeAntes": 17.9,
-   "normalAntes": 34.51,
-   "cambioNormal": -0.41
+   "desdeAntes": 15,
+   "normalAntes": 34.37,
+   "cambioNormal": 0
   },
   {
    "id": 895557,
@@ -576,10 +701,10 @@
    "idioma": "EN",
    "tipo": "Box Set",
    "desde": 30.9,
-   "normal": 51.9,
-   "desdeAntes": 30,
-   "normalAntes": 51.35,
-   "cambioNormal": 1.07
+   "normal": 51.4,
+   "desdeAntes": 30.9,
+   "normalAntes": 51.9,
+   "cambioNormal": -0.96
   },
   {
    "id": 895558,
@@ -587,10 +712,10 @@
    "idioma": "EN",
    "tipo": "Box Set",
    "desde": 29.99,
-   "normal": 50.27,
-   "desdeAntes": 29.49,
-   "normalAntes": 50,
-   "cambioNormal": 0.54
+   "normal": 49.89,
+   "desdeAntes": 29.99,
+   "normalAntes": 50.27,
+   "cambioNormal": -0.76
   },
   {
    "id": 895559,
@@ -598,10 +723,10 @@
    "idioma": "EN",
    "tipo": "Box Set",
    "desde": 30,
-   "normal": 30.35,
+   "normal": 31.28,
    "desdeAntes": 30,
-   "normalAntes": 29.32,
-   "cambioNormal": 3.51
+   "normalAntes": 30.35,
+   "cambioNormal": 3.06
   },
   {
    "id": 895560,
@@ -609,10 +734,10 @@
    "idioma": "EN",
    "tipo": "Box Set",
    "desde": 49.9,
-   "normal": 70.51,
+   "normal": 70.81,
    "desdeAntes": 49.9,
-   "normalAntes": 70.02,
-   "cambioNormal": 0.7
+   "normalAntes": 70.51,
+   "cambioNormal": 0.43
   },
   {
    "id": 895561,
@@ -620,10 +745,10 @@
    "idioma": "EN",
    "tipo": "Display",
    "desde": 64.99,
-   "normal": 86.05,
-   "desdeAntes": 62.9,
-   "normalAntes": 86.85,
-   "cambioNormal": -0.92
+   "normal": 86.03,
+   "desdeAntes": 64.99,
+   "normalAntes": 86.05,
+   "cambioNormal": -0.02
   },
   {
    "id": 895562,
@@ -631,10 +756,10 @@
    "idioma": "EN",
    "tipo": "Theme Decks",
    "desde": 35,
-   "normal": 56.51,
+   "normal": 55.51,
    "desdeAntes": 35,
-   "normalAntes": 56.6,
-   "cambioNormal": -0.16
+   "normalAntes": 56.51,
+   "cambioNormal": -1.77
   },
   {
    "id": 895563,
@@ -642,10 +767,10 @@
    "idioma": "EN",
    "tipo": "Theme Decks",
    "desde": 35,
-   "normal": 55,
+   "normal": 55.37,
    "desdeAntes": 35,
-   "normalAntes": 55.71,
-   "cambioNormal": -1.27
+   "normalAntes": 55,
+   "cambioNormal": 0.67
   },
   {
    "id": 895564,
@@ -653,10 +778,10 @@
    "idioma": "EN",
    "tipo": "Tins",
    "desde": 24.99,
-   "normal": 31.2,
+   "normal": 30.98,
    "desdeAntes": 24.99,
-   "normalAntes": 31.28,
-   "cambioNormal": -0.26
+   "normalAntes": 31.2,
+   "cambioNormal": -0.71
   },
   {
    "id": 895565,
@@ -664,21 +789,21 @@
    "idioma": "EN",
    "tipo": "Tins",
    "desde": 24.99,
-   "normal": 31.08,
+   "normal": 30.86,
    "desdeAntes": 24.99,
-   "normalAntes": 31.18,
-   "cambioNormal": -0.32
+   "normalAntes": 31.08,
+   "cambioNormal": -0.71
   },
   {
    "id": 895566,
    "nombre": "30th Celebration: Greninja & Volbeat Mini Tin",
    "idioma": "EN",
    "tipo": "Tins",
-   "desde": 19.99,
-   "normal": 31.37,
+   "desde": 18.99,
+   "normal": 31.06,
    "desdeAntes": 19.99,
-   "normalAntes": 31.6,
-   "cambioNormal": -0.73
+   "normalAntes": 31.37,
+   "cambioNormal": -0.99
   },
   {
    "id": 895567,
@@ -686,10 +811,10 @@
    "idioma": "EN",
    "tipo": "Tins",
    "desde": 24.99,
-   "normal": 30.16,
-   "desdeAntes": 19.99,
-   "normalAntes": 30.23,
-   "cambioNormal": -0.23
+   "normal": 29.92,
+   "desdeAntes": 24.99,
+   "normalAntes": 30.16,
+   "cambioNormal": -0.8
   },
   {
    "id": 895568,
@@ -697,10 +822,10 @@
    "idioma": "EN",
    "tipo": "Tins",
    "desde": 19.99,
-   "normal": 29.63,
+   "normal": 29.36,
    "desdeAntes": 19.99,
-   "normalAntes": 29.98,
-   "cambioNormal": -1.17
+   "normalAntes": 29.63,
+   "cambioNormal": -0.91
   },
   {
    "id": 895569,
@@ -708,21 +833,21 @@
    "idioma": "EN",
    "tipo": "Tins",
    "desde": 19.99,
-   "normal": 31.21,
+   "normal": 30.89,
    "desdeAntes": 19.99,
-   "normalAntes": 31.4,
-   "cambioNormal": -0.61
+   "normalAntes": 31.21,
+   "cambioNormal": -1.03
   },
   {
    "id": 895570,
    "nombre": "30th Celebration: Pikachu & Toxtricity Mini Tin",
    "idioma": "EN",
    "tipo": "Tins",
-   "desde": 19.99,
-   "normal": 31.1,
+   "desde": 18.99,
+   "normal": 30.87,
    "desdeAntes": 19.99,
-   "normalAntes": 31.34,
-   "cambioNormal": -0.77
+   "normalAntes": 31.1,
+   "cambioNormal": -0.74
   },
   {
    "id": 895571,
@@ -730,10 +855,10 @@
    "idioma": "EN",
    "tipo": "Tins",
    "desde": 24.99,
-   "normal": 29.9,
+   "normal": 29.71,
    "desdeAntes": 24.99,
-   "normalAntes": 29.99,
-   "cambioNormal": -0.3
+   "normalAntes": 29.9,
+   "cambioNormal": -0.64
   },
   {
    "id": 895572,
@@ -741,10 +866,10 @@
    "idioma": "EN",
    "tipo": "Tins",
    "desde": 19.99,
-   "normal": 30.96,
+   "normal": 30.75,
    "desdeAntes": 19.99,
-   "normalAntes": 31.09,
-   "cambioNormal": -0.42
+   "normalAntes": 30.96,
+   "cambioNormal": -0.68
   },
   {
    "id": 895573,
@@ -752,10 +877,10 @@
    "idioma": "EN",
    "tipo": "Tins",
    "desde": 19.99,
-   "normal": 31.65,
+   "normal": 31.22,
    "desdeAntes": 19.99,
-   "normalAntes": 31.93,
-   "cambioNormal": -0.88
+   "normalAntes": 31.65,
+   "cambioNormal": -1.36
   },
   {
    "id": 895574,
@@ -763,10 +888,10 @@
    "idioma": "EN",
    "tipo": "Box Set",
    "desde": 99.9,
-   "normal": 125.52,
+   "normal": 125.06,
    "desdeAntes": 99.9,
-   "normalAntes": 125.53,
-   "cambioNormal": -0.01
+   "normalAntes": 125.52,
+   "cambioNormal": -0.37
   },
   {
    "id": 895575,
@@ -774,10 +899,10 @@
    "idioma": "EN",
    "tipo": "Box Set",
    "desde": 94.99,
-   "normal": 116.11,
+   "normal": 115.75,
    "desdeAntes": 94.99,
-   "normalAntes": 116.66,
-   "cambioNormal": -0.47
+   "normalAntes": 116.11,
+   "cambioNormal": -0.31
   },
   {
    "id": 895576,
@@ -785,10 +910,10 @@
    "idioma": "EN",
    "tipo": "Box Set",
    "desde": 94.99,
-   "normal": 115.8,
+   "normal": 118.33,
    "desdeAntes": 94.99,
-   "normalAntes": 115.51,
-   "cambioNormal": 0.25
+   "normalAntes": 115.8,
+   "cambioNormal": 2.18
   },
   {
    "id": 895577,
@@ -796,10 +921,10 @@
    "idioma": "EN",
    "tipo": "Box Set",
    "desde": 419.9,
-   "normal": 470.77,
+   "normal": 470.27,
    "desdeAntes": 419.9,
    "normalAntes": 470.77,
-   "cambioNormal": 0
+   "cambioNormal": -0.11
   },
   {
    "id": 895578,
@@ -807,10 +932,10 @@
    "idioma": "EN",
    "tipo": "Box Set",
    "desde": 450,
-   "normal": 550.9,
+   "normal": 553.03,
    "desdeAntes": 450,
    "normalAntes": 550.9,
-   "cambioNormal": 0
+   "cambioNormal": 0.39
   },
   {
    "id": 895584,
@@ -818,10 +943,10 @@
    "idioma": "EN",
    "tipo": "Tins",
    "desde": 264.99,
-   "normal": 316.66,
+   "normal": 314.34,
    "desdeAntes": 264.99,
-   "normalAntes": 317.09,
-   "cambioNormal": -0.14
+   "normalAntes": 316.66,
+   "cambioNormal": -0.73
   },
   {
    "id": 895745,
@@ -829,10 +954,10 @@
    "idioma": "EN",
    "tipo": "Tins",
    "desde": 31,
-   "normal": 53.95,
-   "desdeAntes": 30,
-   "normalAntes": 54.16,
-   "cambioNormal": -0.39
+   "normal": 53.73,
+   "desdeAntes": 31,
+   "normalAntes": 53.95,
+   "cambioNormal": -0.41
   },
   {
    "id": 895746,
@@ -840,10 +965,10 @@
    "idioma": "EN",
    "tipo": "Tins",
    "desde": 31,
-   "normal": 53.3,
-   "desdeAntes": 28.99,
-   "normalAntes": 53.37,
-   "cambioNormal": -0.13
+   "normal": 53.31,
+   "desdeAntes": 31,
+   "normalAntes": 53.3,
+   "cambioNormal": 0.02
   },
   {
    "id": 908412,
@@ -851,28 +976,28 @@
    "idioma": "EN",
    "tipo": "Coins",
    "desde": 0.02,
-   "normal": 0.11,
+   "normal": 0.3,
    "desdeAntes": 0.02,
-   "normalAntes": 0.14,
-   "cambioNormal": -21.43
+   "normalAntes": 0.11,
+   "cambioNormal": 172.73
   },
   {
    "id": 908413,
    "nombre": "30th Celebration: Orange Coin (Knock Out Collection)",
    "idioma": "EN",
    "tipo": "Coins",
-   "desde": 0.5,
+   "desde": 0.3,
    "normal": 0.39,
    "desdeAntes": 0.5,
-   "normalAntes": 0.55,
-   "cambioNormal": -29.09
+   "normalAntes": 0.39,
+   "cambioNormal": 0
   },
   {
    "id": 908414,
    "nombre": "30th Celebration: Espeon Coin",
    "idioma": "EN",
    "tipo": "Coins",
-   "desde": 2.49,
+   "desde": 2.99,
    "normal": 2.49,
    "desdeAntes": 2.49,
    "normalAntes": 2.49,
@@ -883,7 +1008,7 @@
    "nombre": "30th Celebration: Umbreon Coin",
    "idioma": "EN",
    "tipo": "Coins",
-   "desde": 2.49,
+   "desde": 2.99,
    "normal": 2.49,
    "desdeAntes": 2.49,
    "normalAntes": 2.49,
@@ -895,21 +1020,10 @@
    "idioma": "EN",
    "tipo": "Coins",
    "desde": 0.02,
-   "normal": 0.82,
+   "normal": 0.75,
    "desdeAntes": 0.02,
-   "normalAntes": 0.98,
-   "cambioNormal": -16.33
-  },
-  {
-   "id": 908913,
-   "nombre": "30th Celebration JP Booster Box Case",
-   "idioma": "JP",
-   "tipo": "Display",
-   "desde": 1299,
-   "normal": null,
-   "desdeAntes": 1299,
-   "normalAntes": null,
-   "cambioNormal": null
+   "normalAntes": 0.82,
+   "cambioNormal": -8.54
   },
   {
    "id": 909368,
@@ -918,7 +1032,7 @@
    "tipo": "PCG Set",
    "desde": 1999,
    "normal": null,
-   "desdeAntes": 2500,
+   "desdeAntes": 1999,
    "normalAntes": null,
    "cambioNormal": null
   },
@@ -928,32 +1042,32 @@
    "idioma": "EN",
    "tipo": "PCG Set",
    "desde": 35,
-   "normal": 43.75,
-   "desdeAntes": 40,
-   "normalAntes": 70,
-   "cambioNormal": -37.5
+   "normal": 37.05,
+   "desdeAntes": 35,
+   "normalAntes": 43.75,
+   "cambioNormal": -15.31
   },
   {
    "id": 909370,
    "nombre": "30th Celebration: Pikachu Set",
    "idioma": "EN",
    "tipo": "PCG Set",
-   "desde": 75,
-   "normal": 80.56,
+   "desde": 55,
+   "normal": 78.37,
    "desdeAntes": 75,
-   "normalAntes": 84.75,
-   "cambioNormal": -4.94
+   "normalAntes": 80.56,
+   "cambioNormal": -2.72
   },
   {
    "id": 909598,
    "nombre": "30th Celebration 10 Elite Trainer Box Case",
    "idioma": "EN",
    "tipo": "Elite Trainer Boxes",
-   "desde": 950,
-   "normal": 1457.29,
+   "desde": 900,
+   "normal": 1468.14,
    "desdeAntes": 950,
-   "normalAntes": 1464.97,
-   "cambioNormal": -0.52
+   "normalAntes": 1457.29,
+   "cambioNormal": 0.74
   }
  ],
  "selladoMovido": [
@@ -963,21 +1077,10 @@
    "idioma": "EN",
    "tipo": "Coins",
    "desde": 0.02,
-   "normal": 0.11,
+   "normal": 0.3,
    "desdeAntes": 0.02,
-   "normalAntes": 0.14,
-   "cambioNormal": -21.43
-  },
-  {
-   "id": 908413,
-   "nombre": "30th Celebration: Orange Coin (Knock Out Collection)",
-   "idioma": "EN",
-   "tipo": "Coins",
-   "desde": 0.5,
-   "normal": 0.39,
-   "desdeAntes": 0.5,
-   "normalAntes": 0.55,
-   "cambioNormal": -29.09
+   "normalAntes": 0.11,
+   "cambioNormal": 172.73
   },
   {
    "id": 908787,
@@ -985,10 +1088,10 @@
    "idioma": "EN",
    "tipo": "Coins",
    "desde": 0.02,
-   "normal": 0.82,
+   "normal": 0.75,
    "desdeAntes": 0.02,
-   "normalAntes": 0.98,
-   "cambioNormal": -16.33
+   "normalAntes": 0.82,
+   "cambioNormal": -8.54
   },
   {
    "id": 909369,
@@ -996,12 +1099,12 @@
    "idioma": "EN",
    "tipo": "PCG Set",
    "desde": 35,
-   "normal": 43.75,
-   "desdeAntes": 40,
-   "normalAntes": 70,
-   "cambioNormal": -37.5
+   "normal": 37.05,
+   "desdeAntes": 35,
+   "normalAntes": 43.75,
+   "cambioNormal": -15.31
   }
  ],
- "leccionDeHoy": "Los estados de una carta en Cardmarket (Mint, Near Mint, Excellent...) y cuánto cambian el precio",
- "leccionNumero": 2
+ "leccionDeHoy": "Cuánto se queda cada plataforma: Cardmarket, eBay, Wallapop y Vinted",
+ "leccionNumero": 3
 }
