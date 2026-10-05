@@ -8,7 +8,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>Gremory</title>
-<meta name="build" content="2026-09-30.4">
+<meta name="build" content="2026-10-05.1">
 <!-- El cuadrado de la pantalla de inicio. iOS se guarda el icono por URL y no
      vuelve a pedirlo, así que si se cambia hay que darle un nombre de fichero
      nuevo. El manifest es lo que mira el iPhone moderno; los dos "apple-touch"
@@ -3642,6 +3642,18 @@ var CM_30 = {6601:1, 6602:1, 6603:1, 6604:1, 6767:1, 6628:1};
 var CM_LANG = {6601:"EN · ES", 6767:"EN · ES", 6628:"EN · ES", 6602:"JP", 6603:"CN", 6604:"ID · TH"};
 var CM_LANGK = {6601:"en", 6767:"en", 6628:"en", 6602:"jp", 6603:"cn", 6604:"id"};
 var CM_COMISION = {"Cardmarket":0.05, "eBay":0.13, "Wallapop":0, "Vinted":0, "En mano":0, "Otro":0};
+/* envío dentro de España en Cardmarket (lo paga el comprador). Tarifas de la calculadora oficial
+   help.cardmarket.com/en/ShippingCosts, 5/10/2026, ya con el embalaje que suma Cardmarket.
+   Por encima de 25 € el envío con seguimiento es obligatorio. */
+function cmEnvioES(valor, sellado){
+  if(valor==null) return null;
+  if(sellado && valor<=150) return {p:11.61, m:"Paq Ligero hasta 1 kg, aprox."};
+  if(valor<=25) return {p:1.45, m:"carta sin seguimiento"};
+  if(valor<=150) return {p:7.06, m:"Paq Ligero con seguimiento"};
+  if(valor<=200) return {p:26.65, m:"paquete con valor declarado"};
+  if(valor<=500) return {p:60.10, m:"paquete con valor declarado"};
+  return {p:125.95, m:"paquete con valor declarado"};
+}
 function cmNum(n){ return n==null ? "—" : money(n); }
 function cmCorto(nombre){ return String(nombre||"").split(" [")[0]; }
 function cmUrl(ruta){ var nb = nubeBase(); return nb ? nb.base+ruta+(ruta.indexOf("?")>-1?"&":"?")+"k="+encodeURIComponent(nb.k) : null; }
@@ -3852,6 +3864,10 @@ function cmRadar(box){
   cmEnlazaFilas(box);
 }
 /* ── la ficha ── */
+function cmEnvioHtml(precio, sellado){
+  var e = cmEnvioES(precio, sellado); if(!e) return "";
+  return '<div class="mini" style="margin:4px 0 0">Con envío desde un vendedor de España: <b>'+cmNum(precio+e.p)+'</b> ('+e.m+', '+cmNum(e.p)+'). Si compráis varias cosas al mismo vendedor, el envío se paga una vez.</div>';
+}
 function cmFicha(id){
   var c = cmFila(CM.porId[id]); if(!c){ toast("No está en la guía de hoy"); return; }
   var v = cmVigDe(id), s = cmSenal(c), q = (v && v.q) || cmQuery(c);
@@ -3868,6 +3884,7 @@ function cmFicha(id){
   openSheet('<div class="cmhead">'+cmImg(c, true)+'<div style="min-width:0">'+
       '<h3 style="margin:0 0 6px">'+esc(c.corto)+'</h3><div class="mini" style="margin:0">'+esc([cmNumTxt(c), c.sellado ? c.tipo : "", c.expN, c.lang].filter(Boolean).join(" · "))+'</div>'+
       '<div style="margin-top:10px;font:700 22px \'Space Mono\',monospace">'+cmNum(c.bajo!=null ? c.bajo : c.tend)+'</div><div class="mini" style="margin:0">'+(c.bajo!=null ? 'la más barata ahora en Cardmarket · precio normal '+cmNum(c.tend) : 'precio en Cardmarket')+'</div>'+
+      cmEnvioHtml(c.bajo!=null ? c.bajo : c.tend, c.sellado)+
       '<div style="margin-top:8px;color:'+cmColorSenal(s.k)+';font-weight:700">'+s.t+'</div><div class="mini" style="margin-top:2px">'+esc(s.d)+'</div></div></div>'+
     (c.sellado ? '' : '<div class="cmsec">Sin gradear · por idioma</div>'+tablaIdiomas)+
     '<div id="cmHist" style="margin-top:8px"></div>'+
@@ -3956,7 +3973,7 @@ function cmInventario(box){
   if(!CM.idx && !CM.cargando && !CM.err) cmCarga();
   var inv = S.inv || [], compra = 0, vale = 0, sinValor = 0, vendido = 0, benef = 0;
   inv.forEach(function(it){
-    var c = (+it.compra||0)*(it.cant||1);
+    var c = (+it.compra||0)*(it.cant||1) + (+it.envioC||0);
     if(it.est==="vendida"){ var neto = (+it.venta||0)*(1-(CM_COMISION[it.donde]||0)) - (+it.envio||0); vendido += neto; benef += neto - c; }
     else { compra += c; var v = cmInvValor(it); if(v==null){ vale += c; sinValor++; } else vale += v; }
   });
@@ -3972,13 +3989,13 @@ function cmInventario(box){
     html += l.map(function(it){
       var f = it.pid && CM.porId ? cmFila(CM.porId[it.pid]) : null, c = f || {corto:it.nombre, img:"", sellado:false, tipo:""};
       var v = cmInvValor(it), sub = [it.idioma, it.grado, (it.cant>1 ? it.cant+" uds." : "")].filter(Boolean).join(" · ");
-      var linea = it.est==="vendida" ? 'vendida por '+cmNum(+it.venta)+(it.donde ? ' en '+esc(it.donde) : '')+' · compra '+cmNum((+it.compra||0)*(it.cant||1))
-        : 'compra '+cmNum((+it.compra||0)*(it.cant||1))+(v!=null ? ' · vale '+cmNum(v) : '')+(it.est==="venta" && it.pide ? ' · pedís '+cmNum(+it.pide) : '');
+      var linea = it.est==="vendida" ? 'vendida por '+cmNum(+it.venta)+(it.donde ? ' en '+esc(it.donde) : '')+' · compra '+cmNum((+it.compra||0)*(it.cant||1)+(+it.envioC||0))
+        : 'compra '+cmNum((+it.compra||0)*(it.cant||1)+(+it.envioC||0))+(v!=null ? ' · vale '+cmNum(v) : '')+(it.est==="venta" && it.pide ? ' · pedís '+cmNum(+it.pide) : '');
       return '<div class="cmrow" data-inv="'+it.id+'">'+cmImg(c)+'<div class="cmtx"><b>'+esc(c.corto||it.nombre||"")+'</b><small>'+esc(sub)+'</small><small>'+linea+'</small></div>'+
         '<div class="cmpr"><b>'+cmNum(it.est==="vendida" ? +it.venta : (v!=null ? v : (+it.compra||0)*(it.cant||1)))+'</b><small>'+(it.est==="vendida" ? "venta" : v!=null ? "hoy" : "compra")+'</small></div></div>';
     }).join("");
   });
-  html += '<div class="mini" style="margin-top:12px">El beneficio descuenta la comisión (Cardmarket 5%, eBay ~13%) y el envío que pongáis. Se sincroniza entre los dos móviles como el resto de la app.</div>';
+  html += '<div class="mini" style="margin-top:12px">El beneficio cuenta lo que pagasteis con el envío de la compra y descuenta la comisión al vender (Cardmarket 5%, eBay ~13%) y el envío que pongáis. Se sincroniza entre los dos móviles como el resto de la app.</div>';
   box.innerHTML = html;
   document.getElementById("invAdd").onclick = function(){ cmInvEditor(null, null); };
   Array.prototype.forEach.call(box.querySelectorAll("[data-inv]"), function(r){ r.onclick = function(){
@@ -3986,7 +4003,7 @@ function cmInventario(box){
 }
 function cmInvEditor(it, carta){
   var nuevo = !it; it = it || {id:uid(), pid: carta ? carta.id : null, nombre: carta ? carta.corto : "", idioma: carta && CM_LANGK[carta.exp]==="jp" ? "JP" : carta && CM_LANGK[carta.exp]==="cn" ? "CN" : "ES",
-    grado:"Sin gradear", cant:1, compra:"", fecha:dKey(new Date()), est:"col", pide:"", venta:"", donde:"Cardmarket", envio:"", nota:""};
+    grado:"Sin gradear", cant:1, compra:"", fecha:dKey(new Date()), est:"col", pide:"", venta:"", donde:"Cardmarket", envio:"", envioC:"", nota:""};
   var sel = function(idc, ops, val){ return '<select id="'+idc+'">'+ops.map(function(o){ return '<option'+(o===val?" selected":"")+'>'+o+'</option>'; }).join("")+'</select>'; };
   var f = it.pid && CM.porId ? cmFila(CM.porId[it.pid]) : null;
   openSheet('<h3>'+(nuevo ? "Añadir al inventario" : "Editar")+'</h3>'+
@@ -3994,6 +4011,7 @@ function cmInvEditor(it, carta){
        : '<label>Carta o producto</label><input id="iNom" value="'+esc(it.nombre||"")+'" placeholder="Nombre (o añádela desde su ficha para enlazar el precio)">')+
     '<div class="row2"><div><label>Idioma</label>'+sel("iIdi", ["ES","EN","JP","CN","Otro"], it.idioma)+'</div><div><label>Estado</label>'+sel("iGra", ["Sin gradear","PSA 10","PSA 9","PSA 8","CGC 10","CGC 9.5","CGC 9","BGS 10","BGS 9.5","BGS 9","Otra nota"], it.grado)+'</div></div>'+
     '<div class="row2"><div><label>Cantidad</label><input id="iCan" type="number" inputmode="numeric" min="1" value="'+(it.cant||1)+'"></div><div><label>Precio de compra (cada una, €)</label><input id="iCom" type="number" inputmode="decimal" step="0.01" value="'+(it.compra||"")+'"></div></div>'+
+    '<label>Envío que pagasteis al comprar (€, total)</label><input id="iEnvC" type="number" inputmode="decimal" step="0.01" value="'+(it.envioC||"")+'" placeholder="dentro de España: 1,45 € hasta 25 €, 7,06 € con seguimiento">'+
     '<div class="row2"><div><label>Fecha de compra</label><input id="iFec" type="date" value="'+(it.fecha||"")+'"></div><div><label>Situación</label>'+sel("iEst", ["En la colección","A la venta","Vendida"], it.est==="venta"?"A la venta":it.est==="vendida"?"Vendida":"En la colección")+'</div></div>'+
     '<div id="iVenta"></div><label>Nota</label><input id="iNot" value="'+esc(it.nota||"")+'">'+
     '<div class="btns">'+(nuevo ? '' : '<button class="b-no" id="iBorra" style="color:var(--neg)">Borrar</button>')+'<button class="b-no" id="iCierra">Cancelar</button><button class="b-ok" id="iOk">Guardar</button></div>');
@@ -4012,7 +4030,7 @@ function cmInvEditor(it, carta){
     var g = function(i){ var e = document.getElementById(i); return e ? e.value : ""; }, num = function(i){ return parseFloat(String(g(i)).replace(",", ".")) || 0; };
     var e = g("iEst");
     it.nombre = f ? f.corto : g("iNom").trim(); if(!it.nombre){ toast("Falta el nombre"); return; }
-    it.idioma = g("iIdi"); it.grado = g("iGra"); it.cant = Math.max(1, parseInt(g("iCan"),10)||1); it.compra = num("iCom"); it.fecha = g("iFec");
+    it.idioma = g("iIdi"); it.grado = g("iGra"); it.cant = Math.max(1, parseInt(g("iCan"),10)||1); it.compra = num("iCom"); it.envioC = num("iEnvC"); it.fecha = g("iFec");
     it.est = e==="A la venta" ? "venta" : e==="Vendida" ? "vendida" : "col"; it.nota = g("iNot");
     if(it.est==="venta") it.pide = num("iPid");
     if(it.est==="vendida"){ it.venta = num("iVen"); it.donde = g("iDon"); it.envio = num("iEnv"); it.fventa = g("iFv"); }
