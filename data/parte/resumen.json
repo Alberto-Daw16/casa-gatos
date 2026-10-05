@@ -1,7 +1,7 @@
 {
  "fecha": "2026-10-04",
  "ultimoDia": "2026-10-03",
- "guiaNueva": true,
+ "guiaNueva": false,
  "diasDeHistorico": 4,
  "mercado": {
   "EN": {
