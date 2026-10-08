@@ -8,7 +8,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>Gremory</title>
-<meta name="build" content="2026-10-08.1">
+<meta name="build" content="2026-10-08.2">
 <!-- El cuadrado de la pantalla de inicio. iOS se guarda el icono por URL y no
      vuelve a pedirlo, así que si se cambia hay que darle un nombre de fichero
      nuevo. El manifest es lo que mira el iPhone moderno; los dos "apple-touch"
@@ -3700,17 +3700,17 @@ function tcgAbre(tab){
 }
 function tcgSube(){
   var nb = nubeBase(), est = document.getElementById("tcgSubEstado");
-  var fs = [].slice.call(document.getElementById("tcgFich").files || []).filter(function(f){ return /\.webp$/i.test(f.name); });
+  var fs = Object.keys(_tcgPend).sort().map(function(n){ return _tcgPend[n]; });
   var sec = document.getElementById("tcgSecreto").value.trim();
   if(!nb){ est.textContent = "Primero configura la sincronización."; return; }
   if(!fs.length){ est.textContent = "Elige los archivos .webp de la carpeta subir-app."; return; }
   if(!sec){ est.textContent = "Falta el secreto de subida."; return; }
   var i = 0, bien = 0, mal = [], vivos = 0;
   function sig(){
-    if(i >= fs.length){ if(!vivos){ est.textContent = "Subidas "+bien+" de "+fs.length+(mal.length ? ". Fallaron: "+mal.slice(0,5).join(", ")+(mal.length>5?"…":"") : ". Listo."); document.getElementById("tcgSecreto").value = ""; } return; }
+    if(i >= fs.length){ if(!vivos){ est.textContent = "Subidas "+bien+" de "+fs.length+(mal.length ? ". Fallaron: "+mal.slice(0,5).join(", ")+(mal.length>5?"…":"") : ". Listo: ya podéis abrir el binder."); if(!mal.length){ _tcgPend = {}; document.getElementById("tcgSecreto").value = ""; } } return; }
     var f = fs[i++]; vivos++;
     fetch(nb.base+"/img/"+encodeURIComponent(f.name)+"?up="+encodeURIComponent(sec), {method:"PUT", headers:{"content-type":"image/webp"}, body:f})
-      .then(function(r){ if(r.status===403) throw new Error("secreto"); if(!r.ok) throw new Error("HTTP "+r.status); bien++; })
+      .then(function(r){ if(r.status===403) throw new Error("secreto"); if(!r.ok) throw new Error("HTTP "+r.status); bien++; delete _tcgPend[f.name]; })
       .catch(function(e){ mal.push(f.name+(e.message==="secreto"?" (secreto incorrecto)":"")); if(e.message==="secreto") i = fs.length; })
       .then(function(){ vivos--; est.textContent = "Subiendo… "+bien+" de "+fs.length; sig(); });
   }
@@ -3723,6 +3723,12 @@ window.GAPP = {get S(){ return S; }, save:save, miId:miId, nombreDe:nombreDe, ap
 document.getElementById("tcgTira").onclick = function(){ tcgAbre(tcgCuenta(miId()) ? "sobres" : "binder"); };
 document.getElementById("tcgAbrir").onclick = function(){ tcgAbre("binder"); };
 document.getElementById("tcgSubir").onclick = tcgSube;
+/* se pueden elegir los archivos en varias tandas: se van sumando */
+var _tcgPend = {};
+document.getElementById("tcgFich").onchange = function(e){
+  [].slice.call(e.target.files || []).forEach(function(f){ if(/\.webp$/i.test(f.name)) _tcgPend[f.name] = f; });
+  document.getElementById("tcgSubEstado").textContent = Object.keys(_tcgPend).length + " archivos listos para subir";
+};
 
 /* =========== CARTAS · MERCADO =========== */
 /* Precios de Cardmarket (la guía oficial de cada día, que deja lista GitHub Actions en vuestro Worker),
