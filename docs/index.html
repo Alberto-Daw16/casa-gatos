@@ -8,7 +8,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>Gremory</title>
-<meta name="build" content="2026-10-08.2">
+<meta name="build" content="2026-10-08.3">
 <!-- El cuadrado de la pantalla de inicio. iOS se guarda el icono por URL y no
      vuelve a pedirlo, así que si se cambia hay que darle un nombre de fichero
      nuevo. El manifest es lo que mira el iPhone moderno; los dos "apple-touch"
@@ -741,7 +741,7 @@
 
   <!-- ============ AJUSTES ============ -->
   <section class="view" id="v-set">
-    <div class="card" id="cardTcg" style="border-color:rgba(201,242,74,.35)">
+    <div class="card" id="cardTcg" style="display:none;border-color:rgba(201,242,74,.35)">
       <h2>Gremory TCG</h2>
       <div class="mini">Vuestro juego de cartas. Un sobre cada día, tres de bienvenida y uno por cada logro nuevo de la casa. Cada uno tiene su binder y os podéis cambiar las repetidas.</div>
       <button class="add" id="tcgAbrir" style="color:var(--acc);border-color:var(--acc)">Abrir el binder</button>
@@ -3671,8 +3671,14 @@ function tcgCuenta(pid){
   }
   return n;
 }
+/* El TCG está en pruebas: no se enseña hasta que las cartas estén revisadas.
+   Para probarlo en un dispositivo, abrir la app con #tcg al final de la dirección. */
+var TCG_ON = false;
+var TCG_VER = TCG_ON || /(^|#)tcg$/.test(location.hash);
 function tcgPinta(){
   var t = document.getElementById("tcgTira"); if(!t) return;
+  var c = document.getElementById("cardTcg"); if(c) c.style.display = TCG_VER ? "" : "none";
+  if(!TCG_VER){ t.hidden = true; return; }
   var pid = miId(), n = tcgCuenta(pid);
   t.hidden = !pid;
   if(!pid) return;
