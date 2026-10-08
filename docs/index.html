@@ -8,7 +8,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>Gremory</title>
-<meta name="build" content="2026-10-05.1">
+<meta name="build" content="2026-10-08.1">
 <!-- El cuadrado de la pantalla de inicio. iOS se guarda el icono por URL y no
      vuelve a pedirlo, así que si se cambia hay que darle un nombre de fichero
      nuevo. El manifest es lo que mira el iPhone moderno; los dos "apple-touch"
@@ -430,7 +430,7 @@
     border:1px solid var(--line2);color:var(--txt);padding:11px 16px;border-radius:0;font-size:12.5px;
     z-index:80;opacity:0;transition:opacity .25s;pointer-events:none;max-width:88%;text-align:center}
   .toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
-  .toast{transform:translateX(-50%) translateY(8px);transition:opacity .25s, transform .25s}
+  .toast{transform:translateX(-50%) translateY(8px);transition:opacity .25s, transform .25s;z-index:400}
 
   /* ================= movimiento ================= */
   @keyframes sube{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
@@ -509,6 +509,15 @@
   .cmtr{display:grid;grid-template-columns:minmax(0,1.1fr) repeat(3,minmax(0,1fr));gap:6px;padding:9px 10px;border-top:1px solid var(--line);font-size:12.5px;align-items:center;cursor:pointer}
   .cmtr:first-child{border-top:0} .cmtr.on{background:rgba(201,242,74,.08)} .cmtr .mono{font-size:12px}
   .cmth{cursor:default;font-family:"Space Mono",monospace;font-size:8.5px;color:var(--dim);text-transform:uppercase;letter-spacing:1px}
+.tcgTira{display:flex;align-items:center;gap:12px;margin:0 0 12px;padding:10px 12px;border-radius:16px;border:1px solid rgba(201,242,74,.3);
+  background:linear-gradient(115deg,rgba(93,42,107,.35),rgba(28,63,107,.3) 50%,rgba(45,107,85,.25));cursor:pointer}
+.tcgTira[hidden]{display:none}
+.tcgLogo{width:34px;height:34px;flex:0 0 auto;border-radius:9px;background:#0b0f1c;position:relative;overflow:hidden}
+.tcgLogo::after{content:"";position:absolute;inset:5px;background:var(--acc);-webkit-mask:url("tcg/tex/logo-g.png") center/contain no-repeat;mask:url("tcg/tex/logo-g.png") center/contain no-repeat}
+.tcgTxt{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.tcgTxt b{font:400 19px/1 "Instrument Serif",Georgia,serif}
+.tcgTxt span{font-size:12.5px;color:var(--dim)}
+.tcgTira button{border:0;background:var(--acc);color:#12160a;font:700 13px/1 -apple-system,system-ui,sans-serif;padding:10px 14px;border-radius:12px}
 </style>
 </head>
 <body>
@@ -531,6 +540,7 @@
 <main>
   <!-- ============ FINANZAS ============ -->
   <section class="view on" id="v-fin">
+    <div class="tcgTira" id="tcgTira" hidden><div class="tcgLogo"></div><div class="tcgTxt"><b>Gremory TCG</b><span id="tcgTiraSub"></span></div><button id="tcgTiraBtn">Abrir</button></div>
     <div class="seg" id="finSeg">
       <button class="on" data-fin="mes">El mes</button>
       <button data-fin="meta">La casa</button>
@@ -731,11 +741,19 @@
 
   <!-- ============ AJUSTES ============ -->
   <section class="view" id="v-set">
-    <div class="card" id="cardSobres" style="border-color:rgba(201,242,74,.35)">
-      <h2>Sobres · Set 1 <span class="sum" style="font-size:12px;color:var(--dim)">prueba</span></h2>
-      <div class="mini">Vuestras cartas, con rarezas de Pokémon y Weiß Schwarz (holo, reverse, súper rara, firmada, oro y corona). De momento se abren sin límite para probar; lo de ganarlos viene después.</div>
-      <a class="add" href="sobres.html" style="display:block;text-align:center;text-decoration:none;color:var(--acc);border-color:var(--acc)">Abrir un sobre</a>
+    <div class="card" id="cardTcg" style="border-color:rgba(201,242,74,.35)">
+      <h2>Gremory TCG</h2>
+      <div class="mini">Vuestro juego de cartas. Un sobre cada día, tres de bienvenida y uno por cada logro nuevo de la casa. Cada uno tiene su binder y os podéis cambiar las repetidas.</div>
+      <button class="add" id="tcgAbrir" style="color:var(--acc);border-color:var(--acc)">Abrir el binder</button>
+      <details style="margin-top:10px"><summary class="mini" style="cursor:pointer">Subir las ilustraciones del Set 1 (una vez, desde el ordenador)</summary>
+        <div class="mini" style="margin:8px 0">Elige todos los archivos de la carpeta <b>Descargas/gremory-cartas/subir-app</b>. Se guardan en privado en vuestro Worker. Hace falta el secreto de subida (SUBIDA, el de Cloudflare); no se guarda en ningún sitio.</div>
+        <input type="file" id="tcgFich" multiple accept="image/webp" style="width:100%;margin-bottom:8px">
+        <input type="password" id="tcgSecreto" placeholder="Secreto de subida" autocomplete="off" style="width:100%;margin-bottom:8px">
+        <button class="add" id="tcgSubir">Subir</button>
+        <div class="mini" id="tcgSubEstado"></div>
+      </details>
     </div>
+
     <div class="card">
       <h2>Gatos</h2>
       <ul class="list" id="lCats"></ul>
@@ -3141,9 +3159,11 @@ function fusiona(local, remoto){
   out.prices = Object.keys(mp).map(function(k){ return mp[k]; });
 
   // listas con id propio
-  ["tickets","shoplist","cats","people","aportes","inv"].forEach(function(col){
+  ["tickets","shoplist","cats","people","aportes","inv","tcgCartas","tcgSobres","tcgCambios"].forEach(function(col){
     out[col] = une(out[col], remoto[col]);
   });
+  /* Gremory TCG: la foto de logros del estreno la pone el primero que abre el juego y no cambia */
+  if(remoto.tcgBase && (!out.tcgBase || (remoto.tcgBase.f||"") < (out.tcgBase.f||""))) out.tcgBase = remoto.tcgBase;
   ["expenses","incomes"].forEach(function(col){
     out.recurring[col] = une((out.recurring||{})[col], (remoto.recurring||{})[col]);
   });
@@ -3182,7 +3202,7 @@ function fusiona(local, remoto){
   });
   var baja = out.borrados;
   function limpia(l){ return (l||[]).filter(function(x){ return !baja[x.id]; }); }
-  ["tickets","shoplist","cats","people","aportes","inv"].forEach(function(col){ out[col] = limpia(out[col]); });
+  ["tickets","shoplist","cats","people","aportes","inv","tcgCartas","tcgSobres","tcgCambios"].forEach(function(col){ out[col] = limpia(out[col]); });
   ["expenses","incomes"].forEach(function(col){ out.recurring[col] = limpia(out.recurring[col]); });
   Object.keys(out.months||{}).forEach(function(mk){
     ["expenses","incomes"].forEach(function(col){ out.months[mk][col] = limpia(out.months[mk][col]); });
@@ -3630,8 +3650,79 @@ function render(){
   if(view==="care"){ renderCal(); renderDay(); renderStats(); }
   if(view==="set") renderSet();
   if(view==="cards") renderCartas();
+  try { tcgPinta(); } catch(e){}
   pasada();
 }
+
+/* =========== GREMORY TCG ===========
+   El juego vive en docs/tcg/ (motor.css, motor.js y juego.js) y solo se carga al abrirlo.
+   Aquí solo está lo que hace falta sin cargarlo: cuántos sobres tienes (para la tira de la portada),
+   abrirlo y subir las ilustraciones al Worker. */
+function tcgHoy(){ var d = new Date(); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
+function tcgCuenta(pid){
+  if(!pid) return 0;
+  var sob = S.tcgSobres || [], bo = S.borrados || {}, n = 0, ids = {};
+  sob.forEach(function(x){ ids[x.id] = 1; if(x.d===pid && !x.abierto && !bo[x.id]) n++; });
+  if(!ids["dia:"+tcgHoy()+":"+pid]) n++;
+  if(!S.tcgBase) n += 3;
+  else {
+    var base = S.tcgBase.logros || [];
+    try { logrosTodos().forEach(function(l){ if(l.dado && base.indexOf(l.k) < 0 && !ids["logro:"+l.k+":"+pid]) n++; }); } catch(e){}
+  }
+  return n;
+}
+function tcgPinta(){
+  var t = document.getElementById("tcgTira"); if(!t) return;
+  var pid = miId(), n = tcgCuenta(pid);
+  t.hidden = !pid;
+  if(!pid) return;
+  var mias = (S.tcgCartas||[]).filter(function(x){ return x.d===pid; }), dist = {};
+  mias.forEach(function(x){ dist[x.c] = 1; });
+  document.getElementById("tcgTiraSub").textContent = n ? (n===1 ? "Tienes 1 sobre por abrir" : "Tienes "+n+" sobres por abrir") : "Tu binder: "+Object.keys(dist).length+" de 61 · mañana, otro sobre";
+  document.getElementById("tcgTiraBtn").textContent = n ? "Abrir" : "Ver";
+}
+var _tcgCarga = null;
+function tcgCarga(){
+  if(_tcgCarga) return _tcgCarga;
+  _tcgCarga = new Promise(function(ok, ko){
+    var v = encodeURIComponent(BUILD || Date.now());
+    var l = document.createElement("link"); l.rel = "stylesheet"; l.href = "tcg/motor.css?v="+v; document.head.appendChild(l);
+    var a = document.createElement("script"); a.src = "tcg/motor.js?v="+v;
+    a.onload = function(){ var b = document.createElement("script"); b.src = "tcg/juego.js?v="+v; b.onload = ok; b.onerror = ko; document.body.appendChild(b); };
+    a.onerror = ko; document.body.appendChild(a);
+  });
+  _tcgCarga.catch(function(){ _tcgCarga = null; });
+  return _tcgCarga;
+}
+function tcgAbre(tab){
+  toast("Abriendo el binder…");
+  tcgCarga().then(function(){ window.TCG.abre(tab); }).catch(function(){ toast("No he podido cargar el juego. ¿Hay conexión?"); });
+}
+function tcgSube(){
+  var nb = nubeBase(), est = document.getElementById("tcgSubEstado");
+  var fs = [].slice.call(document.getElementById("tcgFich").files || []).filter(function(f){ return /\.webp$/i.test(f.name); });
+  var sec = document.getElementById("tcgSecreto").value.trim();
+  if(!nb){ est.textContent = "Primero configura la sincronización."; return; }
+  if(!fs.length){ est.textContent = "Elige los archivos .webp de la carpeta subir-app."; return; }
+  if(!sec){ est.textContent = "Falta el secreto de subida."; return; }
+  var i = 0, bien = 0, mal = [], vivos = 0;
+  function sig(){
+    if(i >= fs.length){ if(!vivos){ est.textContent = "Subidas "+bien+" de "+fs.length+(mal.length ? ". Fallaron: "+mal.slice(0,5).join(", ")+(mal.length>5?"…":"") : ". Listo."); document.getElementById("tcgSecreto").value = ""; } return; }
+    var f = fs[i++]; vivos++;
+    fetch(nb.base+"/img/"+encodeURIComponent(f.name)+"?up="+encodeURIComponent(sec), {method:"PUT", headers:{"content-type":"image/webp"}, body:f})
+      .then(function(r){ if(r.status===403) throw new Error("secreto"); if(!r.ok) throw new Error("HTTP "+r.status); bien++; })
+      .catch(function(e){ mal.push(f.name+(e.message==="secreto"?" (secreto incorrecto)":"")); if(e.message==="secreto") i = fs.length; })
+      .then(function(){ vivos--; est.textContent = "Subiendo… "+bien+" de "+fs.length; sig(); });
+  }
+  est.textContent = "Subiendo…";
+  for(var k=0;k<3;k++) sig();
+}
+/* el juego (tcg/juego.js) se carga aparte y usa esto para leer y guardar los datos de la app */
+window.GAPP = {get S(){ return S; }, save:save, miId:miId, nombreDe:nombreDe, apiNube:apiNube, nubeBase:nubeBase, toast:toast, esc:esc, uid:uid,
+  logrosTodos:logrosTodos, render:render};
+document.getElementById("tcgTira").onclick = function(){ tcgAbre(tcgCuenta(miId()) ? "sobres" : "binder"); };
+document.getElementById("tcgAbrir").onclick = function(){ tcgAbre("binder"); };
+document.getElementById("tcgSubir").onclick = tcgSube;
 
 /* =========== CARTAS · MERCADO =========== */
 /* Precios de Cardmarket (la guía oficial de cada día, que deja lista GitHub Actions en vuestro Worker),
@@ -3657,12 +3748,14 @@ function cmEnvioES(valor, sellado){
 function cmNum(n){ return n==null ? "—" : money(n); }
 function cmCorto(nombre){ return String(nombre||"").split(" [")[0]; }
 function cmUrl(ruta){ var nb = nubeBase(); return nb ? nb.base+ruta+(ruta.indexOf("?")>-1?"&":"?")+"k="+encodeURIComponent(nb.k) : null; }
+/* foto: "p:123" es un producto de TCGplayer; lo demás, una ruta de TCGdex */
+function cmFoto(r){ return r.indexOf("p:")===0 ? "https://tcgplayer-cdn.tcgplayer.com/product/"+r.slice(2)+"_200w.jpg" : r.indexOf("http")===0 ? r : "https://assets.tcgdex.net/"+r; }
 /* una fila del índice → objeto con todo lo que hace falta para pintarla */
 function cmFila(f){
   if(!f) return null;
   var x = (CM.idx.f||{})[f[0]] || null;
   return {id:f[0], n:f[1], corto:cmCorto(f[1]), exp:f[2], expN:(CM.idx.exp||{})[f[2]]||"", bajo:f[3], tend:f[4], a1:f[5], a7:f[6], a30:f[7],
-    bajoF:f[8], tendF:f[9], num: x ? x[0] : "", img: x && x[1] ? "https://assets.tcgdex.net/"+x[1] : (f.img || ""), clave: x ? x[2] : "",
+    bajoF:f[8], tendF:f[9], num: x ? x[0] : "", img: x && x[1] ? cmFoto(x[1]) : (f.img || ""), clave: x ? x[2] : "",
     lang: CM_LANG[f[2]] || "", sellado: !!f.sellado, tipo: f.tipo || ""};
 }
 function cmNumTxt(c){ return c.num ? (c.num.indexOf("CC")===0 ? "Classic "+c.num.slice(2) : "30C "+c.num) : ""; }
