@@ -1,0 +1,1652 @@
+
+@font-face{font-family:"Firma";src:url("firma.woff2") format("woff2");font-display:block}
+/* Efectos holo adaptados de pokemon-cards-css, © 2022 Simon Goellner (@simeydotme), GPL-3.0.
+   https://github.com/simeydotme/pokemon-cards-css — este fichero se distribuye bajo GPL-3.0 (ver tex/LICENSE-pokemon-cards-css.txt). */
+:root {
+  --card-aspect: 0.718;
+  --card-radius: 4.55% / 3.5%;
+  --card-edge: hsl(47, 100%, 78%);
+  --card-back: hsl(205, 100%, 25%);
+  --card-glow: hsl(175, 100%, 90%);
+  --sunpillar-1: hsl(2, 100%, 73%);
+  --sunpillar-2: hsl(53, 100%, 69%);
+  --sunpillar-3: hsl(93, 100%, 69%);
+  --sunpillar-4: hsl(176, 100%, 76%);
+  --sunpillar-5: hsl(228, 100%, 74%);
+  --sunpillar-6: hsl(283, 100%, 73%);
+  --sunpillar-clr-1: var(--sunpillar-1);
+  --sunpillar-clr-2: var(--sunpillar-2);
+  --sunpillar-clr-3: var(--sunpillar-3);
+  --sunpillar-clr-4: var(--sunpillar-4);
+  --sunpillar-clr-5: var(--sunpillar-5);
+  --sunpillar-clr-6: var(--sunpillar-6);
+}
+
+.carta {
+  --grain: url("tex/grain.webp");
+  --glitter: url("tex/glitter.png");
+  --glittersize: 25%;
+  --space: 5%;
+  --angle: 133deg;
+  --imgsize: cover;
+  --red: #f80e35;
+  --yellow: #eedf10;
+  --green: #21e985;
+  --blue: #0dbde9;
+  --violet: #c929f1;
+  }
+
+.card__shine {
+  display: grid;
+  transform: translateZ(1px);
+  overflow: hidden;
+  z-index: 3;
+  background: transparent;
+  background-size: cover;
+  background-position: center;
+  filter: brightness(.85) contrast(2.75) saturate(.65);
+  mix-blend-mode: color-dodge;
+  opacity: var(--card-opacity);
+}
+.card__shine:before,
+.card__shine:after {
+  --sunpillar-clr-1: var(--sunpillar-5);
+  --sunpillar-clr-2: var(--sunpillar-6);
+  --sunpillar-clr-3: var(--sunpillar-1);
+  --sunpillar-clr-4: var(--sunpillar-2);
+  --sunpillar-clr-5: var(--sunpillar-3);
+  --sunpillar-clr-6: var(--sunpillar-4);
+  grid-area: 1/1;
+  transform: translateZ(1px);
+  border-radius: var(--card-radius);
+}
+.card__shine:after {
+  --sunpillar-clr-1: var( --sunpillar-6 );
+  --sunpillar-clr-2: var( --sunpillar-1 ); 
+  --sunpillar-clr-3: var( --sunpillar-2 );
+  --sunpillar-clr-4: var( --sunpillar-3 );
+  --sunpillar-clr-5: var( --sunpillar-4 );
+  --sunpillar-clr-6: var( --sunpillar-5 );
+  transform: translateZ(1.2px);
+}
+.card__glare {
+  transform: translateZ(1.41px);
+  overflow: hidden;
+  background-image: radial-gradient(
+    farthest-corner circle at var(--pointer-x) var(--pointer-y),
+    hsla(0, 0%, 100%, 0.8) 10%,
+    hsla(0, 0%, 100%, 0.65) 20%,
+    hsla(0, 0%, 0%, 0.5) 90%
+  );
+  opacity: var(--card-opacity);
+  mix-blend-mode: overlay;
+}
+.carta.masked .card__shine,
+.carta.masked .card__shine:before,
+.carta.masked .card__shine:after {
+  -webkit-mask-image: var(--mask);
+  mask-image: var(--mask);
+	-webkit-mask-size: cover;
+  mask-size: cover;
+  -webkit-mask-position: center center;
+  mask-position: center center;
+}
+.carta[data-rarity="rare holo"] .card__glare:after,
+.carta[data-rarity="rare holo cosmos"] .card__glare:after,
+.carta[data-rarity$="reverse holo"] .card__glare:after {
+  clip-path: var(--clip);
+}
+.carta[data-rarity="rare holo"][data-subtypes^="stage"] .card__glare:after,
+.carta[data-rarity="rare holo cosmos"][data-subtypes^="stage"] .card__glare:after,
+.carta[data-rarity$="reverse holo"][data-subtypes^="stage"] .card__glare:after {
+  clip-path: var(--clip-stage);
+}
+.carta[data-rarity="rare holo"][data-supertype="trainer"] .card__glare:after,
+.carta[data-rarity="rare holo cosmos"][data-supertype="trainer"] .card__glare:after,
+.carta[data-rarity$="reverse holo"][data-supertype="trainer"] .card__glare:after {
+  clip-path: var(--clip-trainer);
+}
+
+/* regular-holo */
+
+.carta[data-rarity="rare holo"][data-subtypes^="stage"] .card__shine,
+.carta[data-rarity="rare holo"][data-subtypes^="stage"] .card__glare:after {
+  clip-path: var(--clip-stage);
+}
+.carta[data-rarity="rare holo"][data-subtypes^="supporter"] .card__shine,
+.carta[data-rarity="rare holo"][data-subtypes^="supporter"] .card__glare:after,
+.carta[data-rarity="rare holo"][data-subtypes^="item"] .card__shine,
+.carta[data-rarity="rare holo"][data-subtypes^="item"] .card__glare:after {
+  clip-path: var(--clip-trainer);
+}
+.carta[data-rarity="rare holo"] .card__shine {
+  --scanlines-space: 1px;
+  --scanlines-light: #666;
+  --scanlines-dark: black;
+  --bars: 3%;
+  --bar-color: hsla(0, 0%, 70%, 1);
+  --bar-bg: hsla(0, 0%, 0%, 1);
+  clip-path: var(--clip);
+  background-image: 
+    repeating-linear-gradient( 110deg, 
+      var(--violet), var(--blue), var(--green), var(--yellow), var(--red), 
+      var(--violet), var(--blue), var(--green), var(--yellow), var(--red),
+      var(--violet), var(--blue), var(--green), var(--yellow), var(--red)
+    ),
+    repeating-linear-gradient( 90deg, 
+      var(--scanlines-dark) calc(var(--scanlines-space) * 0), var(--scanlines-dark) calc(var(--scanlines-space) * 2),
+      var(--scanlines-light) calc(var(--scanlines-space) * 2), var(--scanlines-light) calc(var(--scanlines-space) * 4)
+    );
+  background-position: 
+    calc(((50% - var(--background-x)) * 2.6) + 50%) calc(((50% - var(--background-y)) * 3.5) + 50%),
+    center center;
+  background-size: 
+    400% 400%, 
+    cover;
+  background-blend-mode: overlay;
+  filter: brightness(1.1) contrast(1.1) saturate(1.2);
+  mix-blend-mode: color-dodge;
+}
+.carta[data-rarity="rare holo"] .card__shine:before {
+  content: "";
+  background-image:
+    repeating-linear-gradient( 90deg, 
+      var(--bar-bg) calc(var(--bars)*2), 
+      var(--bar-color) calc(var(--bars)*3), 
+      var(--bar-bg) calc(var(--bars)*3.5), 
+      var(--bar-color) calc(var(--bars)*4), 
+      var(--bar-bg) calc(var(--bars)*5), 
+      var(--bar-bg) calc(var(--bars)*14)
+    ),
+    repeating-linear-gradient( 90deg, 
+      var(--bar-bg) calc(var(--bars)*2), 
+      var(--bar-color) calc(var(--bars)*3), 
+      var(--bar-bg) calc(var(--bars)*3.5), 
+      var(--bar-color) calc(var(--bars)*4), 
+      var(--bar-bg) calc(var(--bars)*5), 
+      var(--bar-bg) calc(var(--bars)*10)
+    );
+  background-position: 
+    calc((((50% - var(--background-x)) * 1.65) + 50% ) + (var(--background-y) * 0.5)) var(--background-x), 
+    calc((((50% - var(--background-x)) * -0.9) + 50%) - (var(--background-y) * 0.75) ) var(--background-y);
+  background-size: 
+    200% 200%,
+    200% 200%;
+  background-blend-mode: screen;
+  filter: brightness( 1.15 ) contrast( 1.1 );
+  mix-blend-mode: hard-light;
+}
+.carta[data-rarity="rare holo"] .card__shine:after {
+  content: "";
+  background-image: 
+    radial-gradient( 
+      farthest-corner circle 
+        at var(--pointer-x) var(--pointer-y), 
+        hsla(0, 0%, 90%, 0.8) 0%, 
+        hsla(0, 0%, 78%, 0.1) 25%, 
+        hsl(0, 0%, 0%) 90% 
+    );
+  background-position: 
+    center center;
+  background-size:
+    cover;
+  mix-blend-mode: luminosity; 
+  filter: brightness(0.6) contrast(4);
+}
+@media screen and (max-width: 900px) {
+  .carta[data-rarity="rare holo"] .card__shine {
+    --scanlines-space: .5px;
+  }
+}
+.carta[data-rarity="rare holo"] .card__glare {
+  opacity: calc( var(--card-opacity) * .8 );
+  filter: brightness(0.8) contrast(1.5);
+  mix-blend-mode: overlay;
+}
+.carta[data-rarity="rare holo"] .card__glare:after {
+  content: "";
+  background-image: 
+    radial-gradient( 
+      farthest-corner circle at var(--pointer-x) var(--pointer-y), 
+      hsl(180, 100%, 95%) 5%, 
+      hsla(0, 0%, 39%, 0.25) 55%, 
+      hsla(0, 0%, 0%, 0.36) 110% 
+    );
+  mix-blend-mode: overlay;
+  filter: brightness(.6) contrast(3);
+}
+
+/* cosmos-holo */
+
+.carta[data-rarity="rare holo cosmos"][data-subtypes^="stage"] .card__shine,
+.carta[data-rarity="rare holo cosmos"][data-subtypes^="stage"] .card__glare:after {
+  clip-path: var(--clip-stage);
+}
+.carta[data-rarity="rare holo cosmos"][data-subtypes^="supporter"] .card__shine,
+.carta[data-rarity="rare holo cosmos"][data-subtypes^="supporter"] .card__glare:after {
+  clip-path: var(--clip-trainer);
+}
+.carta[data-rarity="rare holo cosmos"] .card__shine {
+  --space: 4%;
+  clip-path: var(--clip);
+  background-image: 
+    url("tex/cosmos-bottom.png"), 
+    repeating-linear-gradient(
+      82deg, 
+      hsl(53, 65%, 60%) calc(var(--space)*1), 
+      hsl(93, 56%, 50%) calc(var(--space)*2), 
+      hsl(176, 54%, 49%) calc(var(--space)*3), 
+      hsl(228, 59%, 55%) calc(var(--space)*4), 
+      hsl(283, 60%, 55%) calc(var(--space)*5), 
+      hsl(326, 59%, 51%) calc(var(--space)*6), 
+      hsl(326, 59%, 51%) calc(var(--space)*7), 
+      hsl(283, 60%, 55%) calc(var(--space)*8), 
+      hsl(228, 59%, 55%) calc(var(--space)*9), 
+      hsl(176, 54%, 49%) calc(var(--space)*10), 
+      hsl(93, 56%, 50%) calc(var(--space)*11), 
+      hsl(53, 65%, 60%) calc(var(--space)*12) 
+    ), 
+    radial-gradient( 
+      farthest-corner circle 
+      at var(--pointer-x) var(--pointer-y), 
+      hsla(180, 100%, 89%, 0.5) 5%, 
+      hsla(180, 14%, 57%, 0.3) 40%, 
+      hsl(0, 0%, 0%) 130% 
+  );
+  background-blend-mode: 
+    color-burn, 
+    multiply;
+  background-position: 
+    var(--cosmosbg, center center),
+    calc( 10% + ( var(--pointer-from-left) * 80% ) ) calc( 10% + ( var(--pointer-from-top) * 80% ) ), 
+    center center;
+  background-size: cover, 400% 900%, cover;
+  filter: brightness(1) contrast(1) saturate(.8);
+  mix-blend-mode: color-dodge;
+}
+.carta[data-rarity="rare holo cosmos"] .card__shine:before {
+  content: "";
+  z-index: 2;
+  background-image: 
+    url("tex/cosmos-middle-trans.png"), 
+    repeating-linear-gradient(
+      82deg, 
+      hsl(53, 65%, 60%) calc(var(--space)*1), 
+      hsl(93, 56%, 50%) calc(var(--space)*2), 
+      hsl(176, 54%, 49%) calc(var(--space)*3), 
+      hsl(228, 59%, 55%) calc(var(--space)*4), 
+      hsl(283, 60%, 55%) calc(var(--space)*5), 
+      hsl(326, 59%, 51%) calc(var(--space)*6), 
+      hsl(326, 59%, 51%) calc(var(--space)*7), 
+      hsl(283, 60%, 55%) calc(var(--space)*8), 
+      hsl(228, 59%, 55%) calc(var(--space)*9), 
+      hsl(176, 54%, 49%) calc(var(--space)*10), 
+      hsl(93, 56%, 50%) calc(var(--space)*11), 
+      hsl(53, 65%, 60%) calc(var(--space)*12) 
+    );
+  background-blend-mode: 
+    lighten, 
+    multiply;
+  background-position: 
+    var(--cosmosbg, center center), 
+    calc( 15% + ( var(--pointer-from-left) * 70% ) ) calc( 15% + ( var(--pointer-from-top) * 70% ) ), 
+    center center;
+  background-size: cover, 400% 900%, cover;
+  filter: brightness(1.25) contrast(1.75) saturate(.8);
+  mix-blend-mode: overlay;
+}
+.carta[data-rarity="rare holo cosmos"] .card__shine:after {
+  content: "";
+  z-index: 3;
+  background-image: 
+    url("tex/cosmos-top-trans.png"), 
+    repeating-linear-gradient(
+      82deg, 
+      hsl(53, 65%, 60%) calc(var(--space)*1), 
+      hsl(93, 56%, 50%) calc(var(--space)*2), 
+      hsl(176, 54%, 49%) calc(var(--space)*3), 
+      hsl(228, 59%, 55%) calc(var(--space)*4), 
+      hsl(283, 60%, 55%) calc(var(--space)*5), 
+      hsl(326, 59%, 51%) calc(var(--space)*6), 
+      hsl(326, 59%, 51%) calc(var(--space)*7), 
+      hsl(283, 60%, 55%) calc(var(--space)*8), 
+      hsl(228, 59%, 55%) calc(var(--space)*9), 
+      hsl(176, 54%, 49%) calc(var(--space)*10), 
+      hsl(93, 56%, 50%) calc(var(--space)*11), 
+      hsl(53, 65%, 60%) calc(var(--space)*12) 
+    );
+  background-blend-mode: 
+    multiply, 
+    multiply;
+  background-position: 
+    var(--cosmosbg, center center), 
+    calc( 20% + ( var(--pointer-from-left) * 60% ) ) calc( 20% + ( var(--pointer-from-top) * 60% ) ), 
+    center center;
+  background-size: cover, 400% 900%, cover;
+  filter: brightness(1.25) contrast(1.75) saturate(.8);
+  mix-blend-mode: multiply;
+}
+.carta[data-rarity="rare holo cosmos"] .card__glare {
+  background-image: 
+    radial-gradient( 
+      farthest-corner circle at var(--pointer-x) var(--pointer-y), 
+      hsla(204, 100%, 95%, 0.8) 5%, 
+      hsla(250, 15%, 20%, 1) 150% 
+    );
+  filter: brightness(.75) contrast(2) saturate(2);
+  mix-blend-mode: overlay;
+  opacity: calc( var(--card-opacity) * ( 0.25 + var(--pointer-from-center) ) );
+}
+.carta[data-rarity="rare holo cosmos"] .card__glare:after {
+  content: "";
+  background-image: 
+    radial-gradient( farthest-corner circle at 
+      var(--pointer-x) var(--pointer-y), 
+      hsl(280, 100%, 96%) 5%, 
+      hsl(0, 0%, 10%) 60%
+    );
+  filter: brightness(.75) contrast(2.5) saturate(2);
+  mix-blend-mode: soft-light;
+  opacity: calc( 1 - var(--pointer-from-top) * .75 );
+}
+
+/* reverse-holo */
+
+.carta {
+  --foil-brightness: 0.55;
+}
+.carta[data-rarity$="reverse holo"] .card__shine {
+  background-image: 
+    radial-gradient( 
+      circle at var(--pointer-x) var(--pointer-y),
+      #fff 5%, 
+      #000 50%, 
+      #fff 80% 
+    ), 
+    linear-gradient( 
+      -45deg, 
+      #000 15%, 
+      #fff, 
+      #000 85% 
+    ), 
+    var(--foil);
+  background-blend-mode: soft-light, difference;
+  background-size: 120% 120%, 200% 200%, cover;
+  background-position: center center, calc( (100% * var(--pointer-from-left))) calc( (100% * var(--pointer-from-top))) , center center;
+  filter: brightness(var(--foil-brightness)) contrast(1.5) saturate(1);
+  mix-blend-mode: color-dodge;
+  opacity: calc( (1.5 * var(--card-opacity)) - var(--pointer-from-center));
+}
+.carta.lightning   { --foil-brightness: 0.7; }
+.carta.darkness    { --foil-brightness: 0.8; }
+.carta.metal       { --foil-brightness: 0.6; }
+.carta[data-rarity$="reverse holo"] .card__glare {
+  opacity: var(--card-opacity);
+  background-image: 
+    radial-gradient(
+      farthest-corner circle at var(--pointer-x) var(--pointer-y),
+      hsla(0, 0%, 100%, 0.8) 10%,
+      hsla(0, 0%, 100%, 0.5) 20%,
+      hsla(0, 0%, 0%, 0.75) 90%
+    );
+  filter: brightness(.7) contrast(1.5);
+}
+.carta[data-rarity$="reverse holo"] .card__glare:after {
+  content: "";
+  opacity: var(--card-opacity);
+  background-image: 
+    radial-gradient( 
+      farthest-corner circle at var(--pointer-x) var(--pointer-y), 
+      hsl(0, 0%, 100%) 10%, 
+      hsla(0, 0%, 100%, 0.5) 20%, 
+      hsla(0, 0%, 0%, 0.5) 120% 
+    );
+  filter: brightness(1) contrast(1.5);
+}
+.carta:not(.masked)[data-rarity$="reverse holo"] .card__shine {
+  --foil: none;
+  clip-path: var(--clip-invert);
+}
+.carta:not(.masked)[data-rarity$="reverse holo"][data-subtypes^="stage"] .card__glare:after {
+  clip-path: var(--clip-stage-invert);
+}
+.carta:not(.masked)[data-rarity$="reverse holo"][data-supertype="trainer"] .card__glare:after {
+  clip-path: var(--clip-trainer-invert);
+}
+
+/* v-star */
+
+.carta.masked[data-rarity="rare holo vstar"] .card__shine, 
+.carta.masked[data-rarity="rare holo vstar"] .card__shine::before, 
+.carta.masked[data-rarity="rare holo vstar"] .card__shine::after {
+  -webkit-mask-image:  
+    var(--mask), 
+    radial-gradient(
+      farthest-corner circle 
+      at var(--pointer-x) var(--pointer-y),
+      hsla(0, 0%, 100%, 0) 0%, 
+      hsla(0, 0%, 100%, .5) 120%
+    ); 
+  mask-image: 
+    var(--mask), 
+    radial-gradient(
+      farthest-corner circle 
+      at var(--pointer-x) var(--pointer-y),
+      hsla(0, 0%, 100%, 0) 0%, 
+      hsla(0, 0%, 100%, .5) 120%
+    );
+}
+.carta[data-rarity="rare holo vstar"] .card__shine,
+.carta[data-rarity="rare holo vstar"] .card__shine:after {
+  --space: 5%;
+  --angle: 133deg;
+  --imgsize: cover;
+  background-image:
+    var(--foil),
+    repeating-linear-gradient( 0deg, 
+      var(--sunpillar-clr-1) calc(var(--space)*1), 
+      var(--sunpillar-clr-2) calc(var(--space)*2), 
+      var(--sunpillar-clr-3) calc(var(--space)*3), 
+      var(--sunpillar-clr-4) calc(var(--space)*4), 
+      var(--sunpillar-clr-5) calc(var(--space)*5), 
+      var(--sunpillar-clr-6) calc(var(--space)*6), 
+      var(--sunpillar-clr-1) calc(var(--space)*7)
+    ),
+    repeating-linear-gradient( 
+      var(--angle), 
+      #0e152e 0%, 
+      hsl(180, 10%, 60%) 3.8%, 
+      hsl(180, 29%, 66%) 4.5%, 
+      hsl(180, 10%, 60%) 5.2%, 
+      #0e152e 10% , 
+      #0e152e 12% 
+    ),
+    radial-gradient(
+      farthest-corner circle 
+      at var(--pointer-x) var(--pointer-y),
+      hsla(0, 0%, 0%, 0.1) 12%, 
+      hsla(0, 0%, 0%, 0.15) 20%, 
+      hsla(0, 0%, 0%, 0.25) 120%
+    );
+  background-blend-mode: soft-light, hue, hard-light;
+  background-size: var(--imgsize), 200% 700%, 300% 100%, 200% 100%;
+  background-position: center center, 0% var(--background-y), var(--background-x) var(--background-y), var(--background-x) var(--background-y);
+  filter: brightness(calc((var(--pointer-from-center) * .75) + .25)) contrast(2) saturate(1.25);
+}
+.carta[data-rarity="rare holo vstar"] .card__shine:after {
+  content: "";
+  background-size: var(--imgsize), 200% 400%, 195% 100%, 200% 100%;
+  background-position: center center, 0% var(--background-y), calc( var(--background-x) * -1) calc( var(--background-y) * -1), var(--background-x) var(--background-y);
+  filter: brightness(calc((var(--pointer-from-center) * .75) + .5)) contrast(1.5) saturate(1.5);
+  mix-blend-mode: exclusion;
+}
+.carta[data-rarity="rare holo vstar"] .card__shine::before {
+  content: "";
+  background-image: radial-gradient( farthest-corner circle at var(--pointer-x) var(--pointer-y), hsla(190, 7%, 80%, 0.75) 0%, hsla(260, 7%, 50%, 0.25) 45%, hsl(310, 7%, 50%) 120% );
+  mix-blend-mode: hard-light;
+  z-index: 2;
+  opacity: 0.8;
+}
+.carta[data-rarity="rare holo vstar"] .card__glare {
+  filter: brightness(.7) contrast(2);
+  background-image: 
+    radial-gradient( 
+      farthest-corner circle at var(--pointer-x) var(--pointer-y), 
+      hsl(195, 90%, 90%) 5%, 
+      hsl(300, 3%, 60%) 60%, 
+      hsl(350, 0%, 15%) 150% 
+    );
+  mix-blend-mode: hard-light;
+  opacity: calc(var(--card-opacity)*(var(--pointer-from-center)*.75));
+}
+.carta:not(.masked)[data-rarity="rare holo vstar"] .card__shine,
+.carta:not(.masked)[data-rarity="rare holo vstar"] .card__shine:after {
+  --mask: none;
+  --foil: url("tex/ancient.png"); 
+  --imgsize: 18% 15%;
+  background-blend-mode: exclusion, hue, hard-light;
+  filter: brightness(calc((var(--pointer-from-center) * .25) + .35)) contrast(1.8) saturate(1.75);
+}
+.carta:not(.masked)[data-rarity="rare holo vstar"] .card__shine:after {
+  filter: brightness(calc((var(--pointer-from-center) * .75) + .5)) contrast(1.5) saturate(1.5);
+}
+.carta:not(.masked)[data-rarity="rare holo vstar"] .card__glare {
+  filter: brightness(.55) contrast(2);
+}
+/* v-max */
+
+.carta:not(.masked)[data-rarity="rare holo vmax"][data-supertype="pokémon"] .card__shine,
+.carta:not(.masked)[data-rarity="rare holo vmax"][data-supertype="pokémon"] .card__shine:after {
+  --mask: none;
+  --foil: url("tex/vmaxbg.jpg"); 
+  --imgsize: 60% 30%;
+}
+.carta[data-rarity="rare holo vmax"] .card__shine {
+  --space: 6%;
+  --angle: 133deg;
+  --imgsize: cover;
+  background-image:
+    var(--foil),
+    repeating-linear-gradient( -33deg, 
+      hsl(2, 70%, 47%) calc(var(--space)*1),  
+      hsl(228, 60%, 64%) calc(var(--space)*2), 
+      hsl(176, 55%, 39%) calc(var(--space)*3), 
+      hsl(123, 68%, 35%) calc(var(--space)*4), 
+      hsl(283, 75%, 57%) calc(var(--space)*5), 
+      hsl(2, 70%, 47%) calc(var(--space)*6)
+    ),
+    repeating-linear-gradient( 
+      var(--angle), 
+      hsla(227, 53%, 12%, 0.5) 0%, 
+      hsl(180, 10%, 50%) 2.5%, 
+      hsl(83, 50%, 35%) 5%, 
+      hsl(180, 10%, 50%) 7.5%, 
+      hsla(227, 53%, 12%, 0.5) 10% , 
+      hsla(227, 53%, 12%, 0.5) 15% 
+      ),
+    radial-gradient(
+      farthest-corner circle 
+      at var(--pointer-x) var(--pointer-y),
+      hsla(189, 76%, 77%, 0.6) 0%, 
+      hsla(147, 59%, 77%, 0.6) 25%, 
+      hsla(271, 55%, 69%, 0.6) 50%, 
+      hsla(355, 56%, 72%, 0.6) 75%
+    );
+  background-blend-mode: difference, luminosity, soft-light;
+  background-size: var(--imgsize), 1100% 1100%, 600% 600%, 200% 200%;
+  background-position: 
+    center, 
+    var(--background-x) var(--background-y), 
+    var(--background-x) var(--background-y), 
+    var(--background-x) var(--background-y);
+  filter: brightness(calc((var(--pointer-from-center) * .4) + .4)) contrast(2) saturate(1);
+}
+.carta[data-rarity="rare holo vmax"] .card__shine:after {
+  content: "";
+  background-image: repeating-linear-gradient( 0deg, 
+    var(--sunpillar-clr-1) calc(var(--space)*1), 
+    var(--sunpillar-clr-2) calc(var(--space)*2), 
+    var(--sunpillar-clr-3) calc(var(--space)*3), 
+    var(--sunpillar-clr-4) calc(var(--space)*4), 
+    var(--sunpillar-clr-5) calc(var(--space)*5), 
+    var(--sunpillar-clr-6) calc(var(--space)*6), 
+    var(--sunpillar-clr-1) calc(var(--space)*7)
+  ),
+  repeating-linear-gradient( 
+    var(--angle), 
+    #0e152e 0%, 
+    hsl(180, 10%, 60%) 3.8%, 
+    hsl(180, 29%, 66%) 4.5%, 
+    hsl(180, 10%, 60%) 5.2%, 
+    #0e152e 10% , 
+    #0e152e 12% 
+  );
+  background-blend-mode: hue, hard-light;
+  background-size: 200% 700%, 300% 100%, 200% 100%;
+  background-position: 0% var(--background-y), var(--background-x) var(--background-y), var(--background-x) var(--background-y);
+  mix-blend-mode: lighten;
+  opacity: calc( (0.3 * var(--card-opacity)) + var(--card-opacity) * var(--pointer-from-center) * 0.5 );
+  filter: saturate(1.5);
+}
+.carta[data-rarity="rare holo vmax"] .card__glare {
+  mix-blend-mode: hard-light;
+  filter: brightness(1) contrast(1);
+  background-image: 
+    radial-gradient( 
+      farthest-corner circle at 
+      var(--pointer-x) var(--pointer-y), 
+      hsla(0, 0%, 100%, 0.75) 0%, 
+      hsl(0, 0%, 0%) 120% 
+    );
+    opacity: calc( (0.2 * var(--card-opacity)) + var(--card-opacity) * var(--pointer-from-center) * 0.8 );
+}
+.carta:not(.masked) [data-rarity="rare holo vmax"] .card__shine {
+  filter: brightness(calc((var(--pointer-from-center) * .4) + .4)) contrast(2) saturate(1);
+}
+
+/* trainer-full-art */
+
+.carta[data-subtypes*="supporter"][data-rarity="rare ultra"] .card__shine {
+  filter: brightness(calc((var(--pointer-from-center)*0.05) + .8)) contrast(1.75) saturate(1.2);
+}
+.carta[data-subtypes*="supporter"][data-rarity="rare ultra"] .card__shine:after {
+  filter: brightness(calc((var(--pointer-from-center)*.4) + .85)) contrast(2) saturate(.5);
+}
+.carta[data-subtypes*="supporter"][data-rarity="rare ultra"] .card__shine:before {
+  background-image: 
+    radial-gradient( 
+      farthest-corner circle at var(--pointer-x) var(--pointer-y), 
+      hsl(0, 0%, 100%) 0%, 
+      hsla(0, 0%, 0%, 0) 80% 
+    );
+  mix-blend-mode: screen;
+  opacity: 0.5;
+}
+.carta[data-rarity="rare ultra"][data-subtypes*="supporter"] .card__glare {
+  opacity: calc( var(--card-opacity) * .75 );
+  mix-blend-mode: multiply;
+  filter: brightness(1.5) contrast(1.4) saturate(1);
+  background-size: 170% 170%;
+}
+.carta:not(.masked)[data-subtypes*="supporter"][data-rarity="rare ultra"] .card__shine,
+.carta:not(.masked)[data-subtypes*="supporter"][data-rarity="rare ultra"] .card__shine:after {
+  --mask: none;
+  --foil: url("tex/trainerbg.png"); 
+  --imgsize: 20%;
+  background-blend-mode: color-burn, hue, hard-light;
+  filter: brightness(calc((var(--pointer-from-center)*0.05) + .6)) contrast(1.5) saturate(1.2);
+}
+/* v-full-art */
+
+.carta[data-rarity="rare ultra"][data-supertype="pokémon"] .card__shine,
+.carta[data-rarity="rare ultra"][data-supertype="pokémon"] .card__shine:after,
+.carta[data-rarity="rare ultra"][data-subtypes*="supporter"] .card__shine,
+.carta[data-rarity="rare ultra"][data-subtypes*="supporter"] .card__shine:after,
+.carta[data-rarity="rare holo v"][data-trainer-gallery="true"] .card__shine,
+.carta[data-rarity="rare holo v"][data-trainer-gallery="true"] .card__shine:after {
+  --space: 5%;
+  --angle: 133deg;
+  --imgsize: cover;
+  background-image:
+    var(--foil),
+    repeating-linear-gradient( 0deg, 
+      var(--sunpillar-clr-1) calc(var(--space)*1), 
+      var(--sunpillar-clr-2) calc(var(--space)*2), 
+      var(--sunpillar-clr-3) calc(var(--space)*3), 
+      var(--sunpillar-clr-4) calc(var(--space)*4), 
+      var(--sunpillar-clr-5) calc(var(--space)*5), 
+      var(--sunpillar-clr-6) calc(var(--space)*6), 
+      var(--sunpillar-clr-1) calc(var(--space)*7)
+    ),
+    repeating-linear-gradient( 
+      var(--angle), 
+      #0e152e 0%, 
+      hsl(180, 10%, 60%) 3.8%, 
+      hsl(180, 29%, 66%) 4.5%, 
+      hsl(180, 10%, 60%) 5.2%, 
+      #0e152e 10% , 
+      #0e152e 12% 
+      ),
+    radial-gradient(
+      farthest-corner circle 
+      at var(--pointer-x) var(--pointer-y),
+      hsla(0, 0%, 0%, 0.1) 12%, 
+      hsla(0, 0%, 0%, 0.15) 20%, 
+      hsla(0, 0%, 0%, 0.25) 120%
+    );
+  background-position: 
+    center center, 
+    0% var(--background-y), 
+    calc( var(--background-x) + (var(--background-y)*0.2) ) var(--background-y), 
+    var(--background-x) var(--background-y);
+  background-blend-mode: soft-light, hue, hard-light;
+  background-size: var(--imgsize), 200% 700%, 300% 100%, 200% 100%;
+  filter: brightness(calc((var(--pointer-from-center)*0.4) + .4)) contrast(1.4) saturate(2.25);
+}
+.carta[data-supertype="pokémon"][data-rarity="rare ultra"] .card__shine:after,
+.carta[data-subtypes*="supporter"][data-rarity="rare ultra"] .card__shine:after,
+.carta[data-trainer-gallery="true"][data-rarity="rare holo v"] .card__shine:after {
+  content: "";
+  background-position: 
+    center center, 
+    0% var(--background-y), 
+    calc( (var(--background-x) + (var(--background-y)*0.2)) * -1) calc( var(--background-y) * -1), 
+    var(--background-x) var(--background-y);
+  background-size: var(--imgsize), 200% 400%, 195% 100%, 200% 100%;
+  filter: brightness(calc((var(--pointer-from-center)*.4) + .8)) contrast(1.5) saturate(1.25);
+  mix-blend-mode: exclusion;
+}
+.carta[data-supertype="pokémon"][data-rarity="rare ultra"] .card__shine:before,
+.carta[data-subtypes*="supporter"][data-rarity="rare ultra"] .card__shine:before {
+  content: "";
+  -webkit-mask-image: none;
+  mask-image: none;
+  background-image: 
+    radial-gradient( farthest-corner circle at var(--pointer-x) var(--pointer-y), 
+      hsl(0, 0%, 100%) 0%, 
+      hsla(0, 0%, 0%, 0) 40% 
+    );
+  background-position: center;
+  background-size: cover;
+  mix-blend-mode: overlay;
+  opacity: 0.75;
+  z-index: 1;
+}
+.carta[data-supertype="pokémon"][data-rarity="rare ultra"] .card__glare,
+.carta[data-subtypes*="supporter"][data-rarity="rare ultra"] .card__glare {
+  background-image: 
+    radial-gradient( 
+      farthest-corner circle at var(--pointer-x) var(--pointer-y), 
+      hsl(0, 0%, 75%) 5%, 
+      hsl(200, 5%, 35%) 60%, 
+      hsl(320, 40%, 10%) 150% 
+    );
+  background-size: 120% 150%;
+  background-position: center center;
+  mix-blend-mode: hard-light;
+  filter: brightness(1) contrast(1.2) saturate(1);
+  opacity: calc(var(--card-opacity) * .75 );
+}
+.carta:not(.masked)[data-supertype="pokémon"][data-rarity="rare ultra"] .card__shine,
+.carta:not(.masked)[data-supertype="pokémon"][data-rarity="rare ultra"] .card__shine:after,
+.carta:not(.masked)[data-trainer-gallery="true"][data-rarity="rare holo v"] .card__shine,
+.carta:not(.masked)[data-trainer-gallery="true"][data-rarity="rare holo v"] .card__shine:after {
+  --mask: none;
+  --foil: url("tex/illusion.png"); 
+  --imgsize: 33%;
+  -webkit-mask-image: var(--mask);
+  mask-image: var(--mask);
+	-webkit-mask-size: var(--imgsize);
+  mask-size: var(--imgsize);
+  background-blend-mode: exclusion, hue, hard-light;
+  filter: brightness(calc((var(--pointer-from-center)*.3) + .35)) contrast(2) saturate(1.5);
+}
+.carta:not(.masked)[data-supertype="pokémon"][data-rarity="rare ultra"] .card__shine:before,
+.carta:not(.masked)[data-trainer-gallery="true"][data-rarity="rare holo v"] .card__shine:before {
+  content: none;
+  display: none;
+}
+.carta:not(.masked)[data-supertype="pokémon"][data-rarity="rare ultra"] .card__shine:after,
+.carta:not(.masked)[data-trainer-gallery="true"][data-rarity="rare holo v"] .card__shine:after {
+  filter: brightness(calc((var(--pointer-from-center)*.5) + .8)) contrast(1.6) saturate(1.4);
+}
+
+/* amazing-rare */
+
+.carta[data-rarity="amazing rare"] .card__shine {
+  background-image:
+    var(--glitter),
+    var(--glitter), 
+    radial-gradient( 
+      farthest-corner circle at var(--pointer-x) var(--pointer-y), 
+      hsla(150, 20%, 10%, 1) 10%, 
+      hsla(177, 22%, 80%, 0.1) 50%, 
+      hsla(0, 0%, 95%, .98) 90% 
+    );
+  background-size: var(--glittersize) var(--glittersize), var(--glittersize) var(--glittersize), cover;
+  background-position: 40% 45%, 55% 55%, center center;
+  background-blend-mode: soft-light, color-burn;
+  filter: brightness(1) contrast(1) saturate(.9);
+}
+.carta[data-rarity="amazing rare"] .card__shine:before {
+  content: "";
+  -webkit-mask-image: none !important;
+  mask-image: none !important;
+  background-image:
+    var(--foil),
+    radial-gradient( 
+      farthest-corner circle at var(--pointer-x) var(--pointer-y), 
+      hsla(50, 20%, 90%, 0.95) 10%, 
+      rgba(181, 139, 164, 0.5) 50%, 
+      hsl(0, 0%, 0%) 60% 
+    );
+  background-size: cover, cover;
+  background-position: center center, center center;
+  background-blend-mode: color-burn;
+  mix-blend-mode: lighten;
+  filter: brightness(1) contrast(1) saturate(1);
+  opacity: 0.5;
+}
+.carta[data-rarity="amazing rare"] .card__shine:after {
+  content: "";
+  -webkit-mask-image: none !important;
+  mask-image: none !important;
+  background-image: 
+    repeating-linear-gradient( 
+      calc( var(--angle) ), 
+      var(--sunpillar-clr-1) calc(var(--space)*1), 
+      var(--sunpillar-clr-2) calc(var(--space)*2), 
+      var(--sunpillar-clr-3) calc(var(--space)*3), 
+      var(--sunpillar-clr-4) calc(var(--space)*4), 
+      var(--sunpillar-clr-5) calc(var(--space)*5), 
+      var(--sunpillar-clr-6) calc(var(--space)*6),
+      var(--sunpillar-clr-1) calc(var(--space)*7)
+    );
+  background-size: 400% 800%;
+  background-position: calc( 50% + (50% - (var(--background-x))) * 3 ) calc( 50% + (50% - (var(--background-y))) * 3 );
+  filter: brightness(calc( 0.75 - ( var(--pointer-from-center) * 0.5 ))) contrast(1) saturate(1);
+  mix-blend-mode: saturation;
+}
+.carta.masked[data-rarity="amazing rare"] .card__glare {
+	background-image: 
+		radial-gradient( 
+			farthest-corner circle at 
+			var(--pointer-x) var(--pointer-y), 
+			hsla(50, 20%, 90%, 0.45) 0%, 
+			hsla(150, 20%, 30%, 0.45) 45%, 
+			hsla(0, 0%, 0%, .9) 120% 
+		);
+	filter: brightness(.9) contrast(2);
+}
+.carta.masked[data-rarity="amazing rare"] .card__glare:after {
+  content: "";
+  -webkit-mask-image: var(--mask);
+  mask-image: var(--mask);
+	-webkit-mask-size: cover;
+  mask-size: cover;
+	background-image: 
+		radial-gradient( 
+			farthest-corner circle at 
+			var(--pointer-x) var(--pointer-y), 
+			hsla(50, 20%, 90%, 0.75) 0%, 
+			hsla(150, 20%, 30%, 0.65) 45%, 
+			hsla(0, 0%, 0%, 1) 90% 
+		);
+  filter: brightness(1) contrast(1.5);
+  mix-blend-mode: overlay;
+	opacity: 1;
+}
+.carta:not(.masked)[data-rarity="amazing rare"] .card__shine {
+  clip-path: var(--clip);
+}
+.carta:not(.masked)[data-rarity="amazing rare"] .card__glare {
+  background-image: 
+    radial-gradient( 
+      farthest-corner circle at var(--pointer-x) var(--pointer-y), 
+      hsla(0, 0%, 100%, 1) 10%, 
+      hsla(0, 0%, 100%, 0.85) 20%, 
+      hsla(0, 0%, 0%, 0.35) 90% 
+    );
+  mix-blend-mode: multiply;
+}
+/* secret-rare */
+
+.carta[data-rarity="rare secret"] .card__shine,
+.carta[data-set="swshp"][data-number="swsh145"] .card__shine {
+  --shift: 1px;
+  --imgsize: cover;
+  background-image:
+    var(--glitter), 
+    var(--glitter), 
+    conic-gradient( 
+      var(--sunpillar-clr-4), 
+      var(--sunpillar-clr-5),
+      var(--sunpillar-clr-6), 
+      var(--sunpillar-clr-1), 
+      var(--sunpillar-clr-4) 
+    ), 
+    radial-gradient( 
+      farthest-corner circle at var(--pointer-x) var(--pointer-y), 
+      hsla(150, 00%, 0%, .98) 10%, 
+      hsla(0, 0%, 95%, .15) 90% 
+    );
+  background-size: var(--glittersize) var(--glittersize), var(--glittersize) var(--glittersize), cover, cover;
+  background-position: 45% 45%, 55% 55%, center center, center center;
+  background-blend-mode: soft-light, hard-light, overlay;
+  mix-blend-mode: color-dodge;
+  filter: brightness(calc( 0.4 + (var(--pointer-from-center) * 0.2) )) contrast(1) saturate(2.7);
+}
+.carta[data-rarity="rare secret"] .card__shine:before,
+.carta[data-set="swshp"][data-number="swsh145"] .card__shine:before {
+  content: "";
+  -webkit-mask-image: none !important;
+  mask-image: none !important;
+  background-image:
+    var(--foil), 
+    linear-gradient( 45deg, hsl(46, 95%, 50%), hsl(52, 100%, 69%) ), 
+    radial-gradient( 
+      farthest-corner circle at var(--pointer-x) var(--pointer-y), 
+      hsla(10, 20%, 90%, 0.95) 10%, 
+      hsl(0, 0%, 0%) 70% 
+    );
+  background-size: var(--imgsize), cover, cover;
+  background-position: center center, center center, center center;
+  background-blend-mode: hard-light, multiply;
+  mix-blend-mode: lighten;
+  filter: brightness(1.25) contrast(1.25) saturate(0.35);
+  opacity: .8;
+}
+.carta[data-rarity="rare secret"] .card__shine:after,
+.carta[data-set="swshp"][data-number="swsh145"] .card__shine:after {
+  content: "";
+  -webkit-mask-image: none !important;
+  mask-image: none !important;
+  background-image: var(--glitter);
+  background-size: var(--glittersize) var(--glittersize);
+  background-position: calc(50% - ((var(--shift)*2) * var(--pointer-from-left)) + var(--shift)) calc(50% - ((var(--shift)*2) * var(--pointer-from-top)) + var(--shift));
+  filter: brightness(calc((var(--pointer-from-center)*0.6) + 0.6)) contrast(1.5);
+  mix-blend-mode: overlay;
+}
+.carta[data-rarity="rare secret"] .card__glare,
+.carta[data-set="swshp"][data-number="swsh145"] .card__glare {
+	background-image: 
+    radial-gradient( 
+      farthest-corner circle at var(--pointer-x) var(--pointer-y), 
+      hsla(45, 8%, 80%, 0.3) 0%, 
+      hsl(22, 15%, 12%) 180%
+    );
+	filter: brightness(1.3) contrast(1.5);
+  mix-blend-mode: hard-light;
+}
+.carta:not(.masked)[data-rarity="rare secret"] .card__shine,
+.carta:not(.masked)[data-set="swshp"][data-number="swsh145"] .card__shine {
+  --foil: url("tex/geometric.png"); 
+  --imgsize: 33%;
+  filter: brightness( calc( ( var( --pointer-from-center ) * 0.3 ) + 0.2 ) ) contrast(2) saturate(0.75);
+}
+
+/* rainbow-holo */
+
+.carta[data-rarity="rare rainbow"] .card__shine {
+  --r-clr-1: hsl(0, 57%, 37%);
+  --r-clr-2: hsl(40, 53%, 39%);
+  --r-clr-3: hsl(90, 60%, 35%);
+  --r-clr-4: hsl(180, 60%, 35%);
+  --r-clr-5: hsl(180, 60%, 35%);
+  --r-clr-6: hsl(210, 57%, 39%);
+  --r-clr-7: hsl(280, 55%, 31%);
+  background-image: 
+    linear-gradient(-45deg, var(--r-clr-1), var(--r-clr-5)),
+    var(--glitter),
+    linear-gradient( -30deg, 
+      var(--r-clr-1), var(--r-clr-2), var(--r-clr-3), var(--r-clr-4), var(--r-clr-5), var(--r-clr-6), var(--r-clr-7), 
+      var(--r-clr-1), var(--r-clr-2), var(--r-clr-3), var(--r-clr-4), var(--r-clr-5), var(--r-clr-6), var(--r-clr-7), 
+      var(--r-clr-1), var(--r-clr-2), var(--r-clr-3), var(--r-clr-4), var(--r-clr-5), var(--r-clr-6), var(--r-clr-7), 
+      var(--r-clr-1)
+    );
+  background-blend-mode: luminosity, soft-light;
+  background-size: 
+    200% 200%, 
+    var(--glittersize) var(--glittersize), 
+    400% 400%;
+  background-position: 
+    calc( 25% + (50% * var(--pointer-from-left) )) calc( 25% + (50% * var(--pointer-from-top) )), 
+    center center, 
+    calc( 25% + (var(--pointer-x) / 2 ) ) calc( 25% + (var(--pointer-y) / 2 ) );
+  filter: brightness(calc((var(--pointer-from-center)*0.25) + 0.6))  contrast(2.2) saturate(0.75);
+}
+.carta[data-rarity="rare rainbow"] .card__shine:after {
+  content: "";
+  -webkit-mask-image: none !important;
+  mask-image: none !important;
+  background-image: 
+    var(--glitter),
+    linear-gradient( -60deg, 
+        var(--r-clr-1), var(--r-clr-2), var(--r-clr-3), var(--r-clr-4), var(--r-clr-5), var(--r-clr-6), var(--r-clr-7), 
+        var(--r-clr-1), var(--r-clr-2), var(--r-clr-3), var(--r-clr-4), var(--r-clr-5), var(--r-clr-6), var(--r-clr-7), 
+        var(--r-clr-1), var(--r-clr-2), var(--r-clr-3), var(--r-clr-4), var(--r-clr-5), var(--r-clr-6), var(--r-clr-7), 
+        var(--r-clr-1)
+    );
+    background-blend-mode: soft-light;
+    background-size: var(--glittersize) var(--glittersize), 400% 400%;
+    background-position: center center, var(--pointer-x) var(--pointer-y);
+    filter: brightness(calc((var(--pointer-from-center)*0.3) + 0.55)) contrast(2) saturate(1);
+    mix-blend-mode: color-dodge;
+}
+.carta[data-rarity="rare rainbow"] .card__shine:before {
+  content: "";
+  background-image: var(--foil);
+  background-size: var(--imgsize);
+  background-position: center center;
+  filter: brightness(2.5) contrast(1);
+  opacity: calc((var(--pointer-from-center) + 0.4 ) * 0.6 );
+  background-blend-mode: difference;
+  mix-blend-mode: darken;
+}
+.carta[data-rarity="rare rainbow"] .card__glare {
+	background-image: 
+    radial-gradient( 
+      farthest-corner circle at var(--pointer-x) var(--pointer-y), 
+      hsl(0,0%,80%), 
+      hsla(187, 10%, 85%, 0.25) 30%, 
+      hsl(197, 6%, 25%) 120% 
+    );
+	filter: brightness(.9) contrast(1.75);
+	opacity: calc( var(--pointer-from-center) * 0.9 );
+  mix-blend-mode: hard-light;
+}
+.carta:not(.masked)[data-rarity="rare rainbow"] .card__shine {
+  --foil: url("tex/illusion-mask.png"); 
+  --imgsize: 33%;
+}
+/* rainbow-alt */
+
+.carta[data-rarity="rare rainbow alt"] .card__shine,
+.carta[data-rarity="rare holo vmax"][data-trainer-gallery="true"] .card__shine {
+  --imgsize: cover;
+  --r-clr-1: hsl(0, 57%, 37%);
+  --r-clr-2: hsl(40, 53%, 39%);
+  --r-clr-3: hsl(90, 60%, 35%);
+  --r-clr-4: hsl(180, 60%, 35%);
+  --r-clr-5: hsl(180, 60%, 35%);
+  --r-clr-6: hsl(210, 57%, 39%);
+  --r-clr-7: hsl(280, 55%, 31%);
+  background-image: 
+    repeating-linear-gradient( 
+      var(--angle), 
+        hsla(283, 49%, 60%, 0.75) calc(var(--space)*1), 
+        hsla(2, 70%, 58%, 0.75) calc(var(--space)*2), 
+        hsla(53, 67%, 53%, 0.75) calc(var(--space)*3), 
+        hsla(93, 56%, 52%, 0.75) calc(var(--space)*4), 
+        hsla(176, 38%, 50%, 0.75) calc(var(--space)*5), 
+        hsla(228, 100%, 77%, 0.75) calc(var(--space)*6), 
+        hsla(283, 49%, 61%, 0.75) calc(var(--space)*7) 
+      ),
+    var(--glitter),
+    linear-gradient( -30deg, 
+      var(--r-clr-1), var(--r-clr-2), var(--r-clr-3), var(--r-clr-4), var(--r-clr-5), var(--r-clr-6), var(--r-clr-7), 
+      var(--r-clr-1), var(--r-clr-2), var(--r-clr-3), var(--r-clr-4), var(--r-clr-5), var(--r-clr-6), var(--r-clr-7), 
+      var(--r-clr-1), var(--r-clr-2), var(--r-clr-3), var(--r-clr-4), var(--r-clr-5), var(--r-clr-6), var(--r-clr-7), 
+      var(--r-clr-1)
+    );
+  background-size: 200% 400%, var(--glittersize) var(--glittersize), 400% 400%;
+  background-position: 0% calc(var(--background-y) * 1), center center, calc( var(--background-x) * 1.5) calc( var(--background-y) * 1.5 );
+  background-blend-mode: luminosity, overlay;
+  filter: brightness(calc((var(--pointer-from-center)*0.3) + 0.3)) contrast(3) saturate(1.8);
+}
+.carta[data-rarity="rare rainbow alt"] .card__shine:after,
+.carta[data-rarity="rare holo vmax"][data-trainer-gallery="true"] .card__shine:after {
+  content: "";
+  -webkit-mask-image: none !important;
+  mask-image: none !important;
+  background-image: 
+    var(--glitter), 
+    linear-gradient( -60deg, 
+      var(--r-clr-1), var(--r-clr-2), var(--r-clr-3), var(--r-clr-4), var(--r-clr-5), var(--r-clr-6), var(--r-clr-7), 
+      var(--r-clr-1), var(--r-clr-2), var(--r-clr-3), var(--r-clr-4), var(--r-clr-5), var(--r-clr-6), var(--r-clr-7), 
+      var(--r-clr-1), var(--r-clr-2), var(--r-clr-3), var(--r-clr-4), var(--r-clr-5), var(--r-clr-6), var(--r-clr-7), 
+      var(--r-clr-1) 
+    );
+  background-blend-mode: overlay;
+  background-size: var(--glittersize) var(--glittersize), 400% 400%;
+  background-position: center center, calc( var(--background-x) * -1.5) calc( var(--background-y) * -1.5 );
+  filter: brightness(calc((var(--pointer-from-center)*0.5) + 0.6)) contrast(3) saturate(1);
+  mix-blend-mode: color-dodge;
+  opacity: calc(1.2 + (var(--pointer-from-center)/2) * -1);
+}
+.carta[data-rarity="rare rainbow alt"] .card__shine:before,
+.carta[data-rarity="rare holo vmax"][data-trainer-gallery="true"] .card__shine:before {
+  content: "";
+  background-image: var(--foil);
+  background-size: var(--imgsize);
+  background-position: center center;
+  filter: brightness(1.5) contrast(1.5);
+  opacity: calc((var(--pointer-from-center) + 0.6 ) * 0.4 );
+  background-blend-mode: difference;
+  mix-blend-mode: color-dodge;
+}
+.carta[data-rarity="rare rainbow alt"] .card__glare {
+	background-image: 
+		radial-gradient( 
+			farthest-corner circle at 
+			var(--pointer-x) var(--pointer-y), 
+			hsla(50, 20%, 90%, 0.75) 0%, 
+			hsla(150, 20%, 30%, 0.65) 45%, 
+			hsla(0, 0%, 0%, 1) 100% 
+		);
+	filter: brightness(.9) contrast(2);
+	opacity: calc( var(--card-opacity) * 0.75 );
+}
+.carta:not(.masked)[data-rarity="rare rainbow alt"] .card__shine,
+.carta:not(.masked)[data-rarity="rare holo vmax"][data-trainer-gallery="true"] .card__shine {
+  --mask: none;
+  --foil: none;
+  --imgsize: 25% auto;
+}
+
+/* Holo (personas): brillo de lámina que se nota al inclinar y deja ver el dibujo.
+   En reposo apenas tiñe; al mover, una franja de arcoíris recorre el cuadro con líneas finas de lámina, solo alrededor de donde da la luz */
+.carta[data-rarity="rare holo"] .card__shine{
+  background-image:
+    repeating-linear-gradient(90deg,rgba(0,0,0,.55) 0 1px,transparent 1px 3px),
+    repeating-linear-gradient(110deg,
+      hsl(285,70%,24%),hsl(205,80%,22%),hsl(150,70%,20%),hsl(52,80%,24%),hsl(355,75%,26%),
+      hsl(285,70%,24%),hsl(205,80%,22%),hsl(150,70%,20%),hsl(52,80%,24%),hsl(355,75%,26%));
+  background-size:cover,170% 170%;
+  background-position:center,calc(((50% - var(--background-x)) * 2.6) + 50%) calc(((50% - var(--background-y)) * 3.5) + 50%);
+  background-blend-mode:normal;
+  -webkit-mask-image:radial-gradient(farthest-corner circle at var(--pointer-x) var(--pointer-y),#000 0%,rgba(0,0,0,.75) 25%,rgba(0,0,0,.12) 65%);
+  mask-image:radial-gradient(farthest-corner circle at var(--pointer-x) var(--pointer-y),#000 0%,rgba(0,0,0,.75) 25%,rgba(0,0,0,.12) 65%);
+  filter:none;mix-blend-mode:color-dodge;
+  opacity:calc(.06 + var(--pointer-from-center) * .95)}
+.carta[data-rarity="rare holo"] .card__shine:before,.carta[data-rarity="rare holo"] .card__shine:after{display:none}
+.carta[data-rarity="rare holo"] .card__glare{opacity:calc(.2 + var(--pointer-from-center) * .6)}
+/* Grabada: el grabado sigue, pero sin quemar los dibujos claros (vestidos blancos, cielos) */
+.carta[data-rarity="rare ultra"] .card__shine{opacity:calc(.12 + var(--pointer-from-center) * .55)}
+.carta[data-rarity="rare ultra"] .card__glare{opacity:calc(.2 + var(--pointer-from-center) * .5)}
+:root{--pointer-x:50%;--pointer-y:50%;--card-opacity:1;--rotate-x:0deg;--rotate-y:0deg;--background-x:50%;--background-y:50%;
+  --pointer-from-center:0;--pointer-from-top:.5;--pointer-from-left:.5;--mx:.5;--my:.5}
+/* ── la carta ── */
+.carta{--w:min(80vw,360px);width:var(--w);aspect-ratio:720/1019;position:relative;border-radius:3.7%/2.6%;overflow:hidden;isolation:isolate;
+  container-type:inline-size;background:#111;transform:rotateY(var(--rotate-x)) rotateX(var(--rotate-y));
+  box-shadow:calc((var(--mx) - .5) * -30px) calc(22px + (var(--my) - .5) * -24px) 50px rgba(0,0,0,.65),0 0 0 1px rgba(255,255,255,.06)}
+.carta>*{position:absolute;inset:0;width:100%;height:100%}
+.carta img{display:block;pointer-events:none}
+.carta .ventana{overflow:hidden;isolation:isolate}
+.carta .ventana>*{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.carta .fondo{transform:translate(calc((var(--mx) - .5) * -7%),calc((var(--my) - .5) * -7%)) scale(1.09)}
+/* capas de Codex: fondo y personaje salen del mismo lienzo, así que van en la misma caja y se mueven juntos */
+.carta>.capa-clip{overflow:hidden;border-radius:inherit;pointer-events:none}
+.carta .capa,.carta .ventana>.capa{position:absolute;inset:auto;max-width:none;transform-origin:50% 50%;
+  transform:translate(calc((var(--mx) - .5) * -1.2%),calc((var(--my) - .5) * -1.2%)) scale(1.03)}
+.carta .capa>img{position:absolute;inset:0;width:100%;height:100%;max-width:none;object-fit:fill;transform:none!important}
+.carta.esc .esc-c .pj.fija{transform:none}
+.carta .pj{transform-origin:50% 100%;transform:translate(calc((var(--mx) - .5) * -1.6%),calc((var(--my) - .5) * -1%)) scale(1.025)}
+/* Escapada: el personaje por encima del marco, algo más grande, con sombra sobre el marco */
+.carta .pj.fuera{transform-origin:50% 100%;transform:translate(calc((var(--mx) - .5) * -3%),calc((var(--my) - .5) * -2%)) scale(1.07);
+  filter:drop-shadow(0 4px 6px rgba(0,0,0,.55)) drop-shadow(0 0 1px rgba(0,0,0,.6))}
+/* oro: tiñe fondo y marco; el personaje sigue a color */
+.carta .tinte{background:linear-gradient(115deg,#6b4a10 0%,#ffe9a8 14%,#b8862b 28%,#fff6d0 42%,#8a6418 56%,#ffe9a8 70%,#b8862b 84%,#6b4a10 100%);
+  background-size:300% 300%;background-position:calc(var(--mx)*100%) calc(var(--my)*100%);mix-blend-mode:color;opacity:.9}
+.carta .tinte.m{-webkit-mask:var(--marco) center/100% 100%;mask:var(--marco) center/100% 100%}
+/* la VMAX: el brillo nunca pisa vuestra foto */
+.carta.sinfoto .card__shine,.carta.sinfoto .card__glare{-webkit-mask:var(--marco) center/100% 100% !important;mask:var(--marco) center/100% 100% !important}
+.carta .card__shine,.carta .card__glare{display:grid;overflow:hidden;border-radius:inherit;pointer-events:none}
+.carta .card__shine:before,.carta .card__shine:after,.carta .card__glare:after{grid-area:1/1;border-radius:inherit}
+/* sellos en oro estampado (Weiß Schwarz): firma o huella */
+.carta .sello{inset:auto;width:auto;height:auto;pointer-events:none}
+.carta .firma{white-space:nowrap;line-height:1;font-family:"Firma",cursive;padding:0 .15em;
+  background:linear-gradient(105deg,#6d4a0e 0%,#f9e7a0 18%,#b8872b 34%,#fffbe6 48%,#a57a22 62%,#f5dc8a 78%,#6d4a0e 100%);
+  background-size:260% 100%;background-position:calc(var(--mx)*100%) 50%;-webkit-background-clip:text;background-clip:text;color:transparent;
+  filter:drop-shadow(0 .6px 0 rgba(60,40,0,.9)) drop-shadow(0 -.4px 0 rgba(255,250,220,.7)) drop-shadow(0 1.5px 2px rgba(0,0,0,.45))}
+.carta .huella{background:linear-gradient(105deg,#6d4a0e 0%,#f9e7a0 20%,#b8872b 38%,#fffbe6 52%,#a57a22 66%,#f5dc8a 82%,#6d4a0e 100%);
+  background-size:260% 100%;background-position:calc(var(--mx)*100%) 50%;
+  -webkit-mask:url("@@PAW@@") center/contain no-repeat;mask:url("@@PAW@@") center/contain no-repeat;
+  filter:drop-shadow(0 0 1px rgba(40,25,0,1)) drop-shadow(0 0 1px rgba(40,25,0,1)) drop-shadow(0 2px 3px rgba(0,0,0,.6))}
+.carta .huella-w{filter:drop-shadow(0 0 .8px rgba(40,25,0,1)) drop-shadow(0 0 .8px rgba(40,25,0,1)) drop-shadow(0 2px 3px rgba(0,0,0,.55))}
+.carta .huella-w .huella{position:absolute;inset:0;width:100%;height:100%;filter:none}
+.carta .huella.corona{-webkit-mask-image:url("@@CROWN@@");mask-image:url("@@CROWN@@")}
+.carta .borde{padding:2.3%;background:linear-gradient(115deg,#6b4a10,#ffe9a8 20%,#b8862b 40%,#fff6d0 60%,#8a6418 80%,#ffe9a8);
+  background-size:300% 300%;background-position:calc(var(--mx)*100%) calc(var(--my)*100%);mix-blend-mode:color;
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;
+  mask:linear-gradient(#000 0 0) content-box exclude,linear-gradient(#000 0 0)}
+
+/* ══ ORO (hiper rara): la carta pasa a oro de verdad (mapa de color), grabado que brilla con la luz,
+   barrido especular y purpurina dorada. El personaje sigue a color, como las Mega hiper raras. ══ */
+.carta.oro .dorar{filter:grayscale(1) sepia(1) saturate(2.6) hue-rotate(-8deg) brightness(1.08) contrast(1.22)}
+.carta.oro .grab{background:radial-gradient(farthest-corner circle at var(--pointer-x) var(--pointer-y),#fff8dc 0%,#ffd76a 18%,rgba(120,80,10,.35) 45%,transparent 70%);
+  -webkit-mask:url("tex/grabado-oro.webp") center/100% 100%;mask:url("tex/grabado-oro.webp") center/100% 100%;mix-blend-mode:color-dodge;opacity:.95}
+.carta.oro .grab2{background:linear-gradient(calc(110deg + var(--rotate-x) * 2),transparent 30%,rgba(255,236,170,.9) 46%,rgba(255,255,255,1) 50%,rgba(255,236,170,.9) 54%,transparent 70%);
+  background-size:260% 260%;background-position:calc(var(--pointer-from-left) * 100%) 50%;
+  -webkit-mask:url("tex/grabado-oro.webp") center/100% 100%;mask:url("tex/grabado-oro.webp") center/100% 100%;mix-blend-mode:overlay;opacity:.8}
+.carta.oro .barrido{background:linear-gradient(calc(115deg + var(--rotate-x) * 1.5),transparent 35%,rgba(255,244,210,.55) 48%,rgba(255,255,255,.75) 50%,rgba(255,244,210,.55) 52%,transparent 65%);
+  background-size:300% 300%;background-position:calc(var(--pointer-from-left) * 100%) calc(var(--pointer-from-top) * 100%);mix-blend-mode:soft-light}
+.carta.oro .purpu{background:url("tex/iri-8.webp") center/150px 150px;mix-blend-mode:plus-lighter;filter:sepia(1) saturate(3) hue-rotate(-10deg) brightness(1.3) contrast(1.6);
+  background-position:calc(50% + var(--pointer-from-left) * 6px) calc(50% + var(--pointer-from-top) * 6px);opacity:calc(.25 + var(--pointer-from-center) * .45)}
+.carta.oro .pj{filter:drop-shadow(0 0 1.5px rgba(80,50,0,.8)) drop-shadow(0 3px 6px rgba(60,35,0,.45))}
+.carta.oro .card__glare{background-image:radial-gradient(farthest-corner circle at var(--pointer-x) var(--pointer-y),rgba(255,250,230,.75) 8%,rgba(255,220,140,.25) 30%,rgba(40,25,0,.45) 90%);mix-blend-mode:overlay}
+.carta.oro{box-shadow:calc((var(--mx) - .5) * -30px) calc(22px + (var(--my) - .5) * -24px) 50px rgba(0,0,0,.65),0 0 0 1.5px #c9a24a,0 0 28px rgba(242,193,78,.35)}
+
+/* ══ GREMORY (la carta imposible): marco de nácar, líneas «starlight» de arcoíris (Yu-Gi-Oh), personaje fuera del marco
+   con halo, estrellas que titilan, borde de oro vivo, corona y número de serie 1/1 ══ */
+.carta.gremory .nacarar{filter:saturate(.8) contrast(1.08)}
+.carta.gremory .nacar{background:linear-gradient(calc(125deg + var(--rotate-x) * 3),#ffd6e8,#d6f0ff 20%,#fff6d6 40%,#e0d6ff 60%,#d6fff0 80%,#ffd6e8);
+  background-size:300% 300%;background-position:calc(var(--pointer-from-left) * 100%) calc(var(--pointer-from-top) * 100%);mix-blend-mode:soft-light;opacity:.6}
+.carta.gremory .star{background-image:repeating-linear-gradient(0deg,rgba(0,0,0,0) 0 1.6px,#fff 1.6px 2.4px),
+    linear-gradient(calc(170deg + var(--rotate-x) * 4),hsl(2,100%,73%),hsl(53,100%,69%),hsl(93,100%,69%),hsl(176,100%,76%),hsl(228,100%,74%),hsl(283,100%,73%),hsl(2,100%,73%),hsl(53,100%,69%),hsl(93,100%,69%));
+  background-blend-mode:multiply;background-size:100% 100%,100% 400%;background-position:0 0,50% calc(var(--pointer-from-top) * 100%);
+  mix-blend-mode:overlay;filter:saturate(1.4) contrast(1.2);opacity:calc(.45 + var(--pointer-from-center) * .45)}
+.carta.gremory .purpu{background:url("tex/iri-7.webp") center/160px 160px;mix-blend-mode:plus-lighter;filter:brightness(1.4) contrast(1.8);opacity:calc(.15 + var(--pointer-from-center) * .35);
+  background-position:calc(50% + var(--pointer-from-left) * 8px) calc(50% + var(--pointer-from-top) * 8px)}
+.carta.gremory .pj.fuera{filter:drop-shadow(0 0 3px rgba(255,236,190,.9)) drop-shadow(0 0 10px rgba(255,210,120,.45)) drop-shadow(0 4px 6px rgba(0,0,0,.5))}
+.carta.gremory .borde{inset:0;padding:2.6%;border-radius:inherit;mix-blend-mode:normal;
+  background:conic-gradient(from calc(var(--rotate-x) * 8),#8a6418,#ffe9a8,#fff,#f2c14e,#8a6418,#ffe9a8,#fff6d0,#b8862b,#8a6418);
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.6)}
+.carta.gremory .brill{inset:auto;width:7cqw;height:7cqw;background:radial-gradient(circle,#fff 0 18%,rgba(255,240,200,.9) 30%,transparent 62%);
+  clip-path:polygon(50% 0,58% 42%,100% 50%,58% 58%,50% 100%,42% 58%,0 50%,42% 42%);animation:titila 2.4s ease-in-out infinite;mix-blend-mode:plus-lighter}
+@keyframes titila{0%,100%{transform:scale(.2) rotate(0);opacity:0}45%{transform:scale(1) rotate(45deg);opacity:1}60%{transform:scale(.6) rotate(60deg);opacity:.6}}
+.carta.gremory .serie{inset:auto;left:50%;bottom:3.6%;transform:translateX(-50%);width:auto;height:auto;font:700 3.2cqw/1 "Space Mono",monospace;letter-spacing:.2em;
+  background:linear-gradient(105deg,#6d4a0e,#f9e7a0 30%,#fffbe6 50%,#b8872b 70%,#6d4a0e);background-size:260% 100%;background-position:calc(var(--mx)*100%) 50%;
+  -webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 .5px 0 rgba(0,0,0,.8))}
+.carta.gremory{box-shadow:calc((var(--mx) - .5) * -30px) calc(22px + (var(--my) - .5) * -24px) 50px rgba(0,0,0,.65),0 0 30px rgba(255,210,120,.35),0 0 60px rgba(180,120,255,.25)}
+
+/* ══ tres ideas para Gremory ══ */
+/* G1 · Obsidiana: carta negra con grabado de oro que se enciende, personaje a color con luz cálida */
+.carta.g1 .obsid{filter:grayscale(1) brightness(.32) contrast(1.35)}
+.carta.g1 .oblin{background:linear-gradient(115deg,#6b4a10,#f7df8f 25%,#b8862b 45%,#fff3c4 60%,#8a6418 80%,#e8c35f);background-size:300% 300%;
+  background-position:calc(var(--pointer-from-left) * 100%) calc(var(--pointer-from-top) * 100%);
+  -webkit-mask:url("tex/grabado-oro.webp") center/100% 100%;mask:url("tex/grabado-oro.webp") center/100% 100%;opacity:.5}
+.carta.g1 .obglint{background:radial-gradient(circle at var(--pointer-x) var(--pointer-y),#fffbe6 0%,rgba(255,215,110,.8) 12%,transparent 38%);
+  -webkit-mask:url("tex/grabado-oro.webp") center/100% 100%;mask:url("tex/grabado-oro.webp") center/100% 100%;mix-blend-mode:plus-lighter}
+.carta.g1 .purpu{background:url("tex/iri-8.webp") center/150px 150px;mix-blend-mode:plus-lighter;filter:sepia(1) saturate(3) hue-rotate(-10deg) brightness(1.1) contrast(1.8);opacity:calc(.1 + var(--pointer-from-center) * .3)}
+.carta.g1 .pj.fuera{filter:drop-shadow(0 0 2px rgba(255,220,150,.9)) drop-shadow(0 0 14px rgba(255,190,90,.55)) drop-shadow(0 5px 8px rgba(0,0,0,.7))}
+.carta.g1{box-shadow:calc((var(--mx) - .5) * -30px) calc(22px + (var(--my) - .5) * -24px) 50px rgba(0,0,0,.7),0 0 26px rgba(242,193,78,.4)}
+/* G2 · Cósmica: el fondo es una galaxia de verdad con estrellas en paralaje; marco tornasolado */
+.carta.g2 .galaxia{background:url("tex/galaxy.jpg") center/cover;transform:translate(calc((var(--mx) - .5) * -8%),calc((var(--my) - .5) * -8%)) scale(1.12);filter:saturate(1.3) brightness(1.1)}
+.carta.g2 .estrellas{background:url("tex/cosmos-top-trans.png") center/120% auto;mix-blend-mode:plus-lighter;
+  transform:translate(calc((var(--mx) - .5) * -3%),calc((var(--my) - .5) * -3%));opacity:.9}
+.carta.g2 .cosmo{filter:saturate(.7) hue-rotate(calc(var(--pointer-from-left) * 40deg - 20deg)) brightness(1.02)}
+.carta.g2 .irid{background:linear-gradient(calc(125deg + var(--rotate-x) * 3),#7b5cff,#5cc8ff 25%,#ff7bd6 50%,#ffd35c 75%,#7b5cff);background-size:300% 300%;
+  background-position:calc(var(--pointer-from-left) * 100%) calc(var(--pointer-from-top) * 100%);mix-blend-mode:soft-light;opacity:.8;-webkit-mask:var(--marco) center/100% 100%;mask:var(--marco) center/100% 100%}
+.carta.g2 .purpu{background:url("tex/iri-7.webp") center/160px 160px;mix-blend-mode:plus-lighter;filter:brightness(1.4) contrast(1.8);opacity:calc(.2 + var(--pointer-from-center) * .4)}
+.carta.g2 .pj.fuera{filter:drop-shadow(0 0 3px rgba(180,220,255,.9)) drop-shadow(0 0 16px rgba(120,120,255,.6)) drop-shadow(0 5px 8px rgba(0,0,0,.6))}
+.carta.g2 .borde{background:conic-gradient(from calc(var(--rotate-x) * 8),#6d7cff,#e3e8ff,#b36dff,#6de0ff,#fff,#6d7cff)}
+.carta.g2{box-shadow:calc((var(--mx) - .5) * -30px) calc(22px + (var(--my) - .5) * -24px) 50px rgba(0,0,0,.7),0 0 30px rgba(120,120,255,.45)}
+/* G3 · Encantada (como las Enchanted de Lorcana): sin marco, dibujo a sangre, acuarela de arcoíris y placa con el nombre */
+.carta.g3 .ventana{inset:0}
+.carta.g3 .ventana .fondo{transform:translate(calc((var(--mx) - .5) * -5%),calc((var(--my) - .5) * -5%)) scale(1.1)}
+.carta.g3 .acuarela{background:
+    radial-gradient(ellipse at 20% 25%,rgba(255,120,200,.55),transparent 45%),radial-gradient(ellipse at 80% 35%,rgba(120,200,255,.55),transparent 45%),
+    radial-gradient(ellipse at 40% 80%,rgba(255,230,120,.5),transparent 45%),
+    linear-gradient(calc(120deg + var(--rotate-x) * 3),hsl(2,100%,73%),hsl(53,100%,69%),hsl(93,100%,69%),hsl(176,100%,76%),hsl(228,100%,74%),hsl(283,100%,73%),hsl(2,100%,73%));
+  background-size:100% 100%,100% 100%,100% 100%,300% 300%;background-position:0 0,0 0,0 0,calc(var(--pointer-from-left) * 100%) calc(var(--pointer-from-top) * 100%);
+  mix-blend-mode:soft-light;opacity:.85}
+.carta.g3 .purpu{background:url("tex/iri-7.webp") center/160px 160px;mix-blend-mode:plus-lighter;filter:brightness(1.3) contrast(1.8);opacity:calc(.15 + var(--pointer-from-center) * .35)}
+.carta.g3 .pj.fuera{transform-origin:50% 100%;filter:drop-shadow(0 0 3px rgba(255,255,255,.8)) drop-shadow(0 6px 10px rgba(0,0,0,.55))}
+.carta.g3 .placa{inset:auto;left:50%;top:4%;transform:translateX(-50%);width:auto;height:auto;padding:1.6cqw 5cqw;border-radius:99px;
+  font:400 8cqw/1 "Instrument Serif",serif;color:#fff;background:rgba(20,10,30,.35);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.35);white-space:nowrap}
+.carta.g3 .borde{background:conic-gradient(from calc(var(--rotate-x) * 8),#ff9ad5,#9ad8ff,#fff3a8,#b69aff,#9affd8,#ff9ad5)}
+
+/* ══ Gremory con plantilla propia ══ */
+.carta.gp{background:#07060a}
+.carta.gp .fondo-g{overflow:hidden}
+.carta.gp .fondo-g>*{position:absolute;inset:-6%;width:112%;height:112%;object-fit:cover;
+  transform:translate(calc((var(--mx) - .5) * -6%),calc((var(--my) - .5) * -6%))}
+.carta.gp .pj-g{position:absolute;inset:auto;overflow:visible}
+.carta.gp .pj-g img{position:absolute;inset:0;width:100%;height:100%;transform-origin:50% 100%;
+  transform:translate(calc((var(--mx) - .5) * -2.5%),calc((var(--my) - .5) * -1.5%))}
+.carta.gp .marco-g{background:linear-gradient(115deg,#6b4a10 0%,#f9e7a0 18%,#b8862b 34%,#fffbe6 48%,#a57a22 62%,#f5dc8a 78%,#6b4a10 100%);
+  background-size:300% 300%;background-position:calc(var(--pointer-from-left) * 100%) calc(var(--pointer-from-top) * 100%);
+  -webkit-mask-size:100% 100%;mask-size:100% 100%;filter:drop-shadow(0 0 1px rgba(0,0,0,.8)) drop-shadow(0 0 6px rgba(255,210,120,.35))}
+.carta.gp.g2 .marco-g{background:linear-gradient(115deg,#5b4bb0 0%,#e3e8ff 18%,#8f7bff 34%,#ffffff 48%,#6de0ff 62%,#e8d6ff 78%,#5b4bb0 100%);
+  background-size:300% 300%;background-position:calc(var(--pointer-from-left) * 100%) calc(var(--pointer-from-top) * 100%)}
+.carta.gp .medallon{inset:auto;left:50%;top:.2%;width:16.5cqw;height:16.5cqw;transform:translateX(-50%);border-radius:50%;
+  background:radial-gradient(circle at 50% 40%,#2a1a2e,#0b0710 70%);display:grid;place-items:center;
+  box-shadow:0 0 0 1.2cqw rgba(0,0,0,0),0 4px 10px rgba(0,0,0,.6)}
+.carta.gp .medallon .corona{position:relative;inset:auto;width:10cqw;height:8cqw;margin-top:1cqw}
+.carta.gp .placa-g{inset:auto;left:6%;right:6%;bottom:5%;height:auto;width:auto;padding:2.6cqw 4cqw 2.2cqw;text-align:center;border-radius:1.8cqw;
+  background:linear-gradient(180deg,rgba(12,9,16,.62),rgba(12,9,16,.9));backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);
+  box-shadow:inset 0 1px 0 rgba(249,231,160,.8),inset 0 -1px 0 rgba(249,231,160,.5),0 -6px 16px rgba(0,0,0,.35)}
+.carta.gp.g2 .placa-g{box-shadow:inset 0 1px 0 rgba(220,225,255,.85),inset 0 -1px 0 rgba(220,225,255,.5),0 -6px 16px rgba(0,0,0,.35)}
+.carta.gp .placa-g b{display:block;font:400 10cqw/1 "Instrument Serif",Georgia,serif;color:#fff8e6;letter-spacing:.01em;
+  text-shadow:0 1px 0 rgba(0,0,0,.6)}
+.carta.gp .placa-g span{display:block;margin-top:1.2cqw;font:700 2.5cqw/1 "Space Mono",monospace;letter-spacing:.22em;text-transform:uppercase;
+  background:linear-gradient(105deg,#b8872b,#fffbe6 50%,#b8872b);background-size:250% 100%;background-position:calc(var(--mx)*100%) 50%;
+  -webkit-background-clip:text;background-clip:text;color:transparent}
+.carta.gp.g1 .obsid{filter:grayscale(1) brightness(.3) contrast(1.35)}
+.carta.gp .brill{inset:auto}
+
+.ico{width:1.05em;height:1.05em;vertical-align:-.15em;display:inline-block}
+.vers button i{display:inline-flex;gap:1px;margin-right:5px;vertical-align:middle}
+#nombre span .ico{color:var(--acc)}
+.carta.gp .placa-g span .ico{width:1.3em;height:1.1em;vertical-align:-.2em;color:#e8c35f}
+
+.carta.gp .emb{inset:auto;left:50%;transform:translateX(-50%);filter:drop-shadow(0 0 .8px rgba(0,0,0,.9)) drop-shadow(0 2px 4px rgba(0,0,0,.6)) drop-shadow(0 0 8px rgba(255,210,120,.35))}
+.carta.gp .emb .oro-m{position:absolute;inset:0;width:100%;height:100%;
+  background:linear-gradient(115deg,#6b4a10 0%,#f9e7a0 20%,#b8862b 36%,#fffbe6 50%,#a57a22 64%,#f5dc8a 80%,#6b4a10 100%);
+  background-size:300% 300%;background-position:calc(var(--pointer-from-left) * 100%) calc(var(--pointer-from-top) * 100%);
+  -webkit-mask:url("tex/logo-g.png") center/contain no-repeat;mask:url("tex/logo-g.png") center/contain no-repeat}
+.carta.gp.g2 .emb .oro-m{background:linear-gradient(115deg,#5b4bb0 0%,#e3e8ff 20%,#8f7bff 36%,#fff 50%,#6de0ff 64%,#e8d6ff 80%,#5b4bb0 100%);background-size:300% 300%;
+  background-position:calc(var(--pointer-from-left) * 100%) calc(var(--pointer-from-top) * 100%)}
+.carta.gp .emb-logo{top:-.4%;width:14cqw;height:17.5cqw}
+.carta.gp .emb-rombo{top:-1.2%;width:15cqw;height:15cqw}
+.carta.gp .emb-rombo .oro-m{-webkit-mask-size:contain;mask-size:contain;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;-webkit-mask-position:center;mask-position:center}
+.carta.gp .emb-tit{inset:auto;left:50%;top:.9%;transform:translateX(-50%);width:auto;height:auto;font:400 6.4cqw/1 "Instrument Serif",serif;letter-spacing:.06em;
+  background:linear-gradient(105deg,#a57a22,#fffbe6 45%,#f5dc8a 55%,#a57a22);background-size:250% 100%;background-position:calc(var(--mx)*100%) 50%;
+  -webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 1px 1px rgba(0,0,0,.8))}
+.carta.gp.g2 .emb-tit{background:linear-gradient(105deg,#8f7bff,#fff 45%,#6de0ff 55%,#8f7bff);background-size:250% 100%;background-position:calc(var(--mx)*100%) 50%;-webkit-background-clip:text;background-clip:text}
+#emb{display:none;gap:6px;justify-content:center}
+#emb.on{display:flex}
+#emb button{border:1px solid var(--line);background:#141823;color:var(--dim);padding:8px 10px;font:700 10px/1 "Space Mono",monospace;letter-spacing:.1em;text-transform:uppercase}
+#emb button.on{color:#12160a;background:var(--acc);border-color:var(--acc)}
+
+/* foil estampado en caliente: metal con microtextura, brillo especular que corre al inclinar y relieve */
+.carta .firma-w{filter:drop-shadow(0 .7px 0 rgba(35,22,0,.95)) drop-shadow(0 -.5px 0 rgba(255,250,235,.55)) drop-shadow(0 2px 3px rgba(0,0,0,.5))}
+.carta .firma-w .firma-m{position:absolute;inset:0;width:100%;height:100%;-webkit-mask-size:100% 100%;mask-size:100% 100%;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat}
+.carta .t-oro{background-image:linear-gradient(calc(100deg + var(--rotate-x) * 3),transparent 42%,rgba(255,255,245,.95) 49%,transparent 56%),
+    url("tex/grain.webp"),linear-gradient(105deg,#b8862b 0%,#f0cf73 16%,#fff3cc 28%,#e2b755 40%,#a87a22 52%,#f5d67e 66%,#fff6d6 76%,#d4a441 88%,#b8862b 100%);
+  background-size:300% 100%,120px 120px,260% 100%;background-blend-mode:normal,soft-light,normal;
+  background-position:calc(var(--pointer-from-left) * 130% - 15%) 50%,0 0,calc(var(--pointer-from-left) * 100%) 50%}
+.carta .t-plata{background-image:linear-gradient(calc(100deg + var(--rotate-x) * 3),transparent 42%,rgba(255,255,255,1) 49%,transparent 56%),
+    url("tex/grain.webp"),linear-gradient(105deg,#9aa0aa 0%,#dfe3ea 16%,#ffffff 28%,#c3c8d0 40%,#8a9099 52%,#e6eaf0 66%,#ffffff 76%,#b3b9c2 88%,#9aa0aa 100%);
+  background-size:300% 100%,120px 120px,260% 100%;background-blend-mode:normal,soft-light,normal;
+  background-position:calc(var(--pointer-from-left) * 130% - 15%) 50%,0 0,calc(var(--pointer-from-left) * 100%) 50%}
+.carta .t-arcoiris{background-image:linear-gradient(calc(100deg + var(--rotate-x) * 3),transparent 42%,rgba(255,255,255,.95) 49%,transparent 56%),
+    linear-gradient(105deg,hsl(2,90%,70%),hsl(53,95%,68%),hsl(93,85%,66%),hsl(176,90%,72%),hsl(228,90%,74%),hsl(283,85%,72%),hsl(2,90%,70%),hsl(53,95%,68%)),url("tex/iri-8.webp");
+  background-size:300% 100%,300% 100%,110px 110px;background-blend-mode:normal,normal,screen;
+  background-position:calc(var(--pointer-from-left) * 130% - 15%) 50%,calc(var(--pointer-from-left) * 100% + var(--pointer-from-top) * 30%) 50%,0 0}
+.carta .firma.t-oro,.carta .firma.t-plata,.carta .firma.t-arcoiris{-webkit-background-clip:text;background-clip:text;color:transparent}
+#tintas{display:none;gap:6px;justify-content:center}
+#tintas.on{display:flex}
+#tintas button,#bFirmar{border:1px solid var(--line);background:#141823;color:var(--dim);padding:8px 10px;font:700 10px/1 "Space Mono",monospace;letter-spacing:.1em;text-transform:uppercase}
+#tintas button.on{color:#12160a;background:var(--acc);border-color:var(--acc)}
+#bFirmar{display:none;color:var(--txt)}
+#bFirmar.on{display:inline-block}
+#pad{position:fixed;inset:0;background:rgba(6,7,11,.94);display:none;flex-direction:column;align-items:center;justify-content:center;gap:14px;z-index:50;padding:20px}
+#pad.on{display:flex}
+#pad h2{font:400 28px/1 "Instrument Serif",serif}
+#pad p{font-size:12px;color:var(--dim);text-align:center;max-width:320px}
+#pad canvas{width:min(92vw,520px);aspect-ratio:3/1;background:#101320;border:1px solid var(--line);border-radius:10px;touch-action:none}
+#pad .quien,#pad .acc{display:flex;gap:8px}
+#pad button{border:1px solid var(--line);background:#141823;color:var(--txt);padding:11px 14px;font:700 11px/1 "Space Mono",monospace;letter-spacing:.1em;text-transform:uppercase}
+#pad button.on,#pad button.ok{background:var(--acc);color:#12160a;border-color:var(--acc)}
+
+/* ══ plantilla Weiß ══ */
+.carta.ws{background:#0b0a10}
+.carta.ws .fondo-g{overflow:hidden}
+.carta.ws .fondo-g>*{position:absolute;inset:-5%;width:110%;height:110%;object-fit:cover;transform:translate(calc((var(--mx) - .5) * -5%),calc((var(--my) - .5) * -5%))}
+.carta.ws .pj-g{position:absolute;inset:auto;overflow:visible}
+.carta.ws .pj-g img{position:absolute;inset:0;width:100%;height:100%;transform-origin:50% 100%;transform:translate(calc((var(--mx) - .5) * -2%),calc((var(--my) - .5) * -1.2%))}
+.carta.ws .card__shine{z-index:auto}
+.carta.ws .ws-nv{inset:auto;left:3.5%;top:2.6%;width:auto;height:auto;display:flex;flex-direction:column;align-items:center;gap:.8cqw}
+.carta.ws .ws-nv b,.carta.ws .ws-nv i{display:grid;place-items:center;border-radius:50%;font-style:normal;color:#fff;font-family:"Space Mono",monospace;font-weight:700;
+  box-shadow:0 0 0 .5cqw rgba(255,255,255,.85),0 2px 6px rgba(0,0,0,.6)}
+.carta.ws .ws-nv b{width:10.5cqw;height:10.5cqw;font-size:6cqw;background:radial-gradient(circle at 35% 30%,color-mix(in srgb,var(--ws) 70%,#fff),var(--ws) 60%,color-mix(in srgb,var(--ws) 60%,#000))}
+.carta.ws .ws-nv i{width:7.5cqw;height:7.5cqw;font-size:4.2cqw;background:radial-gradient(circle at 35% 30%,#555,#161616)}
+.carta.ws .ws-banda{inset:auto;left:0;right:0;bottom:4.2%;height:13%;width:auto;display:flex;align-items:stretch;
+  background:linear-gradient(180deg,rgba(14,12,20,.55),rgba(14,12,20,.92));border-top:.5cqw solid var(--ws);box-shadow:0 -8px 18px rgba(0,0,0,.35)}
+.carta.ws .ws-poder{display:grid;place-items:center;padding:0 3cqw;font:700 5cqw/1 "Space Mono",monospace;color:#fff;background:linear-gradient(180deg,color-mix(in srgb,var(--ws) 55%,#000),color-mix(in srgb,var(--ws) 30%,#000));
+  clip-path:polygon(0 0,100% 0,88% 100%,0 100%);padding-right:5cqw}
+.carta.ws .ws-nom{flex:1;display:flex;flex-direction:column;justify-content:center;padding:0 3cqw;min-width:0}
+.carta.ws .ws-nom b{font:400 8.4cqw/1 "Instrument Serif",Georgia,serif;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.carta.ws .ws-nom span{margin-top:1cqw;font:600 2.9cqw/1 -apple-system,system-ui,sans-serif;color:rgba(255,255,255,.8);letter-spacing:.02em}
+.carta.ws .ws-pie{inset:auto;left:0;right:0;bottom:0;height:4.2%;width:auto;display:flex;justify-content:space-between;align-items:center;padding:0 3.5%;
+  background:#07060a;font:700 2.3cqw/1 "Space Mono",monospace;letter-spacing:.08em;color:rgba(255,255,255,.7)}
+.carta.ws .ws-pie .sp{font:700 3.4cqw/1 "Space Mono",monospace;letter-spacing:.06em;-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 .5px 0 rgba(0,0,0,.8))}
+.carta.ws .card__glare{z-index:3}
+
+/* Weiß en Oro: banda y marcas doradas */
+.carta.ws.oro .ws-banda{background:linear-gradient(180deg,rgba(40,26,4,.55),rgba(24,15,2,.92));border-top-color:#e8c35f}
+.carta.ws.oro .ws-poder{background:linear-gradient(180deg,#b8862b,#6b4a10)}
+.carta.ws.oro .ws-nv b{background:radial-gradient(circle at 35% 30%,#fff3c4,#d9ab45 55%,#7a5512);color:#2a1a02;box-shadow:0 0 0 .5cqw #fff3c4,0 2px 6px rgba(0,0,0,.6)}
+.carta.ws.oro .ws-nom b{background:linear-gradient(105deg,#e8c35f,#fffbe6 45%,#f5dc8a 55%,#c9963a);background-size:250% 100%;background-position:calc(var(--mx)*100%) 50%;-webkit-background-clip:text;background-clip:text;color:transparent}
+.carta.ws.oro .ws-pie{background:#140d02;color:#e8c35f}
+.carta.ws.oro .pj{filter:drop-shadow(0 0 1.5px rgba(80,50,0,.8)) drop-shadow(0 3px 6px rgba(60,35,0,.45))}
+/* Weiß dentro de Gremory */
+.carta.gp .ws-nv{inset:auto;left:10%;top:9%;width:auto;height:auto;display:flex;flex-direction:column;align-items:center;gap:.8cqw;z-index:2}
+.carta.gp .ws-nv b,.carta.gp .ws-nv i{display:grid;place-items:center;border-radius:50%;font-style:normal;font-family:"Space Mono",monospace;font-weight:700}
+.carta.gp .ws-nv b{width:10cqw;height:10cqw;font-size:5.6cqw;color:#2a1a02;background:radial-gradient(circle at 35% 30%,#fff3c4,#d9ab45 55%,#7a5512);box-shadow:0 0 0 .45cqw #fff3c4,0 2px 6px rgba(0,0,0,.6)}
+.carta.gp .ws-nv i{width:7cqw;height:7cqw;font-size:3.9cqw;color:#fff;background:radial-gradient(circle at 35% 30%,#555,#161616);box-shadow:0 0 0 .45cqw rgba(255,255,255,.8)}
+.carta.gp.g2 .ws-nv b{background:radial-gradient(circle at 35% 30%,#ffffff,#b9b0ff 55%,#4b3d9a);color:#1a1440;box-shadow:0 0 0 .45cqw #e3e8ff,0 2px 6px rgba(0,0,0,.6)}
+.carta.gp .ws-banda-g{display:flex;align-items:stretch;padding:0;overflow:hidden;text-align:left;bottom:7%}
+.carta.gp .ws-banda-g .ws-poder{display:grid;place-items:center;padding:0 5cqw 0 3cqw;font:700 4.6cqw/1 "Space Mono",monospace;color:#2a1a02;
+  background:linear-gradient(180deg,#f0cf73,#a87a22);clip-path:polygon(0 0,100% 0,86% 100%,0 100%)}
+.carta.gp.g2 .ws-banda-g .ws-poder{background:linear-gradient(180deg,#e3e8ff,#7b6ad6);color:#1a1440}
+.carta.gp .ws-banda-g .ws-nom{flex:1;display:flex;flex-direction:column;justify-content:center;padding:2.2cqw 3cqw;min-width:0}
+.carta.gp .ws-banda-g .ws-nom b{font-size:8.6cqw;text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.carta.gp .ws-banda-g .ws-nom span{white-space:nowrap;margin-top:1cqw;font:600 2.8cqw/1 -apple-system,system-ui,sans-serif;letter-spacing:.02em;color:rgba(255,245,220,.8);
+  background:none;-webkit-background-clip:border-box;background-clip:border-box;display:block}
+.carta.gp .ws-cod{position:static;align-self:flex-end;padding:0 3cqw 2cqw 0;text-align:right;font:700 2.2cqw/1 "Space Mono",monospace;letter-spacing:.14em;color:rgba(232,195,95,.85)}
+.carta.gp.g2 .ws-cod{color:rgba(220,225,255,.85)}
+
+/* ── marco base propio · paleta Gremory (tinta, lima, blanco roto) ── */
+.carta{--g-tinta:#0e1118;--g-panel:#151a24;--g-linea:#252a36;--g-txt:#f4f2ee;--g-dim:#8f94a2;--g-lima:#c9f24a}
+.carta .mb-bg{background:radial-gradient(120% 40% at 50% 0%,#1a2030,transparent 70%),
+  radial-gradient(70% 34% at 88% 4%,color-mix(in srgb,var(--el) 30%,transparent),transparent 70%),
+  radial-gradient(80% 30% at 8% 100%,color-mix(in srgb,var(--el) 20%,transparent),transparent 75%),
+  radial-gradient(120% 45% at 50% 100%,#131824,transparent 75%),var(--g-tinta)}
+/* trama facetada muy fina: la luz la recoge en Reverso */
+.carta .mb-trama{opacity:.22;background:var(--pat) 0 0/8cqw auto;
+  -webkit-mask:var(--marco) center/100% 100% no-repeat;mask:var(--marco) center/100% 100% no-repeat}
+.carta .mb-v{border-radius:1.4cqw;box-shadow:inset 0 0 0 .3cqw rgba(0,0,0,.4)}
+.carta .mb-v>img{object-position:var(--op,50% 20%)}
+.carta .mb-rim{border-radius:inherit;border:1.3cqw solid transparent;
+  background:linear-gradient(150deg,#5b6273,#2a303c 22%,#8a91a2 45%,#23283291 62%,#6b7282 82%,#2a303c) border-box;
+  -webkit-mask:linear-gradient(#000 0 0) padding-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask:linear-gradient(#000 0 0) padding-box exclude,linear-gradient(#000 0 0)}
+/* filete lima interior, la firma de la casa */
+.carta .mb-esq{pointer-events:none;inset:2.3% 3.1%;width:auto;height:auto;border-radius:2.2cqw;border:.25cqw solid rgba(201,242,74,.28)}
+.carta .mb-ven{inset:auto;left:5.5%;top:11.2%;width:89%;height:47.3%;border-radius:1.4cqw;pointer-events:none;
+  box-shadow:0 0 0 .3cqw var(--g-lima),0 0 0 .75cqw var(--g-tinta),0 0 0 1cqw #3a4150,0 1.2cqw 3cqw rgba(0,0,0,.6)}
+/* cabecera */
+.carta .mb-cab{inset:auto;left:7%;right:6.5%;top:2.9%;height:auto;width:auto;display:flex;align-items:flex-end;justify-content:space-between;gap:1.6cqw}
+.carta .mb-nom{display:flex;align-items:baseline;flex-wrap:wrap;column-gap:1.4cqw;min-width:0;flex:1 1 auto}
+.carta .mb-nom em{flex-basis:100%;font:700 1.9cqw/1 "Space Mono",monospace;font-style:normal;letter-spacing:.22em;text-transform:uppercase;color:var(--g-dim);margin-bottom:.8cqw}
+.carta .mb-nom b{font:400 8cqw/.95 "Instrument Serif",Georgia,serif;color:var(--g-txt);white-space:nowrap}
+.carta .mb-forma{font:italic 900 5.2cqw/1 -apple-system,"Helvetica Neue",Arial,sans-serif;letter-spacing:-.01em;padding-right:.6cqw;
+  background:linear-gradient(180deg,#f6ffd6 0%,#dcff7a 40%,#c9f24a 55%,#7f9b25 100%);-webkit-background-clip:text;background-clip:text;color:transparent;
+  filter:drop-shadow(0 .3cqw 0 rgba(0,0,0,.8)) drop-shadow(0 0 1.4cqw rgba(201,242,74,.35))}
+.carta .mb-cab.largo .mb-nom b{font-size:6cqw}
+.carta .mb-cab.largo .mb-forma{font-size:4.1cqw}
+.carta .mb-cab.largo .mb-aura small{display:none}
+.carta .mb-cab.largo .mb-aura b{font-size:5.2cqw}
+.carta .mb-aura{display:flex;align-items:center;gap:.9cqw;flex:0 0 auto}
+.carta .mb-aura small{font:700 1.9cqw/1 "Space Mono",monospace;letter-spacing:.16em;text-transform:uppercase;color:var(--g-dim);align-self:flex-end;margin-bottom:.8cqw}
+.carta .mb-aura b{font:700 6cqw/1 "Space Mono",monospace;color:var(--g-txt);letter-spacing:-.04em}
+.carta .mb-aura .mb-el{width:6.2cqw;height:6.2cqw}
+.carta .mb-el{display:inline-grid;place-items:center;width:4.4cqw;height:4.4cqw;border-radius:50%;flex:0 0 auto;border:.42cqw solid transparent;
+  background:radial-gradient(circle at 35% 28%,color-mix(in srgb,var(--c) 45%,#fff),var(--c) 55%,color-mix(in srgb,var(--c) 45%,#000)) padding-box,
+    conic-gradient(from 200deg,#f4f5f8,#6b7282,#e6e8ee,#4d5361,#f4f5f8,#8a91a2,#f4f5f8) border-box;
+  box-shadow:0 .35cqw .9cqw rgba(0,0,0,.55),inset 0 .3cqw .5cqw rgba(255,255,255,.25),inset 0 -.4cqw .6cqw rgba(0,0,0,.3)}
+.carta .mb-el svg{width:66%;height:66%;filter:drop-shadow(0 .15cqw .15cqw rgba(0,0,0,.45))}
+.carta .mb-si{display:inline-grid;width:2.6cqw;height:2.6cqw;color:var(--g-dim);flex:0 0 auto}
+.carta .mb-si svg{width:100%;height:100%}
+.carta .mb-pill svg{width:1.7cqw;height:1.7cqw;vertical-align:-.25cqw;margin-right:.6cqw}
+/* tira bajo el dibujo */
+.carta .mb-info{inset:auto;left:14%;right:14%;top:59.6%;width:auto;height:auto;padding:.9cqw 2cqw;text-align:center;border-radius:99px;
+  background:var(--g-panel);border:.25cqw solid var(--g-linea);font:700 1.85cqw/1 "Space Mono",monospace;color:var(--g-dim);letter-spacing:.1em;text-transform:uppercase;white-space:nowrap}
+/* texto de juego */
+.carta .mb-txt{inset:auto;left:6.5%;right:6.5%;top:64.6%;width:auto;height:auto;display:flex;flex-direction:column;gap:1.5cqw}
+.carta .mb-hab{position:relative;padding:1.3cqw 2cqw 1.4cqw;border-radius:1.2cqw;background:var(--g-panel);border:.25cqw solid var(--g-linea)}
+.carta .mb-pill{display:inline-block;vertical-align:.35cqw;margin-right:1.4cqw;padding:.6cqw 1.4cqw .5cqw;border-radius:99px;
+  background:var(--g-lima);color:#12160a;font:700 1.65cqw/1 "Space Mono",monospace;letter-spacing:.14em;text-transform:uppercase}
+.carta .mb-hab b,.carta .mb-atq b{font:italic 400 4.2cqw/1 "Instrument Serif",Georgia,serif;color:var(--g-txt)}
+.carta .mb-hab p,.carta .mb-atq p{margin-top:.7cqw;font:500 2.3cqw/1.32 -apple-system,system-ui,sans-serif;color:rgba(244,242,238,.78)}
+.carta .mb-atq{display:grid;grid-template-columns:auto 1fr auto;align-items:center;column-gap:1.8cqw;padding:0 1cqw}
+.carta .mb-atq b{font-style:normal;font-size:4.6cqw}
+.carta .mb-atq strong{font:700 5.4cqw/1 "Space Mono",monospace;color:var(--g-lima);letter-spacing:-.03em}
+.carta .mb-atq p{grid-column:1 / -1}
+.carta .mb-coste{display:flex;gap:.6cqw}
+/* punto débil · aguante · siesta */
+.carta .mb-stats{inset:auto;left:6.5%;right:6.5%;top:83.4%;width:auto;height:auto;display:grid;grid-template-columns:1fr 1fr 1fr;
+  border-top:.25cqw solid var(--g-linea);border-bottom:.25cqw solid var(--g-linea);padding:1cqw 0}
+.carta .mb-stats>div{display:flex;align-items:center;justify-content:center;gap:.7cqw;min-width:0}
+.carta .mb-stats>div+div{border-left:.25cqw solid var(--g-linea)}
+.carta .mb-stats small{font:700 1.55cqw/1.1 "Space Mono",monospace;letter-spacing:.08em;text-transform:uppercase;color:var(--g-dim);max-width:8cqw}
+.carta .mb-stats span:not(.mb-el){font:700 2.5cqw/1 "Space Mono",monospace;color:var(--g-txt)}
+.carta .mb-stats .mb-el{width:3.4cqw;height:3.4cqw}
+.carta .mb-lore{inset:auto;left:9%;right:9%;top:89.6%;width:auto;height:auto;text-align:center;font:italic 400 2.75cqw/1.2 "Instrument Serif",Georgia,serif;color:var(--g-dim)}
+.carta .mb-pie{inset:auto;left:6.5%;right:6.5%;bottom:2.4%;width:auto;height:auto;display:flex;align-items:center;gap:1.4cqw;
+  font:700 1.7cqw/1 "Space Mono",monospace;letter-spacing:.12em;text-transform:uppercase;color:var(--g-dim)}
+.carta .mb-set{width:3cqw;height:3cqw;background:var(--g-lima);-webkit-mask:url("tex/logo-g.png") center/contain no-repeat;mask:url("tex/logo-g.png") center/contain no-repeat}
+.carta .mb-rar{display:inline-flex;color:var(--g-txt)}
+.carta .mb-rar svg{width:2.4cqw;height:2.4cqw}
+.carta .mb-ilu{margin-left:auto}
+
+/* ── carta base a sangre ── */
+.carta.base .mb-full{inset:0;border-radius:inherit}
+.carta.base .mb-full>.fondo{object-fit:cover}
+.carta.base .pj-c{position:absolute;inset:0;overflow:visible;pointer-events:none}
+.carta.base .pj-c>img{position:absolute;max-width:none;object-fit:fill}
+.carta.base>.pj-c{z-index:3;-webkit-clip-path:inset(0 0 39.6% 0);clip-path:inset(0 0 39.6% 0)}
+.carta.base>.pj-c .pj.fuera{filter:drop-shadow(0 1.2cqw 2.2cqw rgba(0,0,0,.55))}
+/* velo arriba para que se lea el nombre y panel de cristal abajo */
+.carta.base .mb-velo{background:linear-gradient(180deg,rgba(14,17,24,.92) 0%,rgba(14,17,24,.55) 9%,transparent 17%)}
+.carta.base .mb-panel{inset:auto;left:0;right:0;bottom:0;top:59.5%;width:auto;height:auto;
+  background:linear-gradient(180deg,rgba(14,17,24,.62),rgba(14,17,24,.9) 30%,rgba(14,17,24,.96));
+  -webkit-backdrop-filter:blur(7px) saturate(1.2);backdrop-filter:blur(7px) saturate(1.2);
+  border-top:.3cqw solid rgba(201,242,74,.55);box-shadow:0 -1.4cqw 3cqw rgba(0,0,0,.35)}
+.carta.base .mb-ven{display:none}
+.carta.base .mb-info{top:61%}
+.carta.base .mb-txt{top:65.4%}
+.carta.base .mb-stats{top:84%}
+.carta.base .mb-lore{top:90%}
+
+/* ── plantillas Estándar y Escapada ── */
+.carta .pj-c{position:absolute;inset:0;overflow:visible;pointer-events:none}
+.carta .pj-c>img{position:absolute;max-width:none;object-fit:fill}
+.carta.est .mb-velo,.carta.est .mb-panel{display:none}
+.carta.est .mb-ven{top:11.2%;height:41.9%}
+.carta.est .mb-info{top:54.6%}
+.carta.est .mb-txt{top:59.6%}
+.carta.est .mb-stats{top:83.2%}
+.carta.est .mb-lore{top:89.4%}
+/* la capa que se escapa: puede salir por arriba y por los lados del hueco, pero nunca del borde interior de la carta ni por debajo del hueco */
+.carta.esc .esc-c{position:absolute;overflow:visible;z-index:3;pointer-events:none}
+.carta.esc{--esc-clip:inset(-30% -6.2% 0 -6.2% round 1.4cqw)}
+.carta.esc .esc-c{-webkit-clip-path:inset(-11% 0 0 0);clip-path:inset(-11% 0 0 0)}
+.carta.esc .esc-c .pj{filter:drop-shadow(0 1cqw 1.8cqw rgba(0,0,0,.55))}
+
+/* Escapada: fondo desenfocado a sangre, marco interior nítido y el personaje asomando un poco por arriba */
+.carta.base.esc .esc-amb{overflow:hidden;border-radius:inherit}
+.carta.base.esc .esc-amb img{width:100%;height:100%;object-fit:cover;transform:scale(1.18);filter:blur(10px) brightness(.5) saturate(1.2)}
+.carta.base.esc .esc-amb.v-b img{transform:none;filter:brightness(.72) saturate(.95)}
+.carta.base.esc .mb-v{border-radius:1.4cqw}
+.carta.base.esc .mb-ven{display:block;left:6%;top:16.5%;width:88%;height:41.5%;border-radius:1.4cqw;
+  box-shadow:0 0 0 .3cqw var(--g-lima),0 0 0 .75cqw rgba(14,17,24,.85),0 1.4cqw 3.4cqw rgba(0,0,0,.6)}
+.carta.base.esc .mb-velo{background:linear-gradient(180deg,rgba(14,17,24,.8) 0%,rgba(14,17,24,.35) 12%,transparent 18%)}
+
+
+/* ── Casa ── */
+.carta.casa{background:#0d0c10}
+.carta.casa>.casa-amb{overflow:hidden;border-radius:inherit}
+.carta.casa>.casa-amb img{width:100%;height:100%;object-fit:cover;transform:scale(1.2);filter:blur(12px) brightness(.45) saturate(1.1)}
+.carta.casa>.casa-ven{inset:auto;left:5%;top:15%;width:90%;height:60%;overflow:hidden;border-radius:2.2cqw;border:1px solid rgba(232,211,138,.55);box-shadow:0 1.2cqw 3cqw rgba(0,0,0,.55)}
+.carta.casa>.casa-ven img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transform:translate(calc((var(--mx) - .5) * -1.2%),calc((var(--my) - .5) * -1.2%)) scale(1.03)}
+.carta.casa>.casa-cab{inset:auto;height:auto;width:auto;position:absolute;left:5%;right:5%;top:3.4%;display:flex;flex-direction:column;gap:.6cqw;padding:2.2cqw 3.6cqw;background:rgba(10,10,14,.6);border:1px solid rgba(232,211,138,.4);border-radius:2.2cqw;z-index:3}
+.casa-cab em{font:700 2.4cqw/1 "Space Mono",monospace;letter-spacing:.22em;text-transform:uppercase;color:#e8d38a;font-style:normal}
+.casa-cab b{font:400 8.4cqw/1 "Instrument Serif",Georgia,serif;color:#fff}
+.carta.casa>.casa-panel{inset:auto;height:auto;width:auto;position:absolute;left:5%;right:5%;top:77.5%;bottom:3.2%;display:flex;flex-direction:column;box-sizing:border-box;padding:3.4cqw 4cqw 2.6cqw;background:rgba(10,10,14,.8);border:1px solid rgba(232,211,138,.4);border-radius:2.6cqw;color:#eceef3;font:3.2cqw/1.38 system-ui,sans-serif;z-index:3}
+.casa-ef{margin:0}.casa-ef b{color:#e8d38a}
+.casa-lore{margin:1.6cqw 0 0;font-style:italic;opacity:.7}
+.casa-pie{margin-top:auto!important;display:flex;justify-content:space-between;margin-top:2.2cqw;font:700 2cqw/1 "Space Mono",monospace;letter-spacing:.12em;text-transform:uppercase;opacity:.55}
+/* ══ Gremory TCG dentro de la app: binder, sobres y cambios ══ */
+#tcg{position:fixed;inset:0;z-index:300;display:none;flex-direction:column;background:radial-gradient(120% 60% at 50% 0%,#1a1220,var(--bg,#0e1118) 70%);color:var(--txt,#f4f2ee);
+  padding:env(safe-area-inset-top) 0 0;overflow:hidden;font-family:-apple-system,system-ui,sans-serif}
+#tcg.on{display:flex}
+.tg-top{display:flex;align-items:center;gap:10px;padding:12px 16px 8px}
+.tg-top h2{flex:1;font:400 24px/1 "Instrument Serif",Georgia,serif;margin:0}
+.tg-x{width:38px;height:38px;border-radius:50%;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.06);color:inherit;display:grid;place-items:center;cursor:pointer}
+.tg-tabs{display:flex;gap:6px;padding:0 16px 10px;overflow-x:auto}
+.tg-tabs button{flex:0 0 auto;border:1px solid rgba(255,255,255,.12);background:transparent;color:var(--dim,#8f94a2);padding:9px 14px;border-radius:999px;font:600 13px/1 -apple-system,system-ui,sans-serif;cursor:pointer;display:flex;gap:7px;align-items:center}
+.tg-tabs button.on{background:var(--acc,#c9f24a);color:#12160a;border-color:var(--acc,#c9f24a)}
+.tg-tabs button i{font-style:normal;font:700 10px/1 "Space Mono",monospace;background:#e5484d;color:#fff;border-radius:999px;padding:3px 6px}
+.tg-tabs button.on i{background:#12160a;color:var(--acc,#c9f24a)}
+.tg-cuerpo{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:4px 14px calc(env(safe-area-inset-bottom) + 28px)}
+.tg-cuerpo>*{max-width:1080px;margin-left:auto;margin-right:auto}
+.tg-nota{font-size:12.5px;line-height:1.45;color:var(--dim,#8f94a2)}
+.tg-btn{border:0;background:var(--acc,#c9f24a);color:#12160a;font:700 14px/1 -apple-system,system-ui,sans-serif;padding:14px 20px;border-radius:14px;cursor:pointer}
+.tg-btn:disabled{opacity:.35;cursor:default}
+.tg-btn.sec{background:rgba(255,255,255,.08);color:var(--txt,#f4f2ee);border:1px solid rgba(255,255,255,.14)}
+.tg-btn.mal{background:transparent;color:#ff8a8a;border:1px solid rgba(255,138,138,.35)}
+.tg-aviso{border:1px solid rgba(201,242,74,.35);background:rgba(201,242,74,.06);border-radius:14px;padding:12px 14px;font-size:13px;line-height:1.45;margin-bottom:12px}
+
+/* ── binder ── */
+.tg-cab{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;margin-bottom:10px}
+.tg-quien{display:flex;gap:4px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:999px;padding:4px}
+.tg-quien button{border:0;background:transparent;color:var(--dim,#8f94a2);font:600 13px/1 -apple-system,system-ui,sans-serif;padding:9px 14px;border-radius:999px;cursor:pointer}
+.tg-quien button.on{background:var(--tapa);color:#fff}
+.tg-cuenta{font:700 10.5px/1.4 "Space Mono",monospace;letter-spacing:.1em;text-transform:uppercase;color:var(--dim,#8f94a2)}
+.tg-cuenta b{color:var(--txt,#f4f2ee)}
+.tg-acab{display:flex;gap:7px;align-items:center}
+.tg-acab button{width:22px;height:22px;border-radius:50%;border:2px solid transparent;cursor:pointer;background:var(--c);box-shadow:inset 0 0 0 1px rgba(255,255,255,.18)}
+.tg-acab button.on{border-color:#fff}
+.tg-nav{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:center;margin-bottom:12px}
+.tg-nav button,.tg-nav select{border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.05);color:inherit;padding:9px 13px;font:600 12.5px/1 -apple-system,system-ui,sans-serif;border-radius:999px;cursor:pointer}
+.tg-nav button:disabled{opacity:.3}
+.tg-nav b{font:700 10.5px/1 "Space Mono",monospace;letter-spacing:.1em;text-transform:uppercase;color:var(--dim,#8f94a2);min-width:120px;text-align:center}
+.bd{position:relative;display:grid;grid-template-columns:1fr 34px 1fr;padding:14px;border-radius:18px;perspective:2400px;
+  background:linear-gradient(160deg,color-mix(in srgb,var(--tapa) 82%,#fff 18%),var(--tapa) 45%,color-mix(in srgb,var(--tapa) 70%,#000 30%));
+  box-shadow:0 24px 50px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.25),inset 0 0 0 1px rgba(0,0,0,.25);touch-action:pan-y}
+.bd::before{content:"";position:absolute;inset:6px;border-radius:13px;border:1.5px dashed rgba(255,255,255,.22);pointer-events:none}
+.bd-lomo{position:relative;display:flex;flex-direction:column;justify-content:space-around;align-items:center;background:linear-gradient(90deg,rgba(0,0,0,.35),rgba(255,255,255,.08) 50%,rgba(0,0,0,.35));border-radius:4px;margin:0 2px}
+.bd-anilla{width:44px;height:18px;border:3px solid #cfd3dc;border-radius:50%;box-shadow:0 2px 3px rgba(0,0,0,.5),inset 0 1px 1px rgba(255,255,255,.6);position:relative;z-index:2}
+.bd-hoja{position:relative;background:var(--hoja);border-radius:10px;padding:12px 12px 14px;display:flex;flex-direction:column;gap:9px;box-shadow:inset 0 0 0 1px rgba(255,255,255,.06),inset 0 10px 30px rgba(0,0,0,.18);min-width:0}
+.bd-hoja.vacia .bd-grid{visibility:hidden}
+.bd-cab{display:flex;justify-content:space-between;font:700 10px/1 "Space Mono",monospace;letter-spacing:.16em;text-transform:uppercase;color:var(--tinta)}
+.bd-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}
+.bd-esquina{position:absolute;right:0;bottom:0;width:34px;height:34px;border-bottom-right-radius:10px;cursor:pointer;background:linear-gradient(135deg,transparent 50%,rgba(255,255,255,.55) 50%,rgba(0,0,0,.18) 100%);filter:drop-shadow(-2px -2px 3px rgba(0,0,0,.25))}
+.bd-esquina.ant{right:auto;left:0;border-bottom-right-radius:0;border-bottom-left-radius:10px;background:linear-gradient(225deg,transparent 50%,rgba(255,255,255,.55) 50%,rgba(0,0,0,.18) 100%)}
+.bd-bol{position:relative;aspect-ratio:260/368;border-radius:7px;padding:4px;cursor:pointer;background:linear-gradient(180deg,rgba(255,255,255,.16),rgba(255,255,255,.05));box-shadow:inset 0 0 0 1px rgba(255,255,255,.22),0 1px 2px rgba(0,0,0,.25)}
+.bd-bol img{width:100%;height:100%;object-fit:cover;border-radius:5px;display:block;background:rgba(0,0,0,.25)}
+.bd-bol::after{content:"";position:absolute;inset:0;border-radius:7px;pointer-events:none;background:linear-gradient(115deg,rgba(255,255,255,0) 30%,rgba(255,255,255,.2) 45%,rgba(255,255,255,0) 60%);background-size:250% 100%;background-position:100% 0;transition:background-position .6s}
+.bd-bol:hover::after{background-position:0 0}
+.bd-bol.no img{filter:grayscale(1) brightness(1.1) contrast(.75);opacity:.32}
+.bd-bol.falta{cursor:default}
+.bd-bol.falta .tg-dorso{width:100%;height:100%;border-radius:5px;opacity:.25;filter:grayscale(1)}
+.bd-num{position:absolute;left:8px;bottom:8px;font:700 10px/1 "Space Mono",monospace;color:#fff;background:rgba(10,12,20,.82);padding:4px 6px;border-radius:5px;letter-spacing:.06em}
+.bd-bol.no .bd-num{background:rgba(10,12,20,.5);color:rgba(255,255,255,.7)}
+.bd-n{position:absolute;right:7px;top:7px;font:700 10px/1 "Space Mono",monospace;color:#12160a;background:var(--acc,#c9f24a);padding:4px 6px;border-radius:999px}
+.bd-nueva{position:absolute;left:7px;top:7px;font:700 8.5px/1 "Space Mono",monospace;letter-spacing:.1em;color:#fff;background:#e5484d;padding:3px 5px;border-radius:4px}
+.bd-hojaGira{position:absolute;transform-style:preserve-3d;z-index:5;pointer-events:none;transition:transform .7s cubic-bezier(.45,.05,.25,1)}
+.bd-hojaGira>.bd-hoja{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden}
+.bd-hojaGira>.bd-hoja.trasera{transform:rotateY(180deg)}
+@media (max-width:760px){
+  .bd{grid-template-columns:1fr;padding:10px 10px 10px 18px}
+  .bd-lomo{position:absolute;left:2px;top:30px;bottom:30px;width:16px;margin:0;background:none}
+  .bd-anilla{width:20px;height:11px;border-width:2.5px}
+  .bd-grid{gap:6px}
+  .bd-num{left:6px;bottom:6px;font-size:9px;padding:3px 5px}
+}
+
+/* el reverso Gremory */
+.tg-dorso{position:relative;background:radial-gradient(circle at 50% 45%,#1d2a4a,#0b0f1c 70%);overflow:hidden;border-radius:3.7%/2.6%}
+.tg-dorso::before{content:"";position:absolute;inset:6%;border-radius:4%;border:1.5px solid rgba(201,242,74,.45);background:repeating-linear-gradient(45deg,rgba(201,242,74,.05) 0 6px,transparent 6px 12px)}
+.tg-dorso::after{content:"";position:absolute;left:50%;top:50%;width:46%;aspect-ratio:1;transform:translate(-50%,-50%);background:#c9f24a;
+  -webkit-mask:url("tex/logo-g.png") center/contain no-repeat;mask:url("tex/logo-g.png") center/contain no-repeat;filter:drop-shadow(0 0 12px rgba(201,242,74,.6))}
+
+/* ── visor: la carta en grande ── */
+.tg-capa{position:fixed;inset:0;z-index:320;display:none;flex-direction:column;align-items:center;justify-content:center;gap:12px;
+  padding:calc(env(safe-area-inset-top) + 56px) 16px calc(env(safe-area-inset-bottom) + 20px);background:rgba(6,5,10,.78);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);overflow:auto}
+.tg-capa.on{display:flex}
+.tg-capa .tg-x{position:fixed;top:calc(env(safe-area-inset-top) + 12px);right:14px;background:#fff;color:#111;z-index:2}
+.tg-esc{perspective:900px;position:relative}
+.tg-esc .carta{--w:min(78vw,340px,calc((100vh - 300px) * .7066))}
+.tg-tit{text-align:center}
+.tg-tit b{display:block;font:400 25px/1.1 "Instrument Serif",Georgia,serif}
+.tg-tit span{font:700 10px/1.4 "Space Mono",monospace;letter-spacing:.14em;text-transform:uppercase;color:var(--dim,#8f94a2)}
+.tg-vers{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;max-width:420px}
+.tg-vers button{border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.05);color:inherit;padding:9px 11px;font:600 12.5px/1 -apple-system,system-ui,sans-serif;border-radius:999px;cursor:pointer;display:flex;gap:6px;align-items:center}
+.tg-vers button.on{background:var(--acc,#c9f24a);color:#12160a;border-color:var(--acc,#c9f24a)}
+.tg-vers button.no{opacity:.45}
+.tg-vers button em{font-style:normal;font:700 10px/1 "Space Mono",monospace;opacity:.8}
+.tg-vers .ico{width:13px;height:13px}
+.tg-acc{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+.tg-flecha{position:fixed;top:50%;width:44px;height:44px;margin-top:-22px;border-radius:50%;border:1px solid rgba(255,255,255,.14);background:rgba(20,24,35,.85);color:#fff;display:grid;place-items:center;cursor:pointer;z-index:2}
+.tg-flecha.izq{left:12px}.tg-flecha.der{right:12px}
+@media (max-width:760px){.tg-flecha{top:auto;bottom:calc(env(safe-area-inset-bottom) + 16px)}}
+.tg-candado{position:absolute;inset:0;display:grid;place-items:center;z-index:9;pointer-events:none}
+.tg-candado span{font:700 10px/1 "Space Mono",monospace;letter-spacing:.14em;text-transform:uppercase;background:rgba(10,12,20,.85);border:1px solid rgba(255,255,255,.2);padding:9px 12px;border-radius:999px}
+.tg-esc.bloq .carta{filter:grayscale(.9) brightness(.55)}
+
+/* ── sobres ── */
+.tg-sobres{display:flex;flex-direction:column;align-items:center;gap:16px;padding-top:6px}
+.tg-pack{position:relative;width:min(62vw,250px);aspect-ratio:5/8;border-radius:14px;overflow:hidden;cursor:pointer;
+  background:linear-gradient(115deg,#2b1a3f,#5d2a6b 25%,#1c3f6b 50%,#2d6b55 75%,#2b1a3f);background-size:300% 300%;animation:tgFoil 6s linear infinite;
+  box-shadow:0 26px 60px rgba(0,0,0,.6),inset 0 0 0 1px rgba(255,255,255,.25),inset 0 0 40px rgba(255,255,255,.08)}
+.tg-pack::before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(100deg,rgba(255,255,255,.0) 0 14px,rgba(255,255,255,.07) 14px 16px);mix-blend-mode:overlay}
+.tg-pack::after{content:"";position:absolute;left:50%;top:40%;width:52%;aspect-ratio:1;transform:translate(-50%,-50%);background:#c9f24a;
+  -webkit-mask:url("tex/logo-g.png") center/contain no-repeat;mask:url("tex/logo-g.png") center/contain no-repeat;filter:drop-shadow(0 0 14px rgba(201,242,74,.7))}
+.tg-pack .tira{position:absolute;left:0;right:0;top:0;height:11%;background:linear-gradient(180deg,rgba(255,255,255,.25),rgba(255,255,255,.05));border-bottom:1px dashed rgba(255,255,255,.4);z-index:2}
+.tg-pack .rot{position:absolute;left:0;right:0;bottom:9%;text-align:center;z-index:2}
+.tg-pack .rot b{display:block;font:400 30px/1 "Instrument Serif",Georgia,serif;color:#fff;text-shadow:0 2px 12px rgba(0,0,0,.5)}
+.tg-pack .rot span{font:700 9.5px/1 "Space Mono",monospace;letter-spacing:.26em;text-transform:uppercase;color:rgba(255,255,255,.8)}
+.tg-pack.vacio{filter:grayscale(1) brightness(.5);cursor:default;animation:none}
+@keyframes tgFoil{0%{background-position:0% 50%}100%{background-position:300% 50%}}
+.tg-cuantos{text-align:center}
+.tg-cuantos b{display:block;font:400 34px/1 "Instrument Serif",Georgia,serif}
+.tg-cuantos span{font-size:13px;color:var(--dim,#8f94a2)}
+.tg-gana{width:100%;max-width:460px;border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:12px 14px;display:flex;flex-direction:column;gap:8px}
+.tg-gana div{display:flex;justify-content:space-between;gap:10px;font-size:13px}
+.tg-gana div span{color:var(--dim,#8f94a2)}
+
+/* abrir el sobre */
+#tgAbre{background:radial-gradient(80% 60% at 50% 45%,#2a1640,#07060b 75%)}
+#tgAbre .tg-pack{width:min(62vw,270px);touch-action:none}
+#tgAbre .tg-pack.rasga .tira{animation:tgTira .55s cubic-bezier(.3,.6,.4,1) forwards}
+#tgAbre .tg-pack.baja{animation:tgBaja .6s .35s ease-in forwards}
+@keyframes tgTira{to{transform:translate(120%,-60px) rotate(18deg);opacity:0}}
+@keyframes tgBaja{to{transform:translateY(70vh) rotate(-6deg);opacity:0}}
+.tg-pista{font:700 10px/1 "Space Mono",monospace;letter-spacing:.2em;text-transform:uppercase;color:rgba(255,255,255,.6);text-align:center}
+.tg-pila{position:relative;width:min(78vw,340px,calc((100vh - 260px) * .7066));aspect-ratio:720/1019;cursor:pointer;perspective:1200px}
+.tg-pila>.tg-dorso{position:absolute;inset:0;box-shadow:0 10px 30px rgba(0,0,0,.6);transition:transform .35s}
+.tg-giro{position:absolute;inset:0;transform-style:preserve-3d;transition:transform .5s cubic-bezier(.3,.7,.3,1.15)}
+.tg-giro>*{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden}
+.tg-giro>.cara{transform:rotateY(180deg)}
+.tg-giro.vuelta{transform:rotateY(180deg)}
+.tg-giro .carta{--w:100%;width:100%}
+.tg-giro.vete{transition:transform .45s ease-in,opacity .45s;transform:rotateY(180deg) translateX(-130%) rotate(-8deg);opacity:0}
+.tg-pila[data-tier="3"] .tg-giro:not(.vuelta)>.tg-dorso{animation:tgAura 1.1s ease-in-out infinite;--au:rgba(120,190,255,.9)}
+.tg-pila[data-tier="4"] .tg-giro:not(.vuelta)>.tg-dorso{animation:tgAura .9s ease-in-out infinite;--au:rgba(255,206,90,.95)}
+.tg-pila[data-tier="5"] .tg-giro:not(.vuelta)>.tg-dorso{animation:tgAura .7s ease-in-out infinite,tgTiembla .35s linear infinite;--au:rgba(255,120,220,1)}
+@keyframes tgAura{0%,100%{box-shadow:0 0 18px 2px var(--au)}50%{box-shadow:0 0 46px 10px var(--au)}}
+@keyframes tgTiembla{0%,100%{transform:translateX(0)}25%{transform:translateX(-2px) rotate(-.4deg)}75%{transform:translateX(2px) rotate(.4deg)}}
+.tg-sello{min-height:22px;text-align:center;font:700 10.5px/1 "Space Mono",monospace;letter-spacing:.16em;text-transform:uppercase}
+.tg-sello .nueva{background:#e5484d;color:#fff;padding:5px 8px;border-radius:5px;margin-right:6px}
+.tg-resumen{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;width:min(94vw,640px)}
+.tg-resumen .bd-bol{cursor:default}
+@media (max-width:520px){.tg-resumen{grid-template-columns:repeat(3,1fr)}}
+
+/* ── cambios ── */
+.tg-lista{display:flex;flex-direction:column;gap:10px}
+.tg-cambio{border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:12px;display:flex;flex-direction:column;gap:10px;background:rgba(255,255,255,.03)}
+.tg-cambio .par{display:grid;grid-template-columns:1fr 30px 1fr;gap:8px;align-items:center}
+.tg-cambio .par .bd-bol{max-width:120px;justify-self:center;width:100%}
+.tg-cambio .par .flecha{text-align:center;color:var(--dim,#8f94a2)}
+.tg-cambio .pie{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
+.tg-cambio .que{font-size:13px;line-height:1.4}
+.tg-cambio .que small{display:block;color:var(--dim,#8f94a2);font-size:11.5px}
+.tg-h3{font:700 10.5px/1 "Space Mono",monospace;letter-spacing:.14em;text-transform:uppercase;color:var(--dim,#8f94a2);margin:16px 0 8px}
+.tg-elige{display:grid;grid-template-columns:repeat(auto-fill,minmax(84px,1fr));gap:8px}
+.tg-elige .bd-bol.sel{box-shadow:0 0 0 3px var(--acc,#c9f24a)}
+.bd-bol .bd-v{position:absolute;right:6px;top:7px;max-width:calc(100% - 12px);overflow:hidden;white-space:nowrap;text-overflow:ellipsis;font:700 8.5px/1 "Space Mono",monospace;color:#fff;background:rgba(10,12,20,.8);padding:3px 4px;border-radius:4px}
