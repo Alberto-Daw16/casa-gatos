@@ -8,7 +8,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>Gremory</title>
-<meta name="build" content="2026-10-14.1">
+<meta name="build" content="2026-10-14.2">
 <!-- El cuadrado de la pantalla de inicio. iOS se guarda el icono por URL y no
      vuelve a pedirlo, así que si se cambia hay que darle un nombre de fichero
      nuevo. El manifest es lo que mira el iPhone moderno; los dos "apple-touch"
@@ -2256,9 +2256,28 @@ function similar(a,b){
 }
 function matchNorm(n){
   var i;
+  if(_mt){
+    /* modo rápido (al rehacer los precios de todos los tickets): índice por palabra */
+    if(_mt.memo[n] !== undefined) return _mt.memo[n];
+    if(_mt.hay[n]) return (_mt.memo[n] = n);
+    var vistos = {}, r = n;
+    toks(n).filter(function(w){ return !/\d/.test(w); }).some(function(w){
+      return (_mt.tok[w]||[]).some(function(m){ if(vistos[m]) return false; vistos[m] = 1; if(similar(n, m)){ r = m; return true; } return false; });
+    });
+    return (_mt.memo[n] = r);
+  }
   for(i=0;i<S.prices.length;i++) if(S.prices[i].norm===n) return n;
   for(i=0;i<S.prices.length;i++) if(similar(n, S.prices[i].norm)) return S.prices[i].norm;
   return n;
+}
+var _mt = null;
+function prepMatch(){
+  _mt = {hay:{}, tok:{}, memo:{}};
+  S.prices.forEach(function(p){
+    if(_mt.hay[p.norm]) return;
+    _mt.hay[p.norm] = 1;
+    toks(p.norm).forEach(function(w){ if(!/\d/.test(w)) (_mt.tok[w] = _mt.tok[w] || []).push(p.norm); });
+  });
 }
 function canonName(n, fallback){
   for(var i=0;i<S.prices.length;i++) if(S.prices[i].norm===n) return S.prices[i].prod;
@@ -2968,8 +2987,18 @@ function rehacePreciosTickets(){
   var viejos = {};
   S.prices.forEach(function(p){ if(p.src==="ticket") viejos[p.norm+"|"+p.shop] = p.id; });
   S.prices = S.prices.filter(function(p){ return p.src!=="ticket"; });
-  _memoG = {}; _memoK = {}; _idxPrecios = null;
-  (S.tickets||[]).slice().sort(function(a,b){ return (a.date||"").localeCompare(b.date||""); }).forEach(preciosDeTicket);
+  _memoG = {}; _memoK = {};
+  /* índices para que no tarde: por (producto, súper) y por palabra */
+  _idxPrecios = {}; S.prices.forEach(function(p, i){ _idxPrecios[p.norm+"|"+p.shop] = i; });
+  prepMatch();
+  try {
+    (S.tickets||[]).slice().sort(function(a,b){ return (a.date||"").localeCompare(b.date||""); }).forEach(function(t){
+      preciosDeTicket(t);
+      /* lo que acaba de entrar también cuenta para emparejar lo siguiente */
+      S.prices.forEach(function(p){ if(!_mt.hay[p.norm]){ _mt.hay[p.norm] = 1; toks(p.norm).forEach(function(w){ if(!/\d/.test(w)) (_mt.tok[w] = _mt.tok[w] || []).push(p.norm); }); } });
+      _mt.memo = {};
+    });
+  } finally { _mt = null; _idxPrecios = null; }
   S.prices.forEach(function(p){
     var k = p.norm+"|"+p.shop;
     if(p.src==="ticket" && viejos[k]){ p.id = viejos[k]; delete viejos[k]; }
