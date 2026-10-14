@@ -8,7 +8,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>Gremory</title>
-<meta name="build" content="2026-10-08.3">
+<meta name="build" content="2026-10-14.1">
 <!-- El cuadrado de la pantalla de inicio. iOS se guarda el icono por URL y no
      vuelve a pedirlo, así que si se cambia hay que darle un nombre de fichero
      nuevo. El manifest es lo que mira el iPhone moderno; los dos "apple-touch"
@@ -304,6 +304,25 @@
   .it small{color:var(--dim);font-size:11.5px;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .amt{font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap;letter-spacing:-.2px}
   .amt.neg{color:var(--neg)} .amt.pos{color:var(--pos)}
+  ul.list li.tkmes{display:block;padding:0}
+  li.tkmes summary{display:flex;justify-content:space-between;align-items:baseline;gap:10px;padding:12px 0;cursor:pointer;list-style:none}
+  li.tkmes summary::-webkit-details-marker{display:none}
+  li.tkmes summary b{font-weight:500;font-size:14px}
+  li.tkmes summary span{color:var(--dim);font-size:12px;font-variant-numeric:tabular-nums}
+  li.tkmes details[open] summary b{color:var(--acc)}
+  li.tkmes ul.list{margin:0 0 6px 10px}
+  .ordg{border:1px solid var(--line);border-radius:14px;padding:10px;margin-top:10px}
+  .ordg input{width:100%}
+  .ordv{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}
+  .ordv span{font-size:11.5px;color:var(--dim);border:1px solid var(--line);border-radius:999px;padding:4px 9px}
+  .ordv i{font-style:normal;color:var(--acc)}
+  .ordb{display:flex;gap:8px;justify-content:flex-end}
+  .ordb button{padding:8px 12px;font-size:12.5px}
+  .ordx{display:flex;align-items:center;gap:10px;padding:8px 0;border-top:1px solid var(--line)}
+  .ordx span{flex:1;min-width:0}.ordx b{display:block;font-weight:500;font-size:13px}.ordx small{color:var(--dim);font-size:11px}
+  .lineantes{font-size:10.5px;color:var(--dim);margin:2px 0 6px 4px}
+  .ordren{margin-top:14px}.ordren summary{cursor:pointer;font-size:13px;color:var(--acc);padding:6px 0}
+  .ordr input{width:100%;margin-top:6px}
   .del{background:none;border:0;color:#5b6070;font-size:15px;padding:4px 2px;cursor:pointer;line-height:1}
   .empty{color:var(--dim);font-size:12.5px;padding:10px 0;text-align:center}
 
@@ -672,6 +691,7 @@
       <div class="card">
         <h2>Tickets <span class="sum" id="tkSum"></span></h2>
         <ul class="list" id="lTickets"></ul>
+        <button class="add" id="tkOrden">Ordenar productos</button>
         <button class="add" id="tkPhoto">Ticket desde foto (OCR)</button>
         <button class="add" id="tkText">Escribir o pegar ticket</button>
         <button class="add" id="tkJson">Importar ticket en JSON</button>
@@ -926,6 +946,8 @@ var DEF = {
   push:{on:false, endpoint:""}, avisos:{}, logrosAvisados:[],
   /* el reto de cada mes: {id, meta, t}; lo elige el primer móvil que abre el mes */
   retos:{},
+  /* nombres de productos unificados ("como lo leyó el ticket" -> "como lo llamamos") */
+  alias:{}, noUnir:{},
   /* ids de lo que se ha borrado: sin esto, fusionar (que es unir) lo resucita */
   borrados:{}
 };
@@ -2558,7 +2580,7 @@ function obsTickets(){
   var out = {};
   (S.tickets||[]).forEach(function(t){
     (t.lines||[]).forEach(function(l){
-      if(!l.name || !(l.price>0 || +l.off>0)) return;
+      if(!l.name || esBasura(l.name) || !(l.price>0 || +l.off>0)) return;
       var q = l.qty>0 ? l.qty : 1, u = l.price>0 ? l.price/q : (+l.off>0 ? (+l.off)/q : null);
       if(!(u>0)) return;
       var n = matchNorm(norm(l.name));
@@ -2726,12 +2748,23 @@ function renderTickets(){
   var t = S.tickets.slice().sort(function(a,b){ return (b.date||"").localeCompare(a.date||""); });
   document.getElementById("tkSum").textContent = S.tickets.length ? S.tickets.length+" guardados" : "";
   if(!t.length){ ul.innerHTML = ilus("ticket","Sin tickets todavía. Pega uno o hazle una foto."); return; }
-  ul.innerHTML = t.map(function(k){
-    return '<li><div class="it" data-tkedit="'+k.id+'"><b>'+esc(k.shop||"Ticket")+'</b>'+
-      '<small>'+shortDate(k.date)+" · "+(k.lines?k.lines.length:0)+" líneas</small></div>"+
-      '<div class="amt neg">−'+money(k.total)+'</div>'+
-      '<button class="del" data-tkdel="'+k.id+'">✕</button></li>';
+  /* por meses: el último abierto, los demás plegados con su resumen */
+  var meses = [], porMes = {};
+  t.forEach(function(k){ var mk = (k.date||"").slice(0,7); if(!porMes[mk]){ porMes[mk] = []; meses.push(mk); } porMes[mk].push(k); });
+  ul.innerHTML = meses.map(function(mk, mi){
+    var ks = porMes[mk], tot = ks.reduce(function(a,k){ return a + (+k.total||0); }, 0);
+    var nom = mk ? MONTHS[+mk.slice(5,7)-1] + " " + mk.slice(0,4) : "Sin fecha";
+    return '<li class="tkmes"><details'+(mi===0?' open':'')+'><summary><b>'+nom.charAt(0).toUpperCase()+nom.slice(1)+'</b>'+
+      '<span>'+ks.length+(ks.length===1?' ticket':' tickets')+' · '+money(tot)+'</span></summary><ul class="list">'+
+      ks.map(function(k){
+        return '<li><div class="it" data-tkedit="'+k.id+'"><b>'+esc(k.shop||"Ticket")+'</b>'+
+          '<small>'+shortDate(k.date)+" · "+(k.lines?k.lines.length:0)+" líneas</small></div>"+
+          '<div class="amt neg">−'+money(k.total)+'</div>'+
+          '<button class="del" data-tkdel="'+k.id+'">✕</button></li>';
+      }).join("")+'</ul></details></li>';
   }).join("");
+  var ob = document.getElementById("tkOrden"), no = cuentaOrden();
+  if(ob) ob.textContent = no ? "Ordenar productos (" + no + " por revisar)" : "Ordenar productos";
 }
 function saveTicket(t){
   /* si alguien borró el gasto de este ticket por otro camino, no se recrea:
@@ -2764,7 +2797,7 @@ function saveTicket(t){
   var nuevos = [], repetidos = 0;
   (t.lines||[]).forEach(function(l){
     var q = l.qty>0 ? l.qty : 1;
-    if(!l.name || !(l.price>0 || +l.off>0)) return;
+    if(!l.name || esBasura(l.name) || !(l.price>0 || +l.off>0)) return;
     var n = matchNorm(norm(l.name));
     var yaEstaba = S.prices.some(function(p){ return p.norm===n; });
     /* el precio normal es la referencia; la oferta va aparte y no lo pisa.
@@ -2793,6 +2826,230 @@ function delTicket(id){
   });
   save();
 }
+
+
+/* =========== ORDEN DE PRODUCTOS ===========
+   El OCR lee "CROCUETA JAMON" donde pone "CROQUETAS DE JAMÓN" y cada súper abrevia
+   a su manera, así que el mismo producto acababa con tres nombres. Aquí se unifican
+   los nombres de las líneas de ticket. S.alias guarda "como lo leyó el ticket" ->
+   "como lo llamamos" y se aplica solo a los tickets nuevos. S.noUnir guarda las
+   parejas que alguien dijo que no son lo mismo, para no volver a proponerlas. */
+var BASURA = /(eur\s*\/\s*kg|€\s*\/\s*kg|\bkg\s*x\b|saldo|visa|debit|mastercard|maestro|importe|porte\s*:|entregado|a devolver|\bn\.?\s*tarj)/i;
+function esBasura(name){
+  var s = String(name||"").trim();
+  if(!s || BASURA.test(s)) return true;
+  var letras = (s.match(/[a-záéíóúñü]/gi)||[]).length, todo = s.replace(/\s/g,"").length;
+  return letras < 3 || letras/todo < .55;
+}
+function limpiaNombre(name){
+  return String(name||"").replace(/^[^a-z0-9áéíóúñüÁÉÍÓÚÑ]+/i,"")
+    .replace(/^\d{1,2}\s+(?=[a-záéíóúñ])/i,"").replace(/\s{2,}/g," ").trim();
+}
+/* los tickets ya guardados con restos delante del nombre ("; 1 CINTAS…") */
+function arreglaPrefijos(){
+  var n = 0;
+  (S.tickets||[]).forEach(function(t){
+    var tocado = false;
+    (t.lines||[]).forEach(function(l){ var c = limpiaNombre(l.name); if(l.name && c && c !== l.name){ l.name = c; tocado = true; n++; } });
+    if(tocado) toca(t);
+  });
+  return n;
+}
+function distancia(a,b){
+  if(a===b) return 0;
+  var m = a.length, n = b.length, prev = [], cur = [], i, j;
+  for(j=0;j<=n;j++) prev[j] = j;
+  for(i=1;i<=m;i++){
+    cur = [i];
+    for(j=1;j<=n;j++) cur[j] = Math.min(prev[j]+1, cur[j-1]+1, prev[j-1] + (a.charAt(i-1)===b.charAt(j-1) ? 0 : 1));
+    prev = cur;
+  }
+  return prev[n];
+}
+/* las marcas de tamaño separan productos: "XXL masa pizza" no es "masa pizza" */
+var TALLA = /\b(xxl|xl|familiar|fam|maxi|mini)\b/;
+function talla(n){ var m = norm(n).match(TALLA); return m ? (m[1]==="mini" ? "mini" : "grande") : ""; }
+/* "FIDEOS DE ARROZ" -> "Fideos de arroz" (los tickets escriben todo en mayúsculas) */
+function bonito(n){
+  n = String(n||"").trim();
+  if(n && n === n.toUpperCase() && /[A-ZÁÉÍÓÚÑ]/.test(n)){ n = n.toLowerCase(); n = n.charAt(0).toUpperCase() + n.slice(1); }
+  return n.replace(/\bxxl\b/gi,"XXL");
+}
+function sinTalla(n){ return norm(n).replace(new RegExp(TALLA.source,"g")," ").replace(/\s+/g," ").trim(); }
+function parecido(a,b){
+  a = sinTalla(a); b = sinTalla(b);
+  if(!a || !b) return 0;
+  if(a===b) return 1;
+  var p = 1 - distancia(a,b)/Math.max(a.length,b.length);
+  /* por palabras, sin las de relleno y sin plurales: "fideos de arroz" = "fideos arroz" */
+  var wa = toks(a).map(singular).sort().join(" "), wb = toks(b).map(singular).sort().join(" ");
+  if(wa && wb) p = Math.max(p, wa===wb ? .97 : 1 - distancia(wa,wb)/Math.max(wa.length,wb.length));
+  /* abreviaturas del súper: "mozzarel rallada" empieza como "mozzarella rallada" */
+  var ca = toks(a), cb = toks(b);
+  if(ca.length && ca.length===cb.length && ca.every(function(w,i){ var v = cb[i]; return w.length>=3 && v.length>=3 && (w.indexOf(v)===0 || v.indexOf(w)===0); })) p = Math.max(p, .9);
+  return p;
+}
+/* los nombres que ya conocemos: los de los tickets (como estén escritos ahora) y los alias */
+function conocidos(){
+  var m = {};
+  (S.tickets||[]).forEach(function(t){
+    (t.lines||[]).forEach(function(l){
+      if(!l.name || esBasura(l.name)) return;
+      var n = norm(l.name), o = m[n] || (m[n] = {name:l.name.trim(), n:0, shops:{}, fecha:""});
+      o.n++; o.shops[t.shop||""] = 1;
+      if((t.date||"") >= o.fecha){ o.fecha = t.date||""; o.name = l.name.trim(); }
+    });
+  });
+  Object.keys(S.alias||{}).forEach(function(k){
+    var v = S.alias[k], n = norm(v);
+    if(!m[n]) m[n] = {name:v, n:0, shops:{}, fecha:""};
+  });
+  return m;
+}
+/* al entrar un ticket nuevo: primero los alias; si no, el nombre conocido que más se parezca */
+function corrigeLineas(lines, shop){
+  var con = conocidos(), keys = Object.keys(con), hechos = 0;
+  (lines||[]).forEach(function(l){
+    var limpio = limpiaNombre(l.name);
+    if(limpio !== l.name) l.name = limpio;
+    var n = norm(l.name);
+    if(!n) return;
+    if(S.alias && S.alias[n]){ if(S.alias[n] !== l.name){ l.antes = l.name; l.name = S.alias[n]; hechos++; } return; }
+    if(con[n]) return;
+    var mejor = null, pm = 0;
+    keys.forEach(function(k){
+      if(talla(k) !== talla(n)) return;
+      var p = parecido(n, k) + (con[k].shops[shop] ? .02 : 0);
+      if(p > pm){ pm = p; mejor = k; }
+    });
+    if(mejor && pm >= .84){ l.antes = l.name; l.name = con[mejor].name; hechos++; }
+  });
+  return hechos;
+}
+function parUnir(a,b){ return [norm(a),norm(b)].sort().join("|"); }
+/* grupos de nombres que parecen el mismo producto, para unirlos a mano */
+function gruposParecidos(){
+  var con = conocidos(), keys = Object.keys(con).filter(function(k){ return con[k].n > 0; }), padre = {};
+  keys.forEach(function(k){ padre[k] = k; });
+  function raiz(k){ while(padre[k]!==k) k = padre[k] = padre[padre[k]]; return k; }
+  for(var i=0;i<keys.length;i++) for(var j=i+1;j<keys.length;j++){
+    var a = keys[i], b = keys[j];
+    if(talla(a) !== talla(b) || (S.noUnir||{})[parUnir(a,b)]) continue;
+    if(parecido(a,b) >= .78 || similar(sinTalla(a), sinTalla(b))) padre[raiz(a)] = raiz(b);
+  }
+  var g = {};
+  keys.forEach(function(k){ var r = raiz(k); (g[r] = g[r] || []).push(k); });
+  return Object.keys(g).map(function(r){ return g[r]; }).filter(function(x){ return x.length > 1; }).map(function(ks){
+    var vs = ks.map(function(k){ return con[k]; }).sort(function(a,b){ return b.n-a.n || (b.name!==b.name.toUpperCase()) - (a.name!==a.name.toUpperCase()) || b.name.length-a.name.length; });
+    return {vars:vs, canon:bonito(vs[0].name)};
+  });
+}
+/* las líneas que no son productos (restos del OCR: "kg x EUR/kg", "Saldo disponible"…) */
+function lineasBasura(){
+  var out = [];
+  (S.tickets||[]).forEach(function(t){
+    (t.lines||[]).forEach(function(l, i){ if(l.name && esBasura(l.name)) out.push({t:t, i:i, l:l}); });
+  });
+  return out;
+}
+/* los precios que salen de tickets se rehacen enteros con los nombres ya unificados */
+function preciosDeTicket(t){
+  (t.lines||[]).forEach(function(l){
+    var q = l.qty>0 ? l.qty : 1;
+    if(!l.name || esBasura(l.name) || !(l.price>0 || +l.off>0)) return;
+    var u = l.price>0 ? l.price/q : null, o = null;
+    if(l.off === true){ o = u; u = null; }
+    else if(+l.off > 0 && +l.off !== +l.price) o = (+l.off)/q;
+    addPrice(l.name, t.shop, u, l.unit||"", t.date, "ticket", o);
+  });
+}
+function rehacePreciosTickets(){
+  /* los que siguen existiendo conservan su id; solo se marcan como borrados los que desaparecen */
+  var viejos = {};
+  S.prices.forEach(function(p){ if(p.src==="ticket") viejos[p.norm+"|"+p.shop] = p.id; });
+  S.prices = S.prices.filter(function(p){ return p.src!=="ticket"; });
+  _memoG = {}; _memoK = {}; _idxPrecios = null;
+  (S.tickets||[]).slice().sort(function(a,b){ return (a.date||"").localeCompare(b.date||""); }).forEach(preciosDeTicket);
+  S.prices.forEach(function(p){
+    var k = p.norm+"|"+p.shop;
+    if(p.src==="ticket" && viejos[k]){ p.id = viejos[k]; delete viejos[k]; }
+  });
+  var fuera = Object.keys(viejos).map(function(k){ return viejos[k]; });
+  if(fuera.length) olvida.apply(null, fuera);
+}
+function unirNombres(variantes, canon){
+  canon = String(canon||"").trim(); if(!canon) return 0;
+  var set = {}, cambios = 0;
+  variantes.forEach(function(v){ set[norm(v)] = 1; });
+  S.alias = S.alias || {};
+  variantes.forEach(function(v){ if(norm(v) !== norm(canon) || v !== canon) S.alias[norm(v)] = canon; });
+  (S.tickets||[]).forEach(function(t){
+    var tocado = false;
+    (t.lines||[]).forEach(function(l){ if(l.name && set[norm(l.name)] && l.name !== canon){ l.name = canon; tocado = true; cambios++; } });
+    if(tocado) toca(t);
+  });
+  return cambios;
+}
+function quitaLineas(lista){
+  var porTicket = {};
+  lista.forEach(function(x){ (porTicket[x.t.id] = porTicket[x.t.id] || {t:x.t, is:[]}).is.push(x.i); });
+  Object.keys(porTicket).forEach(function(id){
+    var o = porTicket[id];
+    o.t.lines = o.t.lines.filter(function(l, i){ return o.is.indexOf(i) < 0; });
+    toca(o.t);
+  });
+}
+function abreOrden(){
+  if(arreglaPrefijos()){ rehacePreciosTickets(); save(); }
+  var gs = gruposParecidos(), bs = lineasBasura(), todos = conocidos();
+  var html = '<h3>Ordenar productos</h3>'+
+    '<div class="mini">El OCR y cada súper escriben el mismo producto de formas distintas. Aquí se juntan: elige el nombre bueno y pulsa Unir. Lo que unas se recuerda para los tickets que vengan.</div>';
+  if(!gs.length && !bs.length) html += '<div class="empty">Todo en orden: no veo nombres repetidos ni líneas raras.</div>';
+  gs.forEach(function(g, gi){
+    html += '<div class="ordg" data-g="'+gi+'"><input data-canon="'+gi+'" value="'+esc(g.canon)+'">'+
+      '<div class="ordv">'+g.vars.map(function(v){ return '<span>'+esc(v.name)+(v.n>1?' <i>×'+v.n+'</i>':'')+'</span>'; }).join("")+'</div>'+
+      '<div class="ordb"><button class="b-no" data-nounir="'+gi+'">No son lo mismo</button><button class="b-ok" data-unir="'+gi+'">Unir</button></div></div>';
+  });
+  if(bs.length){
+    html += '<label>Líneas que no parecen productos</label><div class="mini">Restos del OCR. Quitarlas no cambia el total del ticket ni el gasto.</div>';
+    bs.forEach(function(b, bi){
+      html += '<div class="ordx"><span><b>'+esc(b.l.name)+'</b><small>'+esc(b.t.shop||"")+' · '+shortDate(b.t.date)+' · '+money(b.l.price)+'</small></span><button class="del" data-quita="'+bi+'">✕</button></div>';
+    });
+    html += '<button class="add" id="ord_quita">Quitar todas</button>';
+  }
+  /* renombrar cualquiera a mano: el OCR deja cosas como "MINE TAQUITOS JAMÓN" */
+  var nombres = Object.keys(todos).filter(function(k){ return todos[k].n > 0; }).map(function(k){ return todos[k].name; }).sort(function(a,b){ return norm(a).localeCompare(norm(b)); });
+  if(nombres.length){
+    html += '<details class="ordren"><summary>Renombrar un producto ('+nombres.length+')</summary><div class="mini">Cambia el nombre y pulsa Guardar: se cambia en todos los tickets y se recuerda.</div>'+
+      nombres.map(function(n, i){ return '<div class="ordr"><input data-ren="'+i+'" value="'+esc(n)+'"></div>'; }).join("")+
+      '<button class="add" id="ord_ren">Guardar nombres</button></details>';
+  }
+  html += '<div class="btns"><button class="b-ok" id="ord_ok">Hecho</button></div>';
+  openSheet(html);
+  var bren = document.getElementById("ord_ren");
+  if(bren) bren.onclick = function(){
+    var c = 0;
+    sheet.querySelectorAll("[data-ren]").forEach(function(inp){ var viejo = nombres[+inp.dataset.ren], v = inp.value.trim(); if(v && v !== viejo){ unirNombres([viejo], v); c++; } });
+    if(c){ rehacePreciosTickets(); save(); render(); }
+    toast(c ? c+(c===1?" nombre cambiado":" nombres cambiados") : "Sin cambios"); abreOrden();
+  };
+  function cierra(cambio){ if(cambio){ rehacePreciosTickets(); save(); render(); } }
+  document.getElementById("ord_ok").onclick = closeSheet;
+  var q = document.getElementById("ord_quita");
+  if(q) q.onclick = function(){ quitaLineas(bs); cierra(true); toast(bs.length+" líneas quitadas"); abreOrden(); };
+  sheet.querySelectorAll("[data-quita]").forEach(function(b){ b.onclick = function(){ quitaLineas([bs[+b.dataset.quita]]); cierra(true); abreOrden(); }; });
+  sheet.querySelectorAll("[data-unir]").forEach(function(b){ b.onclick = function(){
+    var g = gs[+b.dataset.unir], canon = sheet.querySelector('[data-canon="'+b.dataset.unir+'"]').value;
+    var n = unirNombres(g.vars.map(function(v){ return v.name; }), canon);
+    cierra(true); toast("Unido · "+n+(n===1?" línea":" líneas")); abreOrden();
+  }; });
+  sheet.querySelectorAll("[data-nounir]").forEach(function(b){ b.onclick = function(){
+    var g = gs[+b.dataset.nounir]; S.noUnir = S.noUnir || {};
+    g.vars.forEach(function(a){ g.vars.forEach(function(c){ if(a!==c) S.noUnir[parUnir(a.name,c.name)] = 1; }); });
+    save(); abreOrden();
+  }; });
+}
+function cuentaOrden(){ try { return gruposParecidos().length + (lineasBasura().length ? 1 : 0); } catch(e){ return 0; } }
 
 /* --- parser de tickets --- */
 var SKIP = /(total|iva|i\.v\.a|base imponible|cuota|tarjeta|efectivo|cambio|entrega|factura|simplificada|ticket|gracias|visita|caja|cajero|operacion|autorizacion|c\.i\.f|cif|nif|n\.i\.f|telefono|tfno|www|http|importe|pago|contactless|aid|tarj|s\.a|calle|avda|avenida|plaza|descuento|ahorro|puntos|socio|cliente|fecha|hora|unidades|descripcion|precio|importe)/i;
@@ -2832,7 +3089,7 @@ function parseTicket(text){
     var iva = /\d{1,4}[.,]\d{2}\s+[A-D]\s*$/.test(l);
     /* "CHAPATA CRISTAL  0,29x 4  1,16": el 4 es la cantidad */
     var mult = l.match(/\d{1,4}[.,]\d{2}\s*x\s*(\d{1,3})\b/i);
-    var name = l.replace(/\d{1,4}[.,]\d{2}/g,"").replace(/[€|]/g,"").trim();
+    var name = limpiaNombre(l.replace(/\d{1,4}[.,]\d{2}/g,"").replace(/[€|]/g,""));
     if(iva) name = name.replace(/\s+[A-D]\s*$/,"");
     var qty = 1;
     if(mult){ qty = +mult[1]; name = name.replace(/\s*x\s*\d{1,3}\s*$/i,""); }
@@ -2840,11 +3097,12 @@ function parseTicket(text){
     if(mq){ qty = +mq[1]; name = mq[2]; }
     name = name.replace(/\s{2,}/g," ").replace(/^[\s.\-*x]+|[\s.\-*x]+$/g,"").trim();
     if(name.length < 3) return;
-    if(/^\d+$/.test(name)) return;
+    if(/^\d+$/.test(name) || esBasura(name)) return;
     out.lines.push({name:name, qty:qty, price:price});
   });
   if(out.total===null) out.total = Math.round(out.lines.reduce(function(a,b){ return a+b.price; },0)*100)/100;
   if(!out.date) out.date = dKey(today);
+  out.corregidos = corrigeLineas(out.lines, out.shop);
   return out;
 }
 
@@ -2873,16 +3131,24 @@ function prepImage(file){
   return new Promise(function(res){
     var img = new Image(), url = URL.createObjectURL(file);
     img.onload = function(){
-      var max = 1700, sc = Math.min(1, max/Math.max(img.width,img.height));
+      /* los tickets son estrechos: lo que importa es el ancho de la letra */
+      var sc = Math.min(2.2, Math.max(1400/img.width, 1), 3000/Math.max(img.width,img.height));
       var c = document.createElement("canvas");
       c.width = Math.round(img.width*sc); c.height = Math.round(img.height*sc);
       var x = c.getContext("2d");
       x.drawImage(img,0,0,c.width,c.height);
-      var d = x.getImageData(0,0,c.width,c.height), a = d.data;
-      for(var i=0;i<a.length;i+=4){
-        var g = 0.3*a[i]+0.59*a[i+1]+0.11*a[i+2];
-        g = g<110 ? 0 : (g>165 ? 255 : (g-110)*255/55);
-        a[i]=a[i+1]=a[i+2]=g;
+      /* umbral adaptativo (Bradley): cada punto se compara con la media de su
+         alrededor, así una sombra o un pliegue del ticket no se come las letras */
+      var W = c.width, H = c.height, d = x.getImageData(0,0,W,H), a = d.data, gr = new Float32Array(W*H), ii = new Float64Array((W+1)*(H+1));
+      var i, X, Y;
+      for(i=0;i<W*H;i++) gr[i] = 0.3*a[i*4]+0.59*a[i*4+1]+0.11*a[i*4+2];
+      for(Y=1;Y<=H;Y++){ var fila = 0; for(X=1;X<=W;X++){ fila += gr[(Y-1)*W+X-1]; ii[Y*(W+1)+X] = ii[(Y-1)*(W+1)+X] + fila; } }
+      var r = Math.max(8, Math.round(W/28));
+      for(Y=0;Y<H;Y++) for(X=0;X<W;X++){
+        var x0 = Math.max(0,X-r), x1 = Math.min(W-1,X+r), y0 = Math.max(0,Y-r), y1 = Math.min(H-1,Y+r);
+        var cnt = (x1-x0+1)*(y1-y0+1), sum = ii[(y1+1)*(W+1)+x1+1] - ii[y0*(W+1)+x1+1] - ii[(y1+1)*(W+1)+x0] + ii[y0*(W+1)+x0];
+        var v = gr[Y*W+X] < (sum/cnt)*0.86 ? 0 : 255, k = (Y*W+X)*4;
+        a[k]=a[k+1]=a[k+2]=v;
       }
       x.putImageData(d,0,0);
       URL.revokeObjectURL(url);
@@ -2900,12 +3166,19 @@ function runOCR(file){
     return loadOCR().then(function(ok){
       if(!ok) throw new Error("No he podido cargar el OCR (¿sin internet?)");
       sheetMsg("Leyendo el ticket… esto tarda un poco");
-      return window.Tesseract.recognize(dataUrl, "spa", {
-        logger: function(m){
-          if(m.status==="recognizing text") sheetMsg("Leyendo el ticket… "+Math.round(m.progress*100)+"%");
-          else if(m.status) sheetMsg(m.status+"…");
-        }
-      });
+      var log = function(m){
+        if(m.status==="recognizing text") sheetMsg("Leyendo el ticket… "+Math.round(m.progress*100)+"%");
+        else if(m.status) sheetMsg(m.status+"…");
+      };
+      /* un solo bloque de texto y respetando los espacios: así el precio no se pega al nombre */
+      if(window.Tesseract.createWorker){
+        return window.Tesseract.createWorker("spa", 1, {logger: log}).then(function(w){
+          return w.setParameters({tessedit_pageseg_mode: "6", preserve_interword_spaces: "1"})
+            .then(function(){ return w.recognize(dataUrl); })
+            .then(function(r){ w.terminate(); return r; }, function(e){ w.terminate(); throw e; });
+        });
+      }
+      return window.Tesseract.recognize(dataUrl, "spa", {logger: log});
     });
   }).then(function(r){ return (r && r.data && r.data.text) || ""; });
 }
@@ -3213,6 +3486,10 @@ function fusiona(local, remoto){
   out.avisos = out.avisos || {};
   out.retos = out.retos || {};
   Object.keys(remoto.retos||{}).forEach(function(k){ out.retos[k] = gana(out.retos[k], remoto.retos[k]); });
+  /* nombres unificados: se suman los de los dos móviles */
+  out.alias = Object.assign({}, remoto.alias||{}, out.alias||{});
+  out.noUnir = Object.assign({}, remoto.noUnir||{}, out.noUnir||{});
+  out.prices = (out.prices||[]).filter(function(p){ return !baja[p.id]; });
   Object.keys(remoto.avisos||{}).forEach(function(pid){ out.avisos[pid] = gana(out.avisos[pid], remoto.avisos[pid]); });
   out.logrosAvisados = une((out.logrosAvisados||[]).map(function(k){ return {id:k}; }), (remoto.logrosAvisados||[]).map(function(k){ return {id:k}; })).map(function(x){ return x.id; });
   Object.keys(remoto.privado||{}).forEach(function(pid){
@@ -4458,11 +4735,12 @@ function ticketEditor(t){
     document.getElementById("t_lines").innerHTML = lines.map(function(l,i){
       var enOferta = l.off===true || +l.off>0 || l.off===0;
       return '<div class="linewrap"><div class="lineitem">'+
-        '<input data-l="'+i+'" data-f="name" value="'+esc(l.name)+'" placeholder="producto">'+
+        '<input data-l="'+i+'" data-f="name" value="'+esc(l.name)+'" placeholder="producto"'+(l.antes ? ' title="el ticket ponía: '+esc(l.antes)+'"' : '')+'>'+
         '<input data-l="'+i+'" data-f="qty" type="number" inputmode="decimal" step="0.5" value="'+(l.qty||1)+'">'+
         '<input data-l="'+i+'" data-f="price" type="number" inputmode="decimal" step="0.01" value="'+(l.price||"")+'">'+
         '<button class="offbtn'+(enOferta?" on":"")+'" data-loff="'+i+'" title="tenía oferta">OF</button>'+
         '<button class="del" data-lrm="'+i+'">✕</button></div>'+
+        (l.antes ? '<div class="lineantes">el ticket ponía «'+esc(l.antes)+'»</div>' : '')+
         (enOferta ? '<div class="lineoff"><span>lo pagaste a</span>'+
           '<input data-l="'+i+'" data-f="off" type="number" inputmode="decimal" step="0.01" value="'+
           (typeof l.off==="number" ? l.off : "")+'" placeholder="'+(l.price||0)+'"></div>' : '')+
@@ -4505,7 +4783,11 @@ function ticketEditor(t){
       date: document.getElementById("t_date").value || dKey(today),
       cat: document.getElementById("t_cat").value,
       total: num(document.getElementById("t_total").value) || 0,
-      lines: lines.filter(function(l){ return l.name && l.name.trim(); })
+      lines: lines.filter(function(l){ return l.name && l.name.trim(); }).map(function(l){
+        /* lo que corrigió el usuario a mano o lo que corregí yo: se recuerda para el siguiente ticket */
+        if(l.antes && norm(l.antes) !== norm(l.name)){ S.alias = S.alias || {}; S.alias[norm(l.antes)] = l.name.trim(); }
+        var c = Object.assign({}, l); delete c.antes; return c;
+      })
     };
     if(!obj.total){ toast("Pon el total del ticket"); return; }
     var res = saveTicket(obj);
@@ -4534,7 +4816,7 @@ function avisaNuevos(res, shop){
       var id = inp.dataset.nuevo, v = inp.value.trim();
       if(!id || !v) return;
       var p = S.prices.filter(function(x){ return x.id===id; })[0];
-      if(p && p.prod !== v){ p.prod = v; p.norm = norm(v); cambios++; }
+      if(p && p.prod !== v){ var viejo = inp.defaultValue; p.prod = v; p.norm = norm(v); cambios++; if(viejo) unirNombres([viejo], v); }
     });
     save(); closeSheet(); render();
     toast(cambios ? cambios+" nombres corregidos" : "Ticket guardado");
@@ -4543,14 +4825,20 @@ function avisaNuevos(res, shop){
 function openTicketText(){
   openSheet('<h3>Pegar ticket</h3>'+
     '<div class="mini">Pega el texto del ticket (una línea por producto, el precio al final). Yo lo troceo y luego lo repasas.</div>'+
+    '<div class="mini"><b>Lo más fiable en el iPhone:</b> abre la foto del ticket en Fotos, mantén el dedo sobre el texto, «Seleccionar todo», «Copiar», y pégalo aquí. Lee mucho mejor que el OCR de la app.</div>'+
+    '<button class="add" id="tx_pega">Pegar lo copiado</button>'+
     '<textarea id="tx" placeholder="MERCADONA\n12/08/2026\n2 PECHUGA POLLO 5,49 10,98\nLECHE ENTERA 0,96\nTOTAL 11,94"></textarea>'+
     '<div class="btns"><button class="b-no" id="tx_cancel">Cancelar</button><button class="b-ok" id="tx_ok">Trocear</button></div>');
   document.getElementById("tx_cancel").onclick = closeSheet;
+  document.getElementById("tx_pega").onclick = function(){
+    if(!navigator.clipboard || !navigator.clipboard.readText){ toast("Mantén el dedo en el cuadro y pulsa Pegar"); return; }
+    navigator.clipboard.readText().then(function(x){ document.getElementById("tx").value = x; }).catch(function(){ toast("Mantén el dedo en el cuadro y pulsa Pegar"); });
+  };
   document.getElementById("tx_ok").onclick = function(){
     var t = parseTicket(document.getElementById("tx").value);
     t.id = uid();
     ticketEditor(t);
-    toast(t.lines.length+" líneas detectadas");
+    toast(t.lines.length+" líneas detectadas"+(t.corregidos ? " · "+t.corregidos+" nombres corregidos con lo que ya conocéis" : ""));
   };
 }
 function openTicketJson(){
@@ -4792,13 +5080,14 @@ document.getElementById("shopAdd").onclick = function(){
 
 /* tickets */
 document.getElementById("tkText").onclick = openTicketText;
+document.getElementById("tkOrden").onclick = abreOrden;
 document.getElementById("tkJson").onclick = openTicketJson;
 document.getElementById("tkPhoto").onclick = function(){ document.getElementById("tkFile").click(); };
 document.getElementById("tkFile").onchange = function(e){
   var f = e.target.files[0]; e.target.value = "";
   if(!f) return;
   openSheet('<h3>Leyendo ticket</h3><div class="mini" id="sh_msg">Empezando…</div>'+
-    '<div class="mini">La primera vez descarga el motor de OCR (unos MB). Si va muy lento, cancela y usa "Escribir / pegar ticket".</div>'+
+    '<div class="mini">La primera vez descarga el motor de OCR (unos MB). Si lee mal, es más fiable copiar el texto desde la foto con el iPhone y usar «Escribir o pegar ticket».</div>'+
     '<div class="btns"><button class="b-no" id="o_cancel">Cancelar</button></div>');
   document.getElementById("o_cancel").onclick = closeSheet;
   runOCR(f).then(function(text){
@@ -4806,7 +5095,7 @@ document.getElementById("tkFile").onchange = function(e){
     var t = parseTicket(text);
     t.id = uid(); t.raw = text;
     ticketEditor(t);
-    toast(t.lines.length ? t.lines.length+" líneas detectadas · repásalas" : "No he sacado líneas claras, mételas a mano");
+    toast(t.lines.length ? t.lines.length+" líneas detectadas"+(t.corregidos ? " · "+t.corregidos+" nombres corregidos" : "")+" · repásalas" : "No he sacado líneas claras, mételas a mano");
   }).catch(function(err){
     openSheet('<h3>No ha podido</h3><div class="mini">'+esc(err.message||err)+'</div>'+
       '<div class="btns"><button class="b-no" id="o_c2">Cerrar</button><button class="b-ok" id="o_t2">Escribirlo a mano</button></div>');
