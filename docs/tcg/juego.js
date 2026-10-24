@@ -179,6 +179,7 @@
     else if(tab === "sobres") h += sobresHTML();
     else h += cambiosHTML();
     cuerpo.innerHTML = h;
+    if(tab === "sobres") deslizaCarrusel();
   }
 
   /* ── binder ── */
@@ -377,22 +378,32 @@
   }
 
   /* ── la pestaña de sobres: los tres para elegir ── */
+  /* ── la pestaña de sobres: carrusel con los tres (como en Pocket): se desliza o se toca para elegir ── */
   let elegido = lee("gremory-tcg-sobre", "gatos");
+  const ORDEN = ["alberto", "gatos", "cristina"];
   function sobresHTML(){
     miraExtra();
-    const d = disponibles(yo()), nb = !!nubeBase(), puede = d.total && nb;
+    const d = disponibles(yo()), nb = !!nubeBase(), puede = d.total && nb, i0 = ORDEN.indexOf(elegido);
     const motivo = d.pre.length ? d.pre[0].motivo : d.dia ? "Sobres del día" : "";
-    const orden = ["alberto", "gatos", "cristina"];
-    return '<div class="gx-tienda">' +
+    return '<div class="gx-tienda" style="--c:' + SOBRES[elegido].col + ';--c2:' + SOBRES[elegido].col2 + '"><div class="gx-cielo"></div>' +
       '<div class="gx-cuenta"><b>' + (d.total ? (d.total === 1 ? "1 sobre" : d.total + " sobres") : "Sin sobres") + '</b><span>' + (d.total ? esc(motivo) : "Mañana te esperan dos más") + '</span></div>' +
-      '<div class="gx-tres' + (puede ? "" : " apagado") + '">' + orden.map(k => '<button class="gx-elige' + (k === elegido ? " on" : "") + '" data-elige="' + k + '">' + sobreHTML(k) + '</button>').join("") + '</div>' +
-      (puede ? '<button class="tg-btn gx-abrir" data-acc="abrir">Abrir el ' + SOBRES[elegido].sub.toLowerCase() + '</button>'
+      '<div class="gx-carrusel' + (puede ? "" : " apagado") + '" id="gxCarrusel">' + ORDEN.map((k, i) => { const p = i - i0; return '<button class="gx-elige' + (p ? '' : ' on') + '" data-elige="' + k + '" style="transform:translateX(-50%) translateX(' + (p * 64) + '%) scale(' + (p ? .72 : 1) + ') rotate(' + (p * 4) + 'deg);z-index:' + (3 - Math.abs(p)) + '">' + sobreHTML(k) + '</button>'; }).join("") + '</div>' +
+      '<div class="gx-nombre-sobre">' + SOBRES[elegido].sub + '</div>' +
+      (puede ? '<button class="tg-btn gx-abrir" data-acc="abrir">Abrir</button>'
              : d.total ? '<p class="tg-nota" style="text-align:center">Para abrirlos, activa la sincronización en Ajustes.</p>' : '') +
       '<div class="tg-gana"><div><b>Cómo se consiguen</b></div><div>Dos cada día<span>' + (d.dia ? (d.dia === DIARIOS ? "listos" : "te queda " + d.dia) : "abiertos hoy") + '</span></div>' +
         '<div>Tres de bienvenida<span>al estrenar el Set 1</span></div><div>Uno por cada logro nuevo de la casa<span>para los dos</span></div></div>' +
-      '<p class="tg-nota" style="max-width:460px;text-align:center">Cada sobre trae 5 cartas y la última siempre es rara. Los tres sobres traen lo mismo: elige la portada que más te guste.</p></div>';
+      '<p class="tg-nota" style="max-width:460px;text-align:center">Cada sobre trae 5 cartas y la última siempre es rara. Los tres traen lo mismo: elige la portada que más te guste.</p></div>';
   }
   function eligeSobre(k){ elegido = k; guarda("gremory-tcg-sobre", k); pinta(); }
+  function deslizaCarrusel(){
+    const c = cuerpo && cuerpo.querySelector("#gxCarrusel"); if(!c || c._ok) return; c._ok = 1;
+    let x0 = null;
+    c.addEventListener("pointerdown", e => { x0 = e.clientX; });
+    c.addEventListener("pointerup", e => { if(x0 == null) return; const dx = e.clientX - x0; x0 = null;
+      if(Math.abs(dx) > 40){ const i = ORDEN.indexOf(elegido) + (dx < 0 ? 1 : -1); if(i >= 0 && i < ORDEN.length){ c._swipe = 1; setTimeout(() => c._swipe = 0, 60); eligeSobre(ORDEN[i]); } } });
+    c.addEventListener("click", e => { if(c._swipe){ e.stopPropagation(); e.preventDefault(); } }, true);
+  }
 
   function abreSobre(){
     const pid = yo(), d = disponibles(pid);
@@ -407,44 +418,51 @@
     });
     cartas.forEach(x => { if(!inst(x.id)) A.S.tcgCartas.push({id: x.id, c: x.c, v: x.v, d: pid, t: ahora(), o: "sobre"}); });
     save();
-    escena(cartas, s.sobre);
+    escena(cartas, s.sobre || elegido);
   }
 
-  /* ── la escena de apertura ── */
+  /* ══ la apertura (tercera versión: Pocket + gachas) ══
+     cielo de noche con estrellas → el sobre en grande → se corta deslizando → estalla la luz y cruza una estrella fugaz
+     del color de la mejor carta (azul normal, morada rara, dorada muy rara, rosa Gremory) → las cartas en pila: se pasan
+     deslizando, como en Pocket → la rara, la última, boca abajo brillando: al tocarla, presentación a pantalla completa
+     con el personaje, su nombre y las estrellas (como un gacha) → resumen con las cinco */
+  const ESTRELLAS = {1:1, 2:2, 3:3, 4:4, 5:5, sec:5};
+  const CIELO = {1:"#3b5bdb", 2:"#3b7bdb", 3:"#6d3bdb", 4:"#c98a1a", 5:"#c2187a", sec:"#b0103a"};
   const GATOS = {"kurama":[21,27], "sukuna":[28,34], "gyukki":[35,41]};
-  const gatoDe = c => { const n = num(c); for(const q in GATOS) if(n >= GATOS[q][0] && n <= GATOS[q][1]) return q; if(n === 44) return "gyukki"; if(n === 45) return "sukuna"; if(n === 47) return "kurama"; return null; };
+  const gatoDe = c => { const n = num(c); for(const q in GATOS) if(n >= GATOS[q][0] && n <= GATOS[q][1]) return q; return null; };
+  function capasDe(id){
+    const a = D1.ART[id] || {};
+    for(const k of ["gre", "oro", "firma", "full", "esc", "est"]){ const x = a[k]; if(x && x.pj && x.pj !== VACIA) return {pj: x.pj, fondo: k === "gre" ? x.g2 : x.fondo}; }
+    if(a.casa && a.casa !== VACIA) return {fondo: a.casa};
+    return null;
+  }
   function escena(cartas, k){
     const cap = document.getElementById("tgAbre"), S = SOBRES[k];
     const mejor = cartas.reduce((m, x) => { const t = tierDe(x); return t === "sec" || (m !== "sec" && t > m) ? t : m; }, 1);
-    const vertical = innerHeight > innerWidth, mesa = extra[vertical ? "mesaV" : "mesaH"];
-    cap.className = "tg-capa on gx-escena"; cap.style.cssText = "--c:" + S.col + ";--c2:" + S.col2 + ";--tier:" + TIER[mejor][0];
-    const gatos = ["kurama", "sukuna", "gyukki"].filter(q => extra["g-" + q + "-0"]);
-    cap.innerHTML = '<div class="gx-mesa"' + (mesa ? ' style="background-image:url(' + mesa + ')"' : '') + '></div><div class="gx-lampara"></div><div class="gx-polvo"></div>' +
-      '<div class="gx-magia">' + circuloSVG() + '</div><div class="gx-pilar"></div>' +
-      '<div class="gx-gatos">' + gatos.map(q => '<div class="gx-gato" data-gato="' + q + '"><img class="m" src="' + extra["g-" + q + "-0"] + '" alt="">' + (extra["g-" + q + "-1"] ? '<img class="f" src="' + extra["g-" + q + "-1"] + '" alt="">' : '') + '</div>').join("") + '</div>' +
+    cap.className = "tg-capa on gv"; cap.style.cssText = "--c:" + S.col + ";--c2:" + S.col2 + ";--tier:" + TIER[mejor][0] + ";--cielo:#2b3a8f";
+    cap.innerHTML = '<div class="gv-cielo"></div><div class="gv-estrellas"></div><div class="gv-estrellas dos"></div><div class="gv-bruma"></div>' +
+      '<div class="gv-rayos"></div><div class="gv-magia">' + circuloSVG() + '</div>' +
       '<button class="gx-mudo" data-mudo aria-label="Sonido">' + icoSon() + '</button>' +
-      '<div class="gx-centro">' + sobreHTML(k, "vivo entra") + '</div>' +
-      '<div class="gx-abanico" id="gxAbanico"></div>' +
-      '<div class="gx-pista" id="gxPista">Corta el sobre: desliza el dedo por la línea de arriba</div><div class="gx-final" id="gxFinal"></div>';
+      '<div class="gv-centro">' + sobreHTML(k, "vivo entra") + '<div class="gv-guia"><i></i></div></div>' +
+      '<div class="gv-pila" id="gvPila"></div><div class="gv-splash" id="gvSplash"></div>' +
+      '<div class="gx-pista" id="gxPista">Desliza por la línea de arriba para abrirlo</div><div class="gx-final" id="gxFinal"></div>';
     cap.querySelector("[data-mudo]").onclick = e => { e.stopPropagation(); mudo = !mudo; guarda("gremory-tcg-mudo", mudo); e.currentTarget.innerHTML = icoSon(); };
     G.luz.on(cap);
-    if(gatos.length) setTimeout(() => cap.classList.add("gatos-ya"), 500);
     corte(cap, cartas, mejor);
   }
   function icoSon(){ return mudo
     ? '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9h4l5-4v14l-5-4H4z"/><path d="M17 9l5 6M22 9l-5 6"/></svg>'
     : '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9h4l5-4v14l-5-4H4z"/><path d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12"/></svg>'; }
 
-  /* 1. cortar: el dedo recorre la línea de arriba y deja un rastro de luz */
   function corte(cap, cartas, mejor){
-    const sob = cap.querySelector(".gx-sobre"), tapa = sob.querySelector(".gx-tapa"), raya = sob.querySelector(".gx-raya");
+    const sob = cap.querySelector(".gx-sobre"), raya = sob.querySelector(".gx-raya");
     let x0 = null, ini = 0, p = 0, hecho = false, max = 0, movido = false;
     const pon = v => { p = Math.max(p, Math.min(1, v)); raya.style.setProperty("--p", p.toFixed(3)); sob.classList.toggle("tenso", p > 0 && p < 1); };
     const fin = () => {
       if(hecho) return; hecho = true; pon(1); SON.corta(); vibra(25);
-      sob.classList.add("cortado"); cap.querySelector("#gxPista").classList.add("fuera");
-      setTimeout(() => { cap.classList.add("magia"); SON.sube(); chispas(cap, sob, TIER[mejor][0], mejor >= 4 || mejor === "sec" ? 60 : 34, 220, .12); }, 260);
-      setTimeout(() => { sob.classList.add("vacia"); reparte(cap, cartas); }, 1050);
+      sob.classList.add("cortado"); cap.querySelector(".gv-guia").remove(); cap.querySelector("#gxPista").classList.add("fuera");
+      setTimeout(() => { cap.classList.add("estalla"); SON.sube(); chispas(cap, sob, "#fff", 40, 240, .1); }, 200);
+      setTimeout(() => estrella(cap, cartas, mejor), 900);
     };
     const auto = () => { const t0 = performance.now(), v0 = p; const paso = t => { const k = Math.min(1, (t - t0) / 420); pon(v0 + (1 - v0) * k); if(k < 1) requestAnimationFrame(paso); else fin(); }; requestAnimationFrame(paso); };
     setTimeout(() => sob.classList.remove("entra"), 900);
@@ -452,6 +470,68 @@
     sob.addEventListener("pointermove", e => { if(x0 == null || hecho) return; const r = sob.getBoundingClientRect(), x = (e.clientX - r.left) / r.width;
       if(Math.abs(e.clientX - x0) > 6) movido = true; max = Math.max(max, Math.abs(x - ini)); pon(max / .75); if(p >= 1) fin(); });
     sob.addEventListener("pointerup", () => { if(x0 == null) return; x0 = null; if(hecho) return; if(!movido || p > .4) auto(); });
+  }
+  /* la estrella fugaz: su color avisa de lo mejor que trae el sobre (como el deseo de Genshin) */
+  function estrella(cap, cartas, mejor){
+    cap.style.setProperty("--cielo", CIELO[mejor]);
+    cap.classList.add("noche", "t" + mejor);
+    const e = document.createElement("div"); e.className = "gv-fugaz" + (mejor >= 4 || mejor === "sec" ? " grande" : "");
+    cap.appendChild(e);
+    if(mejor >= 3 || mejor === "sec") setTimeout(() => SON.rara(mejor === "sec" ? 5 : mejor), 250);
+    setTimeout(() => { cap.querySelector(".gx-sobre").classList.add("vacia"); }, 300);
+    setTimeout(() => { e.remove(); pila(cap, cartas, 0); }, 1500);
+  }
+  /* 2. la pila: boca arriba, la de encima se pasa deslizando (o tocando); la rara, la última, sale boca abajo */
+  function pila(cap, cartas, i){
+    const pl = cap.querySelector("#gvPila"), n = cartas.length, pista = cap.querySelector("#gxPista");
+    if(i >= n) return final(cap, cartas);
+    const x = cartas[i], t = tierDe(x), rara = t >= 3 || t === "sec", ult = i === n - 1;
+    cap.classList.add("pilando"); pl.className = "gv-pila" + (i === 0 ? " entra" : "");
+    pl.innerHTML = cartas.slice(i).map((y, k) => { const ty = tierDe(y), oculta = k === 0 ? (rara && ult) : (i + k === n - 1);
+      return '<div class="gv-carta' + (k === 0 ? " arriba" : "") + (oculta ? " oculta" : "") + '" data-tier="' + ty + '" style="--k:' + k + ';--tc:' + TIER[ty][0] + ';z-index:' + (10 - k) + '">' +
+        '<div class="gx-voltea"><div class="tg-dorso"></div><div class="gx-cara">' + G.carta(y.c, y.v) + (y.nueva ? '<span class="gx-nueva">Nueva</span>' : '') + '</div></div></div>'; }).reverse().join("") +
+      '<div class="gv-cuenta">' + (i + 1) + ' / ' + n + '</div>';
+    const top = pl.querySelector(".gv-carta.arriba");
+    pista.classList.remove("fuera");
+    pista.textContent = rara && ult ? "La última brilla… tócala" : i === 0 ? "Desliza para pasar a la siguiente" : (ult ? "La última" : "Desliza para pasar");
+    if(!(rara && ult)){ if(x.nueva) SON.reparte(0); const q = gatoDe(x.c); if(q && i > 0) {} }
+    G.luz.on(top);
+    let x0 = null, y0 = null, dx = 0, dy = 0, fuera = false;
+    const tira = (vx, vy) => {
+      if(fuera) return; fuera = true; SON.gira();
+      top.style.transition = "transform .38s ease-in, opacity .38s"; top.style.transform = "translate(" + (vx * 120) + "vw," + (vy * 60) + "vh) rotate(" + (vx * 28) + "deg)"; top.style.opacity = 0;
+      setTimeout(() => pila(cap, cartas, i + 1), 260);
+    };
+    const revela = () => { if(fuera) return; fuera = true; splash(cap, x, () => { top.classList.remove("oculta"); top.classList.add("girada"); fuera = false; SON.gira();
+      pista.textContent = "Toca para ver el resumen"; top.onclick = () => final(cap, cartas); }); };
+    top.addEventListener("pointerdown", e => { if(fuera) return; x0 = e.clientX; y0 = e.clientY; dx = dy = 0; top.style.transition = "none"; try { top.setPointerCapture(e.pointerId); } catch(_){} });
+    top.addEventListener("pointermove", e => { if(x0 == null || fuera || top.classList.contains("oculta")) return; dx = e.clientX - x0; dy = e.clientY - y0;
+      top.style.transform = "translate(" + dx + "px," + dy + "px) rotate(" + (dx / 18) + "deg)"; });
+    top.addEventListener("pointerup", () => { if(x0 == null) return; x0 = null;
+      if(top.classList.contains("oculta")) return revela();
+      if(top.classList.contains("girada")) return;
+      const d = Math.hypot(dx, dy);
+      if(d > 70) tira(dx / d, dy / d);
+      else if(d < 8 && !ult) tira(-1, -.15);
+      else if(d < 8 && ult) final(cap, cartas);
+      else { top.style.transition = "transform .3s cubic-bezier(.3,1.5,.5,1)"; top.style.transform = ""; } });
+  }
+  /* 3. la presentación de la rara: el personaje a pantalla completa, su nombre y las estrellas */
+  function splash(cap, x, listo){
+    const t = tierDe(x), sp = cap.querySelector("#gvSplash"), cs = capasDe(x.c), nom = (G.CARTAS[x.c] || {}).n || "", est = ESTRELLAS[t];
+    cap.style.setProperty("--tier", TIER[t][0]); cap.style.setProperty("--cielo", CIELO[t]);
+    cap.classList.add("revela"); if(t >= 5 || t === "sec") cap.classList.add("flash");
+    SON.rara(t === "sec" ? 5 : t); vibra(t >= 4 ? [20, 50, 40] : 20);
+    sp.innerHTML = '<div class="gv-sp-fondo"' + (cs && cs.fondo ? ' style="background-image:url(' + cs.fondo + ')"' : '') + '></div><div class="gv-sp-lineas"></div>' +
+      (cs && cs.pj ? '<img class="gv-sp-pj" src="' + cs.pj + '" alt="">' : '') +
+      '<div class="gv-sp-txt"><em>' + TIER[t][1] + ' · ' + G.nombreVer(x.c, x.v) + '</em><b>' + esc(nom) + '</b><div class="gv-sp-est">' + Array.from({length: est}, (_, k) => '<i style="--k:' + k + '"></i>').join("") + '</div>' +
+      (x.nueva ? '<span class="gx-nueva">Nueva</span>' : '') + '</div><div class="gv-sp-toca">Toca para continuar</div>';
+    sp.classList.add("on");
+    for(let k = 0; k < est; k++) setTimeout(() => SON.reparte(0), 900 + k * 160);
+    const q = gatoDe(x.c); if(q) setTimeout(() => SON.miau(), 700);
+    chispas(cap, sp, TIER[t][0], t >= 4 ? 60 : 36, 320);
+    setTimeout(() => { sp.onclick = () => { sp.onclick = null; sp.classList.remove("on"); sp.classList.add("sale"); cap.classList.remove("flash");
+      setTimeout(() => { sp.classList.remove("sale"); sp.innerHTML = ""; listo(); }, 450); }; }, 700);
   }
   function chispas(cap, el, color, n, fuerza, alto){
     if(reduce()) return;
@@ -463,57 +543,19 @@
       cap.appendChild(c); setTimeout(() => c.remove(), 1700);
     }
   }
-  function huellas(cap){
-    if(reduce()) return;
-    const pata = '<svg viewBox="0 0 24 24"><ellipse cx="12" cy="16" rx="5.2" ry="4.4"/><ellipse cx="5.6" cy="10.2" rx="2.1" ry="2.7"/><ellipse cx="9.6" cy="6.4" rx="2.1" ry="2.8"/><ellipse cx="14.4" cy="6.4" rx="2.1" ry="2.8"/><ellipse cx="18.4" cy="10.2" rx="2.1" ry="2.7"/></svg>';
-    for(let k = 0; k < 8; k++){ const h = document.createElement("i"); h.className = "gx-huella"; h.innerHTML = pata;
-      h.style.cssText = "left:" + (8 + k * 11 + (k % 2) * 3) + "%;top:" + (78 - k * 8 + (k % 2) * 6) + "%;--r:" + (k % 2 ? 18 : -10) + "deg;animation-delay:" + (k * 90) + "ms";
-      cap.appendChild(h); setTimeout(() => h.remove(), 2400); }
-  }
-
-  /* 2. las cartas salen del sobre y se abren en abanico, boca abajo y brillando según su rareza */
-  function reparte(cap, cartas){
-    const ab = cap.querySelector("#gxAbanico"), n = cartas.length;
-    cap.classList.add("reparte");
-    ab.innerHTML = cartas.map((x, i) => { const t = tierDe(x), a = (i - (n - 1) / 2);
-      return '<div class="gx-carta" data-i="' + i + '" data-tier="' + t + '" style="--a:' + a + ';--i:' + i + ';--tc:' + TIER[t][0] + '">' +
-        '<div class="gx-voltea"><div class="tg-dorso"></div><div class="gx-cara">' + G.carta(x.c, x.v) + (x.nueva ? '<span class="gx-nueva">Nueva</span>' : '') + '</div></div></div>'; }).join("");
-    cartas.forEach((_, k) => setTimeout(() => SON.reparte(0), 140 + k * 80));
-    const pista = cap.querySelector("#gxPista"); pista.classList.remove("fuera"); pista.textContent = "Toca una carta para darle la vuelta";
-    let abierta = null, vistas = 0;
-    cap.onclick = e => {
-      if(e.target.closest("[data-mudo],#gxFinal")) return;
-      if(abierta){ cierra(abierta); abierta = null; return; }
-      const el = e.target.closest(".gx-carta"); if(!el) return;
-      if(el.classList.contains("vista")) { el.classList.add("grande"); abierta = el; return; }
-      const i = +el.dataset.i, x = cartas[i], t = tierDe(x);
-      el.classList.add("grande", "vista"); abierta = el; vistas++;
-      SON.gira(); G.luz.on(el);
-      cap.style.setProperty("--tier", TIER[t][0]); cap.dataset.t = t;
-      setTimeout(() => {
-        if(t >= 3 || t === "sec"){ cap.classList.remove("revela", "flash"); void cap.offsetWidth; cap.classList.add("revela"); SON.rara(t === "sec" ? 5 : t); vibra(t >= 4 ? [20, 50, 30] : 18);
-          chispas(cap, el, TIER[t][0], t >= 4 ? 56 : 30, 280); if(t >= 5 || t === "sec") cap.classList.add("flash"); }
-        const q = gatoDe(x.c); if(q){ huellas(cap); SON.miau(); const g = cap.querySelector('[data-gato="' + q + '"]'); if(g){ g.classList.add("flipa"); setTimeout(() => g.classList.remove("flipa"), 1800); } }
-        pista.textContent = vistas < n ? "Toca para dejarla en la mesa" : "Toca para terminar";
-      }, 330);
-    };
-    function cierra(el){
-      el.classList.remove("grande"); cap.classList.remove("revela", "flash");
-      if(vistas >= n){ cap.onclick = null; setTimeout(() => final(cap, cartas), 450); }
-      else pista.textContent = "Quedan " + (n - vistas) + " por ver";
-    }
-  }
-
-  /* 3. el final: las cinco boca arriba, cuántas nuevas, cómo va el binder y dos botones iguales */
+  /* 4. el resumen: las cinco a la vista (como en Pocket), cómo va el binder y dos botones iguales */
   function final(cap, cartas){
+    if(cap.classList.contains("fin")) return;
     const nuevas = cartas.filter(x => x.nueva).length, col = coleccion(yo()), tengo = Object.keys(col).length, total = L.filter(e => e.ok && e.n !== "061").length;
-    cap.classList.add("fin"); G.luz.off();
+    cap.classList.remove("pilando", "revela"); cap.classList.add("fin"); G.luz.off();
     const d = disponibles(yo()).total;
     cap.querySelector("#gxPista").classList.add("fuera");
+    cap.querySelector("#gvPila").innerHTML = '<div class="gv-rejilla">' + cartas.map((x, k) => { const t = tierDe(x);
+      return '<div class="gv-mini" data-tier="' + t + '" style="--tc:' + TIER[t][0] + ';--k:' + k + '">' + G.carta(x.c, x.v) + (x.nueva ? '<span class="gx-nueva">Nueva</span>' : '') + '</div>'; }).join("") + '</div>';
     cap.querySelector("#gxFinal").innerHTML = '<div class="gx-resumen"><b>' + (nuevas ? (nuevas === 1 ? "+1 carta nueva" : "+" + nuevas + " cartas nuevas") : "Todas repetidas") + '</b>' +
       '<span>' + (nuevas === 5 ? "las cinco, estrenadas" : nuevas ? (5 - nuevas) + (5 - nuevas === 1 ? " repetida para cambiar" : " repetidas para cambiar") : "buenas para cambiar") + '</span>' +
       '<div class="gx-barra"><i style="width:' + Math.round(tengo / total * 100) + '%"></i></div><em>Tu binder: ' + tengo + ' de ' + total + '</em></div>' +
-      '<div class="gx-botones"><button class="tg-btn sec" data-ab="fin">Al binder</button><button class="tg-btn" data-ab="otro"' + (d ? '' : ' disabled') + '>' + (d ? "Abrir otro (" + d + ")" : "No quedan sobres") + '</button></div>';
+      '<div class="gx-botones"><button class="tg-btn sec" data-ab="fin">Al binder</button><button class="tg-btn" data-ab="otro"' + (d ? '' : ' disabled') + '>' + (d ? "Abrir otro (" + d + ")" : "No quedan") + '</button></div>';
     cap.querySelector("#gxFinal").onclick = e => { const b = e.target.closest("[data-ab]"); if(!b || b.disabled) return; cap.className = "tg-capa"; cap.innerHTML = "";
       if(b.dataset.ab === "otro") abreSobre(); else { tab = "binder"; quien = yo(); pinta(); } };
   }
