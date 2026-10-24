@@ -60,9 +60,10 @@ function banda(arriba){
   return g;
 }
 
-function textura(fuente, renderer){
+function textura(fuente, renderer, datos){
+  if(!fuente) return null;
   const t = fuente instanceof THREE.Texture ? fuente : new THREE.CanvasTexture(fuente);
-  t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy());
+  t.colorSpace = datos ? THREE.NoColorSpace : THREE.SRGBColorSpace; t.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy());
   t.needsUpdate = true;
   return t;
 }
@@ -95,6 +96,8 @@ export function webgl(){
 
 /* crea(capa, op)
    op.frente, op.dorso: canvas o imagen de 1000×1700 · op.rasgado: 1000×64
+   op.brilloF, op.brilloD: máscaras de brillo (blanco = metalizado e iridiscente; negro = mate: caras y piel)
+   op.arrugas: mapa de alturas · op.interior: 1000×420, lo que se ve por la abertura · op.destello: el estallido
    op.color: el del sobre · op.tier: el de la mejor carta
    op.alRasgar(p, x, y): mientras se rasga (para sonido y chispas) · op.alAbrir(): la tira se ha soltado */
 export function crea(capa, op){
@@ -118,10 +121,14 @@ export function crea(capa, op){
   luzBoca.position.set(0, CORTE + .2, .9); scene.add(luzBoca);
 
   const tf = textura(op.frente, renderer), td = textura(op.dorso, renderer), tr = textura(op.rasgado, renderer);
-  /* cada cara solo se pinta por fuera: así el dorso nunca asoma por delante en los sellados, donde las dos caras casi se tocan */
-  const mat = (map, side) => new THREE.MeshPhysicalMaterial({map, roughness: .36, metalness: .18, clearcoat: .85, clearcoatRoughness: .2,
-    side, alphaTest: .5, transparent: false});
-  const mF = mat(tf, THREE.FrontSide), mD = mat(td, THREE.BackSide);
+  const bF = textura(op.brilloF, renderer, true), bD = textura(op.brilloD, renderer, true), ar = textura(op.arrugas, renderer, true);
+  /* cada cara solo se pinta por fuera: así el dorso nunca asoma por delante en los sellados, donde las dos caras casi se tocan.
+     Con máscara de brillo, el metalizado y el arcoíris salen solo donde ella dice (las caras quedan mates) */
+  const mat = (map, side, br) => new THREE.MeshPhysicalMaterial(Object.assign({map, side, alphaTest: .5, transparent: false, roughness: .34, clearcoatRoughness: .18},
+    br ? {metalness: .3, metalnessMap: br, clearcoat: 1, clearcoatMap: br, iridescence: 1, iridescenceMap: br, iridescenceIOR: 1.35, iridescenceThicknessRange: [180, 520]}
+       : {metalness: .18, clearcoat: .85},
+    ar ? {bumpMap: ar, bumpScale: 2.2} : {}));
+  const mF = mat(tf, THREE.FrontSide, bF), mD = mat(td, THREE.BackSide, bD);
   const mR = new THREE.MeshStandardMaterial({map: tr, vertexColors: true, transparent: true, roughness: .4, metalness: .6, side: THREE.DoubleSide, depthWrite: false});
 
   const pack = new THREE.Group(), cuerpo = new THREE.Group(), tira = new THREE.Group();
@@ -136,18 +143,30 @@ export function crea(capa, op){
   ];
   const bandas = [malla(banda(false), mR, cuerpo, false), malla(banda(true), mR, tira, true)];
   pack.add(cuerpo); pack.add(tira); scene.add(pack);
+  /* el interior: la pared de dentro con los cantos de las cartas; se ve cuando el borde de delante se abre */
+  const LABIO = .6, ti = textura(op.interior, renderer);
+  if(ti){
+    const alto = W * .42 * .62;                         /* solo la parte de abajo de la textura (lo de arriba quedaría por encima del sobre) */
+    ti.repeat.set(1, .62); ti.offset.set(0, 0);
+    const pi = new THREE.Mesh(new THREE.PlaneGeometry(W * .94, alto), new THREE.MeshStandardMaterial({map: ti, roughness: .45, metalness: .5}));
+    pi.position.set(0, CORTE - .015 - alto / 2, -.02); cuerpo.add(pi);
+  }
 
   const halo = new THREE.Sprite(new THREE.SpriteMaterial({map: brillo(), color: new THREE.Color(op.tier || "#ffffff"), blending: THREE.AdditiveBlending, transparent: true, depthWrite: false, opacity: 0}));
   halo.position.set(0, CORTE + .05, .25); halo.scale.set(.01, .01, 1); pack.add(halo);
+  const td2 = textura(op.destello, renderer);
+  const estallo = td2 ? new THREE.Sprite(new THREE.SpriteMaterial({map: td2, color: new THREE.Color(op.tier || "#ffffff").lerp(new THREE.Color("#ffffff"), .45), blending: THREE.AdditiveBlending, transparent: true, depthWrite: false, opacity: 0})) : null;
+  if(estallo){ estallo.position.set(0, CORTE + .1, .4); estallo.scale.set(.01, .01, 1); pack.add(estallo); }
 
   /* estado */
   let progreso = 0, dir = 1, modo = "cerrado", vivo = true, t0 = performance.now(), tPrev = t0;
   const rot = {y: 0, v: 0, arrastre: false};
   const escala = {s: .9, v: 0};                       /* entra creciendo, con rebote */
-  let vuelo = null, cae = null, abreT = null, auto = null;
+  let vuelo = null, cae = null, abreT = null, auto = null, boca = 0;
 
   function deforma(){
     for(const o of piezas.concat(bandas)){
+      if(o.userData.tira && boca > 0) continue;            /* la tira ya va por su cuenta */
       const pos = o.geometry.attributes.position, base = o.userData.base, esBanda = o.geometry.attributes.color;
       const col = esBanda ? o.geometry.attributes.color : null;
       for(let i = 0; i < pos.count; i++){
@@ -161,7 +180,10 @@ export function crea(capa, op){
             z + s * Math.sin(suelto * Math.PI * .75) * (.18 + .3 * h) * (z < 0 ? .4 : 1));
         } else {
           const cerca = Math.exp(-Math.abs(y - CORTE) * 2.6);
-          pos.setXYZ(i, x + Math.sin(y * 21 + x * 11) * cerca * progreso * .01, y, z + Math.sin(x * 35 + progreso * 15) * cerca * progreso * .02 * Math.sign(z || 1));
+          /* al abrirse, el borde de delante se dobla hacia fuera y hacia abajo (y el de detrás un poco hacia atrás) */
+          const d = cl((y - (CORTE - LABIO)) / LABIO, 0, 1), dd = d * d * boca * (1 - Math.pow(Math.abs(x) / (W / 2), 4));
+          const dz = z >= 0 ? dd * .34 : -dd * .1, dy = z >= 0 ? -dd * .2 : -dd * .03;
+          pos.setXYZ(i, x + Math.sin(y * 21 + x * 11) * cerca * progreso * .01, y + dy, z + dz + Math.sin(x * 35 + progreso * 15) * cerca * progreso * .02 * Math.sign(z || 1));
         }
       }
       pos.needsUpdate = true; if(col) col.needsUpdate = true;
@@ -235,6 +257,8 @@ export function crea(capa, op){
     }
     if(abreT !== null){
       const k = (ahora - abreT) / 1000;
+      if(boca < 1){ boca = Math.min(1, 1 - Math.pow(1 - cl(k / .45, 0, 1), 3)); deforma(); }
+      if(estallo){ const e = cl(k / .5, 0, 1); estallo.material.opacity = (1 - e) * (k < .05 ? k / .05 : 1); const sc = .3 + 3.4 * Math.pow(e, .5); estallo.scale.set(sc, sc, 1); estallo.material.rotation = k * .6; }
       const a = cl(k / .35, 0, 1) * (1 - cl((k - 1.2) / .8, 0, 1) * .6);
       halo.material.opacity = a * .95; const s = (.4 + 2.6 * Math.pow(cl(k / .5, 0, 1), .6)) * (1 + .06 * Math.sin(k * 9));
       halo.scale.set(s * 1.5, s * .8, 1);
@@ -312,7 +336,7 @@ export function crea(capa, op){
   function destruye(){
     if(!vivo) return; vivo = false;
     ro.disconnect();
-    scene.traverse(o => { if(o.geometry) o.geometry.dispose(); if(o.material){ (Array.isArray(o.material) ? o.material : [o.material]).forEach(m => { if(m.map) m.map.dispose(); m.dispose(); }); } });
+    scene.traverse(o => { if(o.geometry) o.geometry.dispose(); if(o.material){ (Array.isArray(o.material) ? o.material : [o.material]).forEach(m => { Object.values(m).forEach(v => { if(v && v.isTexture) v.dispose(); }); m.dispose(); }); } });
     if(scene.environment) scene.environment.dispose();
     renderer.dispose(); try { renderer.forceContextLoss(); } catch(e){}
     cvs.remove(); guia.remove();

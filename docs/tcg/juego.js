@@ -24,11 +24,28 @@
   const guarda = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch(e){} };
   const ahora = () => new Date().toISOString();
   const hoy = () => { const d = new Date(); return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); };
+  /* iconos (de Valeria, RUN-ASSETS-TCG.md §5.1 y §4.4): trazo 1,75, currentColor */
   const ICO = {
-    x: '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>',
-    izq: '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>',
-    der: '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>',
-    cambio: '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h13l-4-4M20 16H7l4 4"/></svg>'
+    x: '<svg width="18" height="18" aria-hidden="true" viewBox="0 0 24 24"><path d="M5 5 L19 19 M19 5 L5 19" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    izq: '<svg width="18" height="18" aria-hidden="true" viewBox="0 0 24 24"><path d="M15 4 L7 12 L15 20" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    der: '<svg width="18" height="18" aria-hidden="true" viewBox="0 0 24 24"><path d="M9 4 L17 12 L9 20" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    cambio: '<svg width="18" height="18" aria-hidden="true" viewBox="0 0 24 24"><path d="M8 3 L15 3 L15 14 L8 14 Z M12 10 L19 10 L19 21 L12 21 M4 13 Q1 6 5 4 L6 7 M20 11 Q23 18 20 21 L18 18" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    sonido: '<svg width="18" height="18" aria-hidden="true" viewBox="0 0 24 24"><path d="M3 9 L7 9 L12 5 L12 19 L7 15 L3 15 Z M16 8 Q21 12 16 16 M18 5 Q25 12 18 19" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    silencio: '<svg width="18" height="18" aria-hidden="true" viewBox="0 0 24 24"><path d="M3 9 L7 9 L12 5 L12 19 L7 15 L3 15 Z M16 9 L21 15 M21 9 L16 15" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    sobre: '<svg width="18" height="18" aria-hidden="true" viewBox="0 0 24 24"><path d="M5 4 L7 6 L9 4 L11 6 L13 4 L15 6 L17 4 L19 5 L19 20 L5 20 Z M5 8 L19 8 M8 17 L16 17" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    carpeta: '<svg width="18" height="18" aria-hidden="true" viewBox="0 0 24 24"><path d="M3 5 Q8 3 12 6 Q16 3 21 5 L21 20 Q16 18 12 21 Q8 18 3 20 Z M12 6 L12 21 M6 8 L9 8 L9 15 L6 15 Z M15 8 L18 8 L18 15 L15 15 Z" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/><g fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><path d="M10.5 8 L13.5 8 M10.5 12 L13.5 12 M10.5 16 L13.5 16"/></g></svg>',
+    repetida: '<svg width="18" height="18" aria-hidden="true" viewBox="0 0 24 24"><path d="M8 7 L20 7 L20 21 L8 21 Z M16 7 L16 3 L4 3 L4 17 L8 17" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    reloj: '<svg width="18" height="18" aria-hidden="true" viewBox="0 0 24 24"><path d="M5 3 L19 3 M5 21 L19 21 M7 3 L7 7 Q7 10 12 12 Q17 14 17 17 L17 21 M17 3 L17 7 Q17 10 12 12 Q7 14 7 17 L7 21 M9 17 L15 17" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    candado: '<svg width="18" height="18" aria-hidden="true" viewBox="0 0 24 24"><path d="M7 10 L7 7 Q7 2 12 2 Q17 2 17 7 L17 10 M5 10 L19 10 L19 21 L5 21 Z M12 14 L12 17" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    logro: '<svg width="18" height="18" aria-hidden="true" viewBox="0 0 24 24"><path d="M8 15 L6 22 L12 19 L18 22 L16 15 M12 3 C5 3 4 14 12 16 C20 14 19 3 12 3 Z" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    saltar: '<svg width="18" height="18" aria-hidden="true" viewBox="0 0 24 24"><path d="M4 6 L10 12 L4 18 M11 6 L17 12 L11 18 M20 5 L20 19" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    filtro: '<svg width="18" height="18" aria-hidden="true" viewBox="0 0 24 24"><path d="M3 4 L21 4 L14 12 L14 20 L10 18 L10 12 Z" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    info: '<svg width="18" height="18" aria-hidden="true" viewBox="0 0 24 24"><path d="M12 10 L12 17 M12 7 L12 7.1" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.75"/></svg>'
+  };
+  const GEMA = {
+    gema: '<svg width="24" height="24" aria-hidden="true" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="evenodd" d="M12 2 L21 9 L12 22 L3 9 Z M11 5 L6 9 L11 18 Z M13 5 L13 9 L18 9 Z"/></svg>',
+    gremory: '<svg width="24" height="24" aria-hidden="true" viewBox="0 0 24 24"><path d="M12 4 L17 10 L12 21 L7 10 Z M7 9 L2 5 L3 15 L7 13 Z M17 9 L22 5 L21 15 L17 13 Z" fill="currentColor"/></svg>',
+    secreta: '<svg width="24" height="24" aria-hidden="true" viewBox="0 0 24 24"><path d="M12 6 C6 -1 0 7 5 12 L12 21 L19 12 C24 7 18 -1 12 6 Z M12 9 C9 9 9 12 11 13 L10 16 L14 16 L13 13 C15 12 15 9 12 9 Z" fill="currentColor" fill-rule="evenodd"/></svg>'
   };
 
   /* ── datos ── */
@@ -164,16 +181,16 @@
     const d = yo() ? disponibles(yo()) : {total:0};
     const ent = A.S.tcgCambios.filter(c => c.estado === "pendiente" && c.para === yo()).length;
     raiz.querySelector("#tgTabs").innerHTML =
-      '<button data-tab="binder" class="' + (tab === "binder" ? "on" : "") + '">Binder</button>' +
-      '<button data-tab="sobres" class="' + (tab === "sobres" ? "on" : "") + '">Sobres' + (d.total ? '<i>' + d.total + '</i>' : '') + '</button>' +
-      '<button data-tab="cambios" class="' + (tab === "cambios" ? "on" : "") + '">Cambios' + (ent ? '<i>' + ent + '</i>' : '') + '</button>';
+      '<button data-tab="binder" class="' + (tab === "binder" ? "on" : "") + '">' + ICO.carpeta + 'Binder</button>' +
+      '<button data-tab="sobres" class="' + (tab === "sobres" ? "on" : "") + '">' + ICO.sobre + 'Sobres' + (d.total ? '<i>' + d.total + '</i>' : '') + '</button>' +
+      '<button data-tab="cambios" class="' + (tab === "cambios" ? "on" : "") + '">' + ICO.cambio + 'Cambios' + (ent ? '<i>' + ent + '</i>' : '') + '</button>';
     let h = "";
     if(!yo()){
       h = '<div class="tg-aviso">¿De quién es este móvil? Así sé de quién es cada sobre y cada binder.</div><div class="tg-acc">' +
         gente().map(p => '<button class="tg-btn sec" data-yo="' + p.id + '">' + esc(p.name) + '</button>').join("") + '</div>';
       cuerpo.innerHTML = h; return;
     }
-    if(!nubeBase()) h += '<div class="tg-aviso">Para ver las cartas y jugar entre los dos hace falta la sincronización (Ajustes → Sincronizar).</div>';
+    if(!nubeBase()) h += '<div class="tg-vacio"><img src="' + ARTE("vacio-sin-conexion") + '" alt=""><p>Para ver las cartas y jugar entre los dos hace falta la sincronización (Ajustes → Sincronizar).</p></div>';
     else if(faltanImg) h += '<div class="tg-aviso">Aún no están subidas las ilustraciones del Set 1. Súbelas una vez desde Ajustes → Gremory TCG.</div>';
     if(tab === "binder") h += binderHTML();
     else if(tab === "sobres") h += sobresHTML();
@@ -303,8 +320,9 @@
     cristina: {n:"Cristina", sub:"Sobre de Cristina", col:"#ff5fa2", col2:"#ffc2dc", arte:["s01-012","full"], img:"sobre-cristina.webp"},
     gatos:    {n:"Los gatos", sub:"Sobre de los gatos", col:"#ff8a3d", col2:"#c9a8ff", arte:["s01-045","est"], img:"sobre-gatos.webp"}
   };
-  const ESCENA = {mesaV:"sobre-mesa-vertical.webp", mesaH:"sobre-mesa-horizontal.webp",
-    gato: q => ["gato-" + q + "-mira.webp", "gato-" + q + "-flipa.webp"]};
+  /* el arte de Valeria sin personas va en el repo (docs/tcg/arte); las portadas con caras, privadas en el Worker */
+  const VER = (document.querySelector("meta[name=build]") || {}).content || "";
+  const ARTE = n => "tcg/arte/" + n + ".webp" + (VER ? "?v=" + encodeURIComponent(VER) : "");
   const TIER = {1:["#b9c2d4","Común"], 2:["#7cc7ff","Holo"], 3:["#8f7bff","Rara"], 4:["#ffcf5a","Muy rara"], 5:["#ff5fd2","Gremory"], sec:["#ff4f7d","Secreta"]};
   const tierDe = x => x.c === "s01-061" ? "sec" : x.nivel;
   const reduce = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -313,11 +331,9 @@
     if(extra.listo) return extra.listo;
     if(!nubeBase()) return Promise.resolve();
     const prueba = (k, n) => new Promise(ok => { const i = new Image(); i.onload = () => { extra[k] = url(n); ok(); }; i.onerror = () => ok(); i.src = url(n); });
+    /* las portadas de Valeria y sus máscaras de brillo (subidas al Worker desde subir-app-tcg) */
     const ps = Object.keys(SOBRES).map(k => prueba("sobre-" + k, SOBRES[k].img));
-    /* las piezas del sobre de RUN-ASSETS-TCG.md (las de Valeria), subidas al Worker en webp */
-    ps.push(prueba("reverso", "sobre-reverso.webp"), prueba("rasgado", "sobre-rasgado.webp"), prueba("logo", "logotipo-gremory.webp"));
-    ps.push(prueba("mesaV", ESCENA.mesaV), prueba("mesaH", ESCENA.mesaH));
-    ["kurama", "sukuna", "gyukki"].forEach(q => { ps.push(prueba("g-" + q + "-0", ESCENA.gato(q)[0]), prueba("g-" + q + "-1", ESCENA.gato(q)[1])); });
+    Object.keys(SOBRES).forEach(k => ps.push(prueba("brillo-" + k, "sobre-" + k + "-brillo.webp")));
     return extra.listo = Promise.all(ps);
   }
 
@@ -331,8 +347,7 @@
   function carga3d(){
     if(S3carga) return S3carga;
     if(reduce()) return S3carga = Promise.resolve(null);
-    const v = (document.querySelector("meta[name=build]") || {}).content || "";
-    S3carga = import("./sobre3d.js?v=" + encodeURIComponent(v)).then(m => (S3 = m.webgl() ? m : null)).catch(e => { console.warn("sobre 3D", e); return null; });
+    S3carga = import("./sobre3d.js?v=" + encodeURIComponent(VER)).then(m => (S3 = m.webgl() ? m : null)).catch(e => { console.warn("sobre 3D", e); return null; });
     return S3carga;
   }
   const imagen = src => new Promise(ok => { if(!src || src === VACIA) return ok(null); const i = new Image(); i.crossOrigin = "anonymous"; i.onload = () => ok(i); i.onerror = () => ok(null); i.src = src; });
@@ -340,16 +355,22 @@
   function lienzos(k){
     if(LIENZO[k]) return LIENZO[k];
     const p = Promise.resolve(miraExtra()).then(() => {
-      const S = SOBRES[k], [id, cl] = S.arte, a = (D1.ART[id] || {})[cl] || {};
-      return Promise.all([imagen(extra["sobre-" + k]), imagen(cl === "gre" ? a.g2 : a.fondo), imagen(a.pj), imagen(extra.reverso), imagen(extra.rasgado), imagen(extra.logo), fuentes()]);
-    }).then(([propia, fondo, pj, rev, ras, logo]) => {
-      const S = SOBRES[k];
-      p.listo = {frente: frenteSobre(S, propia, fondo, pj, logo), dorso: dorsoSobre(rev), rasgado: ras || rasgadoSobre(), color: S.col};
+      const S = SOBRES[k], [id, cl] = S.arte, a = (D1.ART[id] || {})[cl] || {}, propia = extra["sobre-" + k];
+      return Promise.all([imagen(propia), propia ? null : imagen(cl === "gre" ? a.g2 : a.fondo), propia ? null : imagen(a.pj), imagen(propia && extra["brillo-" + k]),
+        imagen(ARTE("sobre-reverso")), imagen(ARTE("sobre-reverso-brillo")), imagen(ARTE("sobre-rasgado")), imagen(ARTE("logotipo-gremory")), imagen(ARTE("sobre-sellado")),
+        imagen(ARTE("sobre-arrugas")), imagen(ARTE("sobre-interior")), imagen(ARTE("destello")), fuentes()]);
+    }).then(([propia, fondo, pj, brillo, rev, revBr, ras, logo, sellado, arrugas, interior, destello]) => {
+      const S = SOBRES[k], frente = frenteSobre(S, propia, fondo, pj, logo, sellado);
+      p.listo = {frente, dorso: dorsoSobre(rev, sellado), rasgado: ras || rasgadoSobre(), color: S.col,
+        brilloF: brillo ? brilloSobre(brillo, logo) : null, brilloD: revBr, arrugas, interior, destello, propia: !!propia};
+      /* la misma portada para el carrusel (solo si es la de Valeria; la provisional sigue en CSS) */
+      if(propia && frente.toBlob) frente.toBlob(b => { if(!b) return; p.listo.url = URL.createObjectURL(b);
+        if(tab === "sobres" && raiz && raiz.classList.contains("on") && !document.getElementById("tgAbre").classList.contains("on")) pinta(); }, "image/webp", .9);
       return p.listo;
     }).catch(e => { console.warn("texturas del sobre", e); delete LIENZO[k]; return null; });
     return LIENZO[k] = p;
   }
-  function precarga3d(){ carga3d().then(m => { if(!m) return; lienzos(elegido).then(() => ORDEN.forEach(k => lienzos(k))); }); }
+  function precarga3d(){ carga3d(); if(nubeBase()) lienzos(elegido).then(() => ORDEN.forEach(k => lienzos(k))); }
   function lienzo(){ const c = document.createElement("canvas"); c.width = TX; c.height = TY; return [c, c.getContext("2d")]; }
   function cubre(g, img, pos){
     const s = Math.max(TX / img.width, TY / img.height), w = img.width * s, h = img.height * s;
@@ -362,8 +383,12 @@
     g.fillText(txt.split("").join("\u200A"), x, y);
   }
   /* los sellados de arriba y abajo (estrías), la línea de corte perforada y el dentado */
-  function remata(g, c1, c2, perfora){
-    [[0, 56, false], [TY - 56, 56, true]].forEach(([y, h, abajo]) => {
+  function remata(g, c1, c2, perfora, sellado){
+    if(sellado){   /* las estrías de Valeria encima de la ilustración, arriba y (giradas) abajo */
+      g.drawImage(sellado, 0, 0, TX, 56);
+      g.save(); g.translate(0, TY); g.scale(1, -1); g.drawImage(sellado, 0, 0, TX, 56); g.restore();
+    }
+    else [[0, 56, false], [TY - 56, 56, true]].forEach(([y, h, abajo]) => {
       const gr = g.createLinearGradient(0, y, 0, y + h); gr.addColorStop(abajo ? 1 : 0, c2); gr.addColorStop(abajo ? 0 : 1, c1);
       g.fillStyle = gr; g.fillRect(0, y, TX, h);
       for(let i = 0; i < TX; i += 8){ g.fillStyle = i % 16 ? "rgba(0,0,0,.22)" : "rgba(255,255,255,.3)"; g.fillRect(i, y, 3, h); }
@@ -378,7 +403,7 @@
     for(let i = 0; i < n; i++){ const x = i * w; g.moveTo(x, 0); g.lineTo(x + w / 2, a); g.lineTo(x + w, 0); g.moveTo(x, TY); g.lineTo(x + w / 2, TY - a); g.lineTo(x + w, TY); }
     g.fill(); g.restore();
   }
-  function frenteSobre(S, propia, fondo, pj, logo){
+  function frenteSobre(S, propia, fondo, pj, logo, sellado){
     const [c, g] = lienzo();
     g.fillStyle = "#0b0610"; g.fillRect(0, 0, TX, TY);
     if(propia) g.drawImage(propia, 0, 0, TX, TY);
@@ -391,7 +416,7 @@
       g.fillStyle = v; g.fillRect(0, 0, TX, TY);
     }
     /* logotipo: el de Valeria si está; si no, el nombre en dorado */
-    if(logo) g.drawImage(logo, 500 - 380, 410 - 110, 760, 220);
+    if(logo){ g.save(); g.shadowColor = "rgba(0,0,0,.55)"; g.shadowBlur = 22; g.shadowOffsetY = 6; g.drawImage(logo, 500 - 380, 410 - 110, 760, 220); g.restore(); }
     else {
       g.save(); g.textAlign = "center"; g.font = '400 200px "Instrument Serif", Georgia, serif';
       const d = g.createLinearGradient(0, 330, 0, 460); d.addColorStop(0, "#fff8de"); d.addColorStop(.6, "#f3cb6c"); d.addColorStop(1, "#b07a1e");
@@ -409,10 +434,21 @@
     g.shadowBlur = 0; g.fillStyle = mezcla(S.col2, S.col2, 0, .6); g.fillRect(410, 1578, 180, 2);
     g.font = '700 24px "Space Mono", monospace'; g.fillStyle = "rgba(255,255,255,.75)"; espaciado(g, "5 CARTAS", 500, 1620, 8);
     g.restore();
-    remata(g, S.col, S.col2, true);
+    remata(g, S.col, S.col2, true, propia ? sellado : null);
     return c;
   }
-  function dorsoSobre(propio){
+  /* la máscara de brillo de la portada, con el logotipo también metalizado */
+  function brilloSobre(mascara, logo){
+    const [c, g] = lienzo();
+    g.drawImage(mascara, 0, 0, TX, TY);
+    if(logo){
+      const t = document.createElement("canvas"); t.width = 760; t.height = 220; const x = t.getContext("2d");
+      x.drawImage(logo, 0, 0, 760, 220); x.globalCompositeOperation = "source-in"; x.fillStyle = "#fff"; x.fillRect(0, 0, 760, 220);
+      g.drawImage(t, 500 - 380, 410 - 110);
+    }
+    return c;
+  }
+  function dorsoSobre(propio, sellado){
     const [c, g] = lienzo();
     if(propio) g.drawImage(propio, 0, 0, TX, TY);
     else {
@@ -431,7 +467,7 @@
       g.textAlign = "center"; g.textBaseline = "middle"; g.font = '400 300px "Instrument Serif", Georgia, serif';
       g.shadowColor = "rgba(0,0,0,.6)"; g.shadowBlur = 16; g.fillStyle = d; g.fillText("G", 0, 18); g.restore();
     }
-    remata(g, "#6b0f24", "#a8243f", !propio);
+    remata(g, "#6b0f24", "#a8243f", !propio, propio ? sellado : null);
     return c;
   }
   /* el borde rasgado (1000×64): arriba transparente; abajo la capa plateada de dentro, con fibras */
@@ -479,19 +515,10 @@
   };
   const vibra = p => { if(navigator.vibrate) try { navigator.vibrate(p); } catch(e){} };
 
-  /* ── el círculo mágico (diseño propio): anillos, marcas y una estrella de siete puntas con la G en medio ── */
-  function circuloSVG(){
-    const R = 100, marcas = [], runas = [];
-    for(let i = 0; i < 72; i++){ const a = i / 72 * Math.PI * 2, l = i % 6 ? 4 : 9; marcas.push('<line x1="' + (Math.cos(a) * 92).toFixed(1) + '" y1="' + (Math.sin(a) * 92).toFixed(1) + '" x2="' + (Math.cos(a) * (92 - l)).toFixed(1) + '" y2="' + (Math.sin(a) * (92 - l)).toFixed(1) + '"/>'); }
-    for(let i = 0; i < 24; i++){ const a = i / 24 * Math.PI * 2, x = Math.cos(a) * 75, y = Math.sin(a) * 75, g = (a * 180 / Math.PI + 90).toFixed(0);
-      const forma = ["M-3 -4 L3 -4 M0 -4 L0 4 M-3 4 L3 0", "M-3 4 L0 -4 L3 4 M-2 1 L2 1", "M-3 -3 A3 3 0 1 0 3 -3 M0 0 L0 4", "M-3 -4 L3 4 M3 -4 L-3 4 M-4 0 L4 0"][i % 4];
-      runas.push('<path transform="translate(' + x.toFixed(1) + ' ' + y.toFixed(1) + ') rotate(' + g + ')" d="' + forma + '"/>'); }
-    const est = Array.from({length: 7}, (_, i) => { const a = i * 3 / 7 * Math.PI * 2 - Math.PI / 2; return (Math.cos(a) * 62).toFixed(1) + " " + (Math.sin(a) * 62).toFixed(1); }).join(" L");
-    return '<svg class="gx-circulo" viewBox="-' + R + ' -' + R + ' ' + R * 2 + ' ' + R * 2 + '" fill="none" stroke="currentColor" stroke-linecap="round">' +
-      '<g class="gx-c1"><circle r="97" stroke-width="1.6"/><circle r="92" stroke-width=".6"/>' + marcas.join("") + '</g>' +
-      '<g class="gx-c2" stroke-width="1.1"><circle r="83"/><circle r="67"/>' + runas.join("") + '</g>' +
-      '<g class="gx-c3" stroke-width="1.3"><path d="M' + est + ' Z"/><circle r="62" stroke-width=".5"/><circle r="30"/><circle r="24" stroke-width=".5"/></g></svg>';
-  }
+  /* ── el círculo mágico de Valeria (escena/circulo-magico.svg): cinco anillos que giran cada uno a su ritmo ── */
+  const CIRCULO = '<svg class="gx-circulo gm" aria-hidden="true" viewBox="0 0 1000 1000"><g fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><g class="gm-anillo-ext"><circle cx="500" cy="500" r="490" /><circle cx="500" cy="500" r="470" /><path d="M975.00 500.00 L986.00 500.00" /><path d="M972.40 549.65 L983.34 550.80" /><path d="M964.62 598.76 L975.38 601.05" /><path d="M951.75 646.78 L962.21 650.18" /><path d="M933.93 693.20 L943.98 697.67" /><path d="M911.36 737.50 L920.89 743.00" /><path d="M884.28 779.20 L893.18 785.66" /><path d="M852.99 817.84 L861.17 825.20" /><path d="M817.84 852.99 L825.20 861.17" /><path d="M779.20 884.28 L785.66 893.18" /><path d="M737.50 911.36 L743.00 920.89" /><path d="M693.20 933.93 L697.67 943.98" /><path d="M646.78 951.75 L650.18 962.21" /><path d="M598.76 964.62 L601.05 975.38" /><path d="M549.65 972.40 L550.80 983.34" /><path d="M500.00 975.00 L500.00 986.00" /><path d="M450.35 972.40 L449.20 983.34" /><path d="M401.24 964.62 L398.95 975.38" /><path d="M353.22 951.75 L349.82 962.21" /><path d="M306.80 933.93 L302.33 943.98" /><path d="M262.50 911.36 L257.00 920.89" /><path d="M220.80 884.28 L214.34 893.18" /><path d="M182.16 852.99 L174.80 861.17" /><path d="M147.01 817.84 L138.83 825.20" /><path d="M115.72 779.20 L106.82 785.66" /><path d="M88.64 737.50 L79.11 743.00" /><path d="M66.07 693.20 L56.02 697.67" /><path d="M48.25 646.78 L37.79 650.18" /><path d="M35.38 598.76 L24.62 601.05" /><path d="M27.60 549.65 L16.66 550.80" /><path d="M25.00 500.00 L14.00 500.00" /><path d="M27.60 450.35 L16.66 449.20" /><path d="M35.38 401.24 L24.62 398.95" /><path d="M48.25 353.22 L37.79 349.82" /><path d="M66.07 306.80 L56.02 302.33" /><path d="M88.64 262.50 L79.11 257.00" /><path d="M115.72 220.80 L106.82 214.34" /><path d="M147.01 182.16 L138.83 174.80" /><path d="M182.16 147.01 L174.80 138.83" /><path d="M220.80 115.72 L214.34 106.82" /><path d="M262.50 88.64 L257.00 79.11" /><path d="M306.80 66.07 L302.33 56.02" /><path d="M353.22 48.25 L349.82 37.79" /><path d="M401.24 35.38 L398.95 24.62" /><path d="M450.35 27.60 L449.20 16.66" /><path d="M500.00 25.00 L500.00 14.00" /><path d="M549.65 27.60 L550.80 16.66" /><path d="M598.76 35.38 L601.05 24.62" /><path d="M646.78 48.25 L650.18 37.79" /><path d="M693.20 66.07 L697.67 56.02" /><path d="M737.50 88.64 L743.00 79.11" /><path d="M779.20 115.72 L785.66 106.82" /><path d="M817.84 147.01 L825.20 138.83" /><path d="M852.99 182.16 L861.17 174.80" /><path d="M884.28 220.80 L893.18 214.34" /><path d="M911.36 262.50 L920.89 257.00" /><path d="M933.93 306.80 L943.98 302.33" /><path d="M951.75 353.22 L962.21 349.82" /><path d="M964.62 401.24 L975.38 398.95" /><path d="M972.40 450.35 L983.34 449.20" /></g><g class="gm-runas"><g transform="translate(500 500) rotate(0) translate(0 -435)"><path d="M-13 -5 L-5 -15 L12 -6 L5 13 L-10 8 Z M-5 -15 L-3 -2 L5 13 M12 -6 L6 -1"/><circle cx="-4" cy="3" r="3"/><circle cx="15" cy="13" r="2"/></g><g transform="translate(500 500) rotate(10) translate(0 -435)"><path d="M-13 -5 L-5 -15 L12 -6 L5 13 L-10 8 Z M-5 -15 L-4 -2 L5 13 M12 -6 L7 -1"/><circle cx="-4" cy="3" r="3"/><circle cx="15" cy="13" r="2"/></g><g transform="translate(500 500) rotate(20) translate(0 -435)"><path d="M-13 -5 L-5 -15 L12 -6 L5 13 L-10 8 Z M-5 -15 L-5 -2 L5 13 M12 -6 L8 -1"/><circle cx="-4" cy="3" r="3"/><circle cx="15" cy="13" r="2"/></g><g transform="translate(500 500) rotate(30) translate(0 -435)"><path d="M-13 -5 L-5 -15 L12 -6 L5 13 L-10 8 Z M-5 -15 L-3 -2 L5 13 M12 -6 L9 -1"/><circle cx="-4" cy="3" r="3"/><circle cx="15" cy="13" r="2"/></g><g transform="translate(500 500) rotate(40) translate(0 -435)"><path d="M-13 -5 L-5 -15 L12 -6 L5 13 L-10 8 Z M-5 -15 L-4 -2 L5 13 M12 -6 L6 -1"/><circle cx="-4" cy="3" r="3"/><circle cx="15" cy="13" r="2"/></g><g transform="translate(500 500) rotate(50) translate(0 -435)"><path d="M-13 -5 L-5 -15 L12 -6 L5 13 L-10 8 Z M-5 -15 L-5 -2 L5 13 M12 -6 L7 -1"/><circle cx="-4" cy="3" r="3"/><circle cx="15" cy="13" r="2"/></g><g transform="translate(500 500) rotate(60) translate(0 -435)"><path d="M-13 -5 L-5 -15 L12 -6 L5 13 L-10 8 Z M-5 -15 L-3 -2 L5 13 M12 -6 L8 -1"/><circle cx="-4" cy="3" r="3"/><circle cx="15" cy="13" r="2"/></g><g transform="translate(500 500) rotate(70) translate(0 -435)"><path d="M-13 -5 L-5 -15 L12 -6 L5 13 L-10 8 Z M-5 -15 L-4 -2 L5 13 M12 -6 L9 -1"/><circle cx="-4" cy="3" r="3"/><circle cx="15" cy="13" r="2"/></g><g transform="translate(500 500) rotate(80) translate(0 -435)"><path d="M-13 -5 L-5 -15 L12 -6 L5 13 L-10 8 Z M-5 -15 L-5 -2 L5 13 M12 -6 L6 -1"/><circle cx="-4" cy="3" r="3"/><circle cx="15" cy="13" r="2"/></g><g transform="translate(500 500) rotate(90) translate(0 -435)"><path d="M-13 -5 L-5 -15 L12 -6 L5 13 L-10 8 Z M-5 -15 L-3 -2 L5 13 M12 -6 L7 -1"/><circle cx="-4" cy="3" r="3"/><circle cx="15" cy="13" r="2"/></g><g transform="translate(500 500) rotate(100) translate(0 -435)"><path d="M-13 -5 L-5 -15 L12 -6 L5 13 L-10 8 Z M-5 -15 L-4 -2 L5 13 M12 -6 L8 -1"/><circle cx="-4" cy="3" r="3"/><circle cx="15" cy="13" r="2"/></g><g transform="translate(500 500) rotate(110) translate(0 -435)"><path d="M-13 -5 L-5 -15 L12 -6 L5 13 L-10 8 Z M-5 -15 L-5 -2 L5 13 M12 -6 L9 -1"/><circle cx="-4" cy="3" r="3"/><circle cx="15" cy="13" r="2"/></g><g transform="translate(500 500) rotate(120) translate(0 -435)"><path d="M-13 -5 L-5 -15 L12 -6 L5 13 L-10 8 Z M-5 -15 L-3 -2 L5 13 M12 -6 L6 -1"/><circle cx="-4" cy="3" r="3"/><circle cx="15" cy="13" r="2"/></g><g transform="translate(500 500) rotate(130) translate(0 -435)"><path d="M-13 -5 L-5 -15 L12 -6 L5 13 L-10 8 Z M-5 -15 L-4 -2 L5 13 M12 -6 L7 -1"/><circle cx="-4" cy="3" r="3"/><circle cx="15" cy="13" r="2"/></g><g transform="translate(500 500) rotate(140) translate(0 -435)"><path d="M-13 -5 L-5 -15 L12 -6 L5 13 L-10 8 Z M-5 -15 L-5 -2 L5 13 M12 -6 L8 -1"/><circle cx="-4" cy="3" r="3"/><circle cx="15" cy="13" r="2"/></g><g transform="translate(500 500) rotate(150) translate(0 -435)"><path d="M-13 -5 L-5 -15 L12 -6 L5 13 L-10 8 Z M-5 -15 L-3 -2 L5 13 M12 -6 L9 -1"/><circle cx="-4" cy="3" r="3"/><circle cx="15" cy="13" r="2"/></g><g transform="translate(500 500) rotate(160) translate(0 -435)"><path d="M-13 -5 L-5 -15 L12 -6 L5 13 L-10 8 Z M-5 -15 L-4 -2 L5 13 M12 -6 L6 -1"/><circle cx="-4" cy="3" r="3"/><circle cx="15" cy="13" r="2"/></g><g transform="translate(500 500) rotate(170) translate(0 -435)"><path d="M-13 -5 L-5 -15 L12 -6 L5 13 L-10 8 Z M-5 -15 L-5 -2 L5 13 M12 -6 L7 -1"/><circle cx="-4" cy="3" r="3"/><circle cx="15" cy="13" r="2"/></g><g transform="translate(500 500) rotate(180) translate(0 -435)"><path d="M-13 -5 L-5 -15 L12 -6 L5 13 L-10 8 Z M-5 -15 L-3 -2 L5 13 M12 -6 L8 -1"/><circle cx="-4" cy="3" r="3"/><circle cx="15" cy="13" r="2"/></g><g transform="translate(500 500) rotate(190) translate(0 -435)"><path d="M-13 -5 L-5 -15 L12 -6 L5 13 L-10 8 Z M-5 -15 L-4 -2 L5 13 M12 -6 L9 -1"/><circle cx="-4" cy="3" r="3"/><circle cx="15" cy="13" r="2"/></g><g transform="translate(500 500) rotate(200) translate(0 -435)"><path d="M-13 -5 L-5 -15 L12 -6 L5 13 L-10 8 Z M-5 -15 L-5 -2 L5 13 M12 -6 L6 -1"/><circle cx="-4" cy="3" r="3"/><circle cx="15" cy="13" r="2"/></g><g transform="translate(500 500) rotate(210) translate(0 -435)"><path d="M-13 -5 L-5 -15 L12 -6 L5 13 L-10 8 Z M-5 -15 L-3 -2 L5 13 M12 -6 L7 -1"/><circle cx="-4" cy="3" r="3"/><circle cx="15" cy="13" r="2"/></g><g transform="translate(500 500) rotate(220) translate(0 -435)"><path d="M-13 -5 L-5 -15 L12 -6 L5 13 L-10 8 Z M-5 -15 L-4 -2 L5 13 M12 -6 L8 -1"/><circle cx="-4" cy="3" r="3"/><circle cx="15" cy="13" r="2"/></g><g transform="translate(500 500) rotate(230) translate(0 -435)"><path d="M-13 -5 L-5 -15 L12 -6 L5 13 L-10 8 Z M-5 -15 L-5 -2 L5 13 M12 -6 L9 -1"/><circle cx="-4" cy="3" r="3"/><circle cx="15" cy="13" r="2"/></g><g transform="translate(500 500) rotate(240) translate(0 -435)"><path d="M-13 -5 L-5 -15 L12 -6 L5 13 L-10 8 Z M-5 -15 L-3 -2 L5 13 M12 -6 L6 -1"/><circle cx="-4" cy="3" r="3"/><circle cx="15" cy="13" r="2"/></g><g transform="translate(500 500) rotate(250) translate(0 -435)"><path d="M-13 -5 L-5 -15 L12 -6 L5 13 L-10 8 Z M-5 -15 L-4 -2 L5 13 M12 -6 L7 -1"/><circle cx="-4" cy="3" r="3"/><circle cx="15" cy="13" r="2"/></g><g transform="translate(500 500) rotate(260) translate(0 -435)"><path d="M-13 -5 L-5 -15 L12 -6 L5 13 L-10 8 Z M-5 -15 L-5 -2 L5 13 M12 -6 L8 -1"/><circle cx="-4" cy="3" r="3"/><circle cx="15" cy="13" r="2"/></g><g transform="translate(500 500) rotate(270) translate(0 -435)"><path d="M-13 -5 L-5 -15 L12 -6 L5 13 L-10 8 Z M-5 -15 L-3 -2 L5 13 M12 -6 L9 -1"/><circle cx="-4" cy="3" r="3"/><circle cx="15" cy="13" r="2"/></g><g transform="translate(500 500) rotate(280) translate(0 -435)"><path d="M-13 -5 L-5 -15 L12 -6 L5 13 L-10 8 Z M-5 -15 L-4 -2 L5 13 M12 -6 L6 -1"/><circle cx="-4" cy="3" r="3"/><circle cx="15" cy="13" r="2"/></g><g transform="translate(500 500) rotate(290) translate(0 -435)"><path d="M-13 -5 L-5 -15 L12 -6 L5 13 L-10 8 Z M-5 -15 L-5 -2 L5 13 M12 -6 L7 -1"/><circle cx="-4" cy="3" r="3"/><circle cx="15" cy="13" r="2"/></g><g transform="translate(500 500) rotate(300) translate(0 -435)"><path d="M-13 -5 L-5 -15 L12 -6 L5 13 L-10 8 Z M-5 -15 L-3 -2 L5 13 M12 -6 L8 -1"/><circle cx="-4" cy="3" r="3"/><circle cx="15" cy="13" r="2"/></g><g transform="translate(500 500) rotate(310) translate(0 -435)"><path d="M-13 -5 L-5 -15 L12 -6 L5 13 L-10 8 Z M-5 -15 L-4 -2 L5 13 M12 -6 L9 -1"/><circle cx="-4" cy="3" r="3"/><circle cx="15" cy="13" r="2"/></g><g transform="translate(500 500) rotate(320) translate(0 -435)"><path d="M-13 -5 L-5 -15 L12 -6 L5 13 L-10 8 Z M-5 -15 L-5 -2 L5 13 M12 -6 L6 -1"/><circle cx="-4" cy="3" r="3"/><circle cx="15" cy="13" r="2"/></g><g transform="translate(500 500) rotate(330) translate(0 -435)"><path d="M-13 -5 L-5 -15 L12 -6 L5 13 L-10 8 Z M-5 -15 L-3 -2 L5 13 M12 -6 L7 -1"/><circle cx="-4" cy="3" r="3"/><circle cx="15" cy="13" r="2"/></g><g transform="translate(500 500) rotate(340) translate(0 -435)"><path d="M-13 -5 L-5 -15 L12 -6 L5 13 L-10 8 Z M-5 -15 L-4 -2 L5 13 M12 -6 L8 -1"/><circle cx="-4" cy="3" r="3"/><circle cx="15" cy="13" r="2"/></g><g transform="translate(500 500) rotate(350) translate(0 -435)"><path d="M-13 -5 L-5 -15 L12 -6 L5 13 L-10 8 Z M-5 -15 L-5 -2 L5 13 M12 -6 L9 -1"/><circle cx="-4" cy="3" r="3"/><circle cx="15" cy="13" r="2"/></g></g><g class="gm-anillo-med"><circle cx="500" cy="500" r="390" /><path d="M500.000 120.000 L664.876 842.368 L202.904 263.074 L870.473 584.558 L129.527 584.558 L797.096 263.074 L335.124 842.368 Z" /></g><g class="gm-anillo-int"><circle cx="500" cy="500" r="230" /><circle cx="500" cy="500" r="215" /><g transform="translate(500 500) rotate(0) translate(0 -222)"><path d="M-23 0 Q0 -28 23 0 Q0 28 -23 0 Z M0 -9 L0 9" /></g><g transform="translate(500 500) rotate(120) translate(0 -222)"><path d="M-23 0 Q0 -28 23 0 Q0 28 -23 0 Z M0 -9 L0 9" /></g><g transform="translate(500 500) rotate(240) translate(0 -222)"><path d="M-23 0 Q0 -28 23 0 Q0 28 -23 0 Z M0 -9 L0 9" /></g></g><g class="gm-estrella"><path d="M572.580 385.400 L522.920 370.120 L456.070 370.120 L417.870 408.320 L417.870 585.950 L456.070 629.880 L536.290 629.880 L580.220 595.500 L580.220 515.280 L511.460 515.280 L500.000 538.200 L542.020 538.200 L542.020 585.950 L522.920 603.140 L471.350 603.140 L456.070 582.130 L456.070 415.960 L477.080 396.860 L526.740 396.860 L557.300 425.510 L572.580 446.520 Z" /></g></g></svg>';
+  function circuloSVG(){ return CIRCULO; }
+
 
   /* ── un sobre ── */
   const dientes = (n, h, arriba) => "polygon(" + (arriba
@@ -503,8 +530,10 @@
     const [id, cl] = SOBRES[k].arte, a = (D1.ART[id] || {})[cl] || {}, fondo = cl === "gre" ? a.g2 : a.fondo;
     return a.pj && a.pj !== VACIA ? '<img src="' + fondo + '" alt=""><img src="' + a.pj + '" alt="">' : '';
   }
-  function sobreHTML(k, clase){
-    const S = SOBRES[k];
+  function sobreHTML(k, clase, lista){
+    const S = SOBRES[k], L = lista && LIENZO[k] && LIENZO[k].listo;
+    if(L && L.url) return '<div class="gx-sobre lista ' + (clase || "") + '" data-sobre="' + k + '" style="--c:' + S.col + ';--c2:' + S.col2 + '">' +
+      '<div class="gx-gira"><img class="gx-portada" src="' + L.url + '" alt=""><div class="gx-brillo"></div></div></div>';
     return '<div class="gx-sobre ' + (clase || "") + '" data-sobre="' + k + '" style="--c:' + S.col + ';--c2:' + S.col2 + '">' +
       '<div class="gx-gira"><div class="gx-cuerpo"><div class="gx-arte">' + arteDe(k) + '</div><div class="gx-velo"></div><div class="gx-foil"></div><div class="gx-luz"></div>' +
         '<div class="gx-cab"><i class="gx-logo"></i><b>Gremory</b><span>Trading Card Game · Set 1</span></div>' +
@@ -522,7 +551,8 @@
     const motivo = d.pre.length ? d.pre[0].motivo : d.dia ? "Sobres del día" : "";
     return '<div class="gx-tienda" style="--c:' + SOBRES[elegido].col + ';--c2:' + SOBRES[elegido].col2 + '"><div class="gx-cielo"></div>' +
       '<div class="gx-cuenta"><b>' + (d.total ? (d.total === 1 ? "1 sobre" : d.total + " sobres") : "Sin sobres") + '</b><span>' + (d.total ? esc(motivo) : "Mañana te esperan dos más") + '</span></div>' +
-      '<div class="gx-carrusel' + (puede ? "" : " apagado") + '" id="gxCarrusel">' + ORDEN.map((k, i) => { const p = i - i0; return '<button class="gx-elige' + (p ? '' : ' on') + '" data-elige="' + k + '" style="transform:translateX(-50%) translateX(' + (p * 64) + '%) scale(' + (p ? .72 : 1) + ') rotate(' + (p * 4) + 'deg);z-index:' + (3 - Math.abs(p)) + '">' + sobreHTML(k) + '</button>'; }).join("") + '</div>' +
+      '<div class="gx-carrusel' + (puede ? "" : " apagado") + '" id="gxCarrusel">' + ORDEN.map((k, i) => { const p = i - i0; return '<button class="gx-elige' + (p ? '' : ' on') + '" data-elige="' + k + '" style="transform:translateX(-50%) translateX(' + (p * 64) + '%) scale(' + (p ? .72 : 1) + ') rotate(' + (p * 4) + 'deg);z-index:' + (3 - Math.abs(p)) + '">' + sobreHTML(k, "", true) + '</button>'; }).join("") + '</div>' +
+      (d.total ? '' : '<img class="gx-vacio" src="' + ARTE("vacio-sin-sobres") + '" alt="">') +
       '<div class="gx-nombre-sobre">' + SOBRES[elegido].sub + '</div>' +
       (puede ? '<button class="tg-btn gx-abrir" data-acc="abrir">Abrir</button>'
              : d.total ? '<p class="tg-nota" style="text-align:center">Para abrirlos, activa la sincronización en Ajustes.</p>' : '') +
@@ -561,7 +591,9 @@
      del color de la mejor carta (azul normal, morada rara, dorada muy rara, rosa Gremory) → las cartas en pila: se pasan
      deslizando, como en Pocket → la rara, la última, boca abajo brillando: al tocarla, presentación a pantalla completa
      con el personaje, su nombre y las estrellas (como un gacha) → resumen con las cinco */
-  const ESTRELLAS = {1:1, 2:2, 3:3, 4:4, 5:5, sec:5};
+  /* marcas de rareza en el revelado: de 1 a 4 gemas, la de Gremory sola o la secreta sola */
+  const MARCAS = {1: ["gema", 1], 2: ["gema", 2], 3: ["gema", 3], 4: ["gema", 4], 5: ["gremory", 1], sec: ["secreta", 1]};
+  const SPLASH = {1: "holo", 2: "holo", 3: "rara", 4: "muyrara", 5: "gremory", sec: "secreta"};
   const CIELO = {1:"#3b5bdb", 2:"#3b7bdb", 3:"#6d3bdb", 4:"#c98a1a", 5:"#c2187a", sec:"#b0103a"};
   const GATOS = {"kurama":[21,27], "sukuna":[28,34], "gyukki":[35,41]};
   const gatoDe = c => { const n = num(c); for(const q in GATOS) if(n >= GATOS[q][0] && n <= GATOS[q][1]) return q; return null; };
@@ -576,7 +608,8 @@
     if(cap._s3){ cap._s3.destruye(); cap._s3 = null; }
     const mejor = cartas.reduce((m, x) => { const t = tierDe(x); return t === "sec" || (m !== "sec" && t > m) ? t : m; }, 1);
     cap.className = "tg-capa on gv"; cap.style.cssText = "--c:" + S.col + ";--c2:" + S.col2 + ";--tier:" + TIER[mejor][0] + ";--cielo:#2b3a8f";
-    cap.innerHTML = '<div class="gv-cielo"></div><div class="gv-estrellas"></div><div class="gv-estrellas dos"></div><div class="gv-bruma"></div>' +
+    cap.dataset.sobre = k;
+    cap.innerHTML = '<div class="gv-cielo"></div><div class="gv-estrellas"></div><div class="gv-estrellas dos"></div><div class="gv-nubes"></div><div class="gv-tejados"></div><div class="gv-bruma"></div>' +
       '<div class="gv-rayos"></div><div class="gv-magia">' + circuloSVG() + '</div>' +
       '<button class="gx-mudo" data-mudo aria-label="Sonido">' + icoSon() + '</button>' +
       '<div class="gv-centro">' + sobreHTML(k, "vivo entra") + '<div class="gv-guia"><i></i></div></div>' +
@@ -593,6 +626,7 @@
     if(!S3 || !L) return false;
     try {
       cap._s3 = S3.crea(cap, {frente: L.frente, dorso: L.dorso, rasgado: L.rasgado, color: L.color, tier: TIER[mejor][0],
+        brilloF: L.brilloF, brilloD: L.brilloD, arrugas: L.arrugas, interior: L.interior, destello: L.destello,
         alRasgar: (p, x, y) => { SON.cruje(); chispas(cap, punto(x, y), "#fff", 3, 60, .5); },
         alAbrir: () => abierto(cap, cartas, mejor)});
     } catch(e){ console.warn("sobre 3D", e); cap._s3 = null; return false; }
@@ -607,12 +641,10 @@
     SON.corta(); vibra(25);
     const gu = cap.querySelector(".gv-centro .gv-guia"); if(gu) gu.remove();
     cap.querySelector("#gxPista").classList.add("fuera");
-    setTimeout(() => { cap.classList.add("estalla"); SON.sube(); chispas(cap, sob, "#fff", 40, 240, .1); }, 200);
+    setTimeout(() => { cap.classList.add("estalla"); SON.sube(); chispas(cap, sob, "#fff", 40, 240, .1); particulas(cap, sob, cap.dataset.sobre, 22); }, 200);
     setTimeout(() => estrella(cap, cartas, mejor), 900);
   }
-  function icoSon(){ return mudo
-    ? '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9h4l5-4v14l-5-4H4z"/><path d="M17 9l5 6M22 9l-5 6"/></svg>'
-    : '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9h4l5-4v14l-5-4H4z"/><path d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12"/></svg>'; }
+  function icoSon(){ return mudo ? ICO.silencio : ICO.sonido; }
 
   function corte(cap, cartas, mejor){
     const sob = cap.querySelector(".gx-sobre"), raya = sob.querySelector(".gx-raya");
@@ -676,13 +708,13 @@
   }
   /* 3. la presentación de la rara: el personaje a pantalla completa, su nombre y las estrellas */
   function splash(cap, x, listo){
-    const t = tierDe(x), sp = cap.querySelector("#gvSplash"), cs = capasDe(x.c), nom = (G.CARTAS[x.c] || {}).n || "", est = ESTRELLAS[t];
+    const t = tierDe(x), sp = cap.querySelector("#gvSplash"), cs = capasDe(x.c), nom = (G.CARTAS[x.c] || {}).n || "", [marca, est] = MARCAS[t];
     cap.style.setProperty("--tier", TIER[t][0]); cap.style.setProperty("--cielo", CIELO[t]);
     cap.classList.add("revela"); if(t >= 5 || t === "sec") cap.classList.add("flash");
     SON.rara(t === "sec" ? 5 : t); vibra(t >= 4 ? [20, 50, 40] : 20);
-    sp.innerHTML = '<div class="gv-sp-fondo"' + (cs && cs.fondo ? ' style="background-image:url(' + cs.fondo + ')"' : '') + '></div><div class="gv-sp-lineas"></div>' +
-      (cs && cs.pj ? '<img class="gv-sp-pj" src="' + cs.pj + '" alt="">' : '') +
-      '<div class="gv-sp-txt"><em>' + TIER[t][1] + ' · ' + G.nombreVer(x.c, x.v) + '</em><b>' + esc(nom) + '</b><div class="gv-sp-est">' + Array.from({length: est}, (_, k) => '<i style="--k:' + k + '"></i>').join("") + '</div>' +
+    sp.innerHTML = '<div class="gv-sp-fondo" style="background-image:url(' + ARTE("splash-" + SPLASH[t]) + ')"></div><div class="gv-sp-rayos"></div><div class="gv-sp-magia">' + circuloSVG() + '</div><div class="gv-sp-lineas"></div>' +
+      (cs && cs.pj ? '<img class="gv-sp-pj" src="' + cs.pj + '" alt="">' : cs && cs.fondo ? '<img class="gv-sp-cuadro" src="' + cs.fondo + '" alt="">' : '') +
+      '<div class="gv-sp-txt"><em>' + TIER[t][1] + ' · ' + G.nombreVer(x.c, x.v) + '</em><b>' + esc(nom) + '</b><div class="gv-sp-est m-' + marca + '">' + Array.from({length: est}, (_, k) => '<i style="--k:' + k + '">' + GEMA[marca] + '</i>').join("") + '</div>' +
       (x.nueva ? '<span class="gx-nueva">Nueva</span>' : '') + '</div><div class="gv-sp-toca">Toca para continuar</div>';
     sp.classList.add("on");
     for(let k = 0; k < est; k++) setTimeout(() => SON.reparte(0), 900 + k * 160);
@@ -696,9 +728,22 @@
     const r = el.getBoundingClientRect(), rc = cap.getBoundingClientRect();
     for(let k = 0; k < n; k++){
       const c = document.createElement("i"), ang = Math.random() * Math.PI * 2, d = (.4 + Math.random()) * (fuerza || 160);
-      c.className = "gx-chispa" + (k % 3 ? "" : " grande");
+      c.className = "gx-chispa" + (k % 3 ? "" : " grande") + (k % 4 ? "" : " estela");
       c.style.cssText = "left:" + (r.left - rc.left + r.width * (.2 + Math.random() * .6)) + "px;top:" + (r.top - rc.top + r.height * (alto == null ? .5 : alto)) + "px;--dx:" + (Math.cos(ang) * d).toFixed(0) + "px;--dy:" + (Math.sin(ang) * d - 70).toFixed(0) + "px;--c:" + color + ";animation-delay:" + (Math.random() * 160).toFixed(0) + "ms";
       cap.appendChild(c); setTimeout(() => c.remove(), 1700);
+    }
+  }
+  /* partículas de cada sobre (atlas de Valeria, 4×4): gotas para Alberto, pétalos y flores para Cristina, huellas y brasas para los gatos */
+  const PART = {alberto: [6, 7, 6, 1], cristina: [4, 5, 4, 13], gatos: [12, 8, 9, 10]};
+  function particulas(cap, el, k, n){
+    if(reduce() || !el) return;
+    const r = el.getBoundingClientRect(), rc = cap.getBoundingClientRect(), celdas = PART[k] || PART.gatos;
+    for(let i = 0; i < n; i++){
+      const c = document.createElement("i"), cel = celdas[i % celdas.length], ang = -Math.PI / 2 + (Math.random() - .5) * 2.4, d = 160 + Math.random() * 260;
+      c.className = "gx-part";
+      c.style.cssText = "left:" + (r.left - rc.left + r.width * (.15 + Math.random() * .7)) + "px;top:" + (r.top - rc.top + r.height * .12) + "px;--dx:" + (Math.cos(ang) * d).toFixed(0) + "px;--dy:" + (Math.sin(ang) * d).toFixed(0) + "px;--g:" + (Math.random() * 540 - 270).toFixed(0) + "deg;--s:" + (.6 + Math.random() * .7).toFixed(2) +
+        ";background-position:" + (cel % 4) * 100 / 3 + "% " + Math.floor(cel / 4) * 100 / 3 + "%;animation-delay:" + (Math.random() * 200).toFixed(0) + "ms";
+      cap.appendChild(c); setTimeout(() => c.remove(), 2400);
     }
   }
   /* 4. el resumen: las cinco a la vista (como en Pocket), cómo va el binder y dos botones iguales */

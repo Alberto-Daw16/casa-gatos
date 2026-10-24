@@ -2091,3 +2091,103 @@
 .gv-mini .gx-nueva{top:-6px;right:-4px;font-size:8px;padding:4px 5px}
 @keyframes gvMini{from{opacity:0;transform:translateY(30px) scale(.9)}}
 .gv .gx-final{z-index:40}
+
+/* ══ piezas de Valeria (24/10/2026, noche) · RUN-ASSETS-TCG.md ══
+   Lo que no lleva personas va en docs/tcg/arte (las rutas son relativas a motor.css).
+   Paralaje: cada capa se mueve distinto con la luz de motor.js (puntero o giroscopio). */
+.tg-tabs button{display:inline-flex;align-items:center;gap:6px}
+.tg-tabs button>svg{width:16px;height:16px;flex:0 0 auto}
+.tg-vacio{display:flex;flex-direction:column;align-items:center;text-align:center;gap:6px;padding:4px 16px 14px}
+.tg-vacio img{width:min(78vw,340px);height:auto}
+.tg-vacio p{margin:0;font-size:13px;color:var(--dim,#8f94a2);max-width:420px}
+.gx-vacio{width:min(70vw,300px);height:auto;margin:-6px 0 -10px;filter:drop-shadow(0 10px 18px rgba(0,0,0,.45))}
+
+/* el sobre con la portada de Valeria (la misma imagen que la textura del 3D) */
+.gx-sobre.lista{aspect-ratio:1000/1700}
+.gx-sobre.lista .gx-gira{inset:0}
+.gx-portada{position:absolute;inset:0;width:100%;height:100%;display:block}
+.gx-brillo{position:absolute;inset:0;pointer-events:none;mix-blend-mode:color-dodge;opacity:.35;
+  background:linear-gradient(115deg,transparent 30%,rgba(255,240,200,.7) 45%,rgba(160,200,255,.5) 52%,transparent 66%) calc(var(--pointer-from-left,.5) * 100%) 0/260% 100% no-repeat;
+  -webkit-mask:linear-gradient(#000,#000);clip-path:inset(30px 0 30px 0)}
+.gx-carrusel{height:calc(min(56vw,250px) * 1.7 + 24px)}
+
+/* el cielo de Manises: cielo, nubes y tejados, con paralaje */
+.gv-cielo{inset:-5%;background:url(arte/cielo-vertical.webp) center/cover no-repeat,#0b1230;
+  transform:translate(calc((var(--pointer-from-left,.5) - .5) * -16px),calc((var(--pointer-from-top,.5) - .5) * -12px))}
+.gv-cielo::after{content:"";position:absolute;inset:0;background:var(--cielo);mix-blend-mode:color;opacity:0;transition:opacity 1.2s,background-color 1.2s}
+.gv.noche .gv-cielo::after,.gv.revela .gv-cielo::after{opacity:.55}
+.gv-estrellas{opacity:.55}
+.gv-nubes{position:absolute;inset:-6%;pointer-events:none;background:url(arte/nubes-vertical.webp) center/cover no-repeat;opacity:.85;
+  transform:translate(calc((var(--pointer-from-left,.5) - .5) * -34px),calc((var(--pointer-from-top,.5) - .5) * -22px));animation:gvNubes 30s ease-in-out infinite alternate}
+@keyframes gvNubes{to{background-position:calc(50% + 24px) 50%}}
+.gv-tejados{position:absolute;left:-60px;right:-60px;bottom:-2px;height:clamp(120px,23vh,270px);pointer-events:none;z-index:3;
+  background:url(arte/tejados.webp) center bottom/auto 100% repeat-x;
+  transform:translateX(calc((var(--pointer-from-left,.5) - .5) * -52px))}
+.gv-bruma{opacity:.25;z-index:3}
+@media (orientation:landscape){
+  .gv-cielo{background-image:url(arte/cielo-horizontal.webp)}
+  .gv-nubes{background-image:url(arte/nubes-horizontal.webp)}
+  .gv-tejados{height:clamp(110px,22vh,260px)}
+}
+
+/* la estrella fugaz de Valeria, teñida del color de la mejor carta */
+.gv-fugaz{height:auto;aspect-ratio:4/1;width:52vw;left:-52vw;top:4%;background:none;box-shadow:none;border-radius:0;filter:drop-shadow(0 0 10px var(--tier))}
+.gv-fugaz::before{content:"";position:absolute;inset:0;background:linear-gradient(90deg,var(--tier),#fff 85%);
+  -webkit-mask:url(arte/estrella-fugaz.webp) center/100% 100% no-repeat;mask:url(arte/estrella-fugaz.webp) center/100% 100% no-repeat}
+.gv-fugaz::after{right:9%;width:46px;height:46px;margin-top:-23px;background:radial-gradient(circle,#fff 0 10%,var(--tier) 30%,transparent 70%);box-shadow:none;opacity:.9}
+.gv-fugaz.grande{width:66vw;left:-66vw;box-shadow:none;filter:drop-shadow(0 0 16px var(--tier))}
+.gv-fugaz.grande::after{width:64px;height:64px;margin-top:-32px}
+
+/* los rayos y el destello */
+.gv-rayos{width:150vmax;height:150vmax;background:color-mix(in srgb,var(--tier) 50%,#fff);
+  -webkit-mask:url(arte/rayos.webp) center/contain no-repeat;mask:url(arte/rayos.webp) center/contain no-repeat}
+.gv.estalla .gv-rayos{opacity:.55}
+.gv.revela .gv-rayos{background:var(--tier);opacity:.8}
+.gv.estalla::before{background:url(arte/destello.webp) 50% 34%/min(150vw,760px) no-repeat,radial-gradient(circle at 50% 30%,#fff,rgba(255,255,255,.55) 20%,transparent 60%)}
+
+/* el círculo mágico de Valeria: cada anillo gira a su ritmo */
+.gx-circulo.gm g[class^="gm-"]{transform-box:view-box;transform-origin:50% 50%}
+.gm-anillo-ext{animation:gxGira 70s linear infinite}
+.gm-runas{animation:gxGira 46s linear infinite reverse}
+.gm-anillo-med{animation:gxGira 90s linear infinite}
+.gm-anillo-int{animation:gxGira 30s linear infinite reverse}
+.gv.revela .gm-runas{animation-duration:14s}.gv.revela .gm-anillo-int{animation-duration:9s}
+
+/* chispas y partículas con el atlas de Valeria (4×4) */
+.gx-chispa{width:12px;height:12px;margin:-6px;border-radius:0;background:var(--c,#fff);
+  -webkit-mask:url(arte/particulas.webp) 66.67% 0/400% 400% no-repeat;mask:url(arte/particulas.webp) 66.67% 0/400% 400% no-repeat}
+.gx-chispa.grande{width:22px;height:22px;margin:-11px;-webkit-mask-position:33.33% 0;mask-position:33.33% 0}
+.gx-chispa.estela{-webkit-mask-position:0 0;mask-position:0 0}
+.gx-part{position:absolute;z-index:56;width:30px;height:30px;margin:-15px;pointer-events:none;background:url(arte/particulas.webp) 0 0/400% 400% no-repeat;
+  animation:gxPart 2.1s cubic-bezier(.2,.7,.3,1) forwards}
+@keyframes gxPart{0%{transform:translate(0,0) scale(.2) rotate(0);opacity:0}12%{opacity:1}
+  70%{opacity:1}100%{transform:translate(var(--dx),calc(var(--dy) + 160px)) scale(var(--s)) rotate(var(--g));opacity:0}}
+
+/* el dorso de las cartas de Valeria, con el oro que brilla al inclinar */
+.tg-dorso{background:url(arte/carta-reverso.webp) center/100% 100% no-repeat,#3a0814}
+.tg-dorso::before{inset:0;border:0;border-radius:inherit;box-shadow:none;
+  background:linear-gradient(115deg,transparent 32%,rgba(255,236,170,.95) 46%,rgba(255,255,255,.9) 50%,rgba(255,236,170,.95) 54%,transparent 68%) calc(var(--pointer-from-left,.5) * 100%) 0/300% 100% no-repeat;
+  -webkit-mask:url(arte/carta-reverso-brillo.webp) center/100% 100% no-repeat;mask:url(arte/carta-reverso-brillo.webp) center/100% 100% no-repeat;mix-blend-mode:screen;opacity:.85}
+
+/* el revelado: fondo de rareza de Valeria, rayos y círculo detrás del personaje, gemas */
+.gv-sp-fondo{inset:-6%;background-color:#0b0d1c;background-position:center;background-size:cover;filter:none}
+.gv-sp-fondo::after{background:radial-gradient(70% 60% at 50% 42%,transparent 40%,rgba(5,5,20,.55)),linear-gradient(180deg,transparent 55%,rgba(5,5,20,.82))}
+.gv-sp-rayos{position:absolute;left:50%;top:42%;width:150vmax;height:150vmax;transform:translate(-50%,-50%);opacity:.35;background:#fff;
+  -webkit-mask:url(arte/rayos.webp) center/contain no-repeat;mask:url(arte/rayos.webp) center/contain no-repeat;animation:gvSpGira 24s linear infinite}
+@keyframes gvSpGira{to{transform:translate(-50%,-50%) rotate(360deg)}}
+.gv-sp-magia{position:absolute;left:50%;top:40%;width:min(110vw,640px);aspect-ratio:1;transform:translate(-50%,-50%);color:color-mix(in srgb,var(--tier) 70%,#fff);opacity:.55;
+  filter:drop-shadow(0 0 8px var(--tier));animation:gvSpMagia .9s cubic-bezier(.2,.8,.3,1.2) both}
+@keyframes gvSpMagia{from{transform:translate(-50%,-50%) scale(.4);opacity:0}}
+.gv-sp-lineas{opacity:.3}
+.gv-sp-cuadro{position:absolute;left:50%;top:40%;width:min(78vw,460px);transform:translate(-50%,-50%);border-radius:14px;box-shadow:0 0 0 2px rgba(255,255,255,.5),0 0 40px var(--tier),0 20px 60px rgba(0,0,0,.6);animation:gvSpMagia .8s cubic-bezier(.2,.9,.25,1) both}
+.gv-sp-est i{width:30px;height:30px;background:none;clip-path:none;color:var(--tier);filter:drop-shadow(0 0 6px var(--tier)) drop-shadow(0 0 1px #fff);display:grid;place-items:center}
+.gv-sp-est i svg{width:100%;height:100%}
+.gv-sp-est.m-gremory i,.gv-sp-est.m-secreta i{width:44px;height:44px}
+
+/* la etiqueta «Nueva» con la cinta de Valeria (cola de golondrina) */
+.gx-nueva{background:linear-gradient(160deg,rgba(255,255,255,.3) 0 32%,transparent 32%),#e5484d;border-radius:0;box-shadow:none;padding:6px 16px 6px 8px;
+  -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 40' preserveAspectRatio='none'%3E%3Cpath d='M0 0 L120 0 L107 20 L120 40 L0 40 Z'/%3E%3C/svg%3E") center/100% 100% no-repeat;
+  mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 40' preserveAspectRatio='none'%3E%3Cpath d='M0 0 L120 0 L107 20 L120 40 L0 40 Z'/%3E%3C/svg%3E") center/100% 100% no-repeat}
+.gx-carta:not(.grande) .gx-nueva{padding:3px 10px 3px 4px}
+.gv-mini .gx-nueva{padding:4px 12px 4px 5px}
+@media (prefers-reduced-motion: reduce){.gv-nubes,.gm-anillo-ext,.gm-runas,.gm-anillo-med,.gm-anillo-int,.gv-sp-rayos{animation:none!important}}
