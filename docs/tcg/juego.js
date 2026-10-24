@@ -310,11 +310,144 @@
   const reduce = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
   const extra = {};    /* qué ilustraciones de la escena hay en el Worker */
   function miraExtra(){
-    if(extra.visto || !nubeBase()) return; extra.visto = true;
-    const prueba = (k, n) => { const i = new Image(); i.onload = () => { extra[k] = url(n); }; i.src = url(n); };
-    Object.keys(SOBRES).forEach(k => prueba("sobre-" + k, SOBRES[k].img));
-    prueba("mesaV", ESCENA.mesaV); prueba("mesaH", ESCENA.mesaH);
-    ["kurama", "sukuna", "gyukki"].forEach(q => { prueba("g-" + q + "-0", ESCENA.gato(q)[0]); prueba("g-" + q + "-1", ESCENA.gato(q)[1]); });
+    if(extra.listo) return extra.listo;
+    if(!nubeBase()) return Promise.resolve();
+    const prueba = (k, n) => new Promise(ok => { const i = new Image(); i.onload = () => { extra[k] = url(n); ok(); }; i.onerror = () => ok(); i.src = url(n); });
+    const ps = Object.keys(SOBRES).map(k => prueba("sobre-" + k, SOBRES[k].img));
+    /* las piezas del sobre de RUN-ASSETS-TCG.md (las de Valeria), subidas al Worker en webp */
+    ps.push(prueba("reverso", "sobre-reverso.webp"), prueba("rasgado", "sobre-rasgado.webp"), prueba("logo", "logotipo-gremory.webp"));
+    ps.push(prueba("mesaV", ESCENA.mesaV), prueba("mesaH", ESCENA.mesaH));
+    ["kurama", "sukuna", "gyukki"].forEach(q => { ps.push(prueba("g-" + q + "-0", ESCENA.gato(q)[0]), prueba("g-" + q + "-1", ESCENA.gato(q)[1])); });
+    return extra.listo = Promise.all(ps);
+  }
+
+  /* ── el sobre en 3D (tcg/sobre3d.js, con three.js) ──
+     Se carga al ver la pestaña de sobres y prepara las texturas del sobre elegido. Si no hay WebGL, el usuario
+     prefiere menos movimiento o aún no está listo al abrir, se usa el sobre en CSS de siempre.
+     Texturas de 1000×1700 con el corte en y=250 (RUN-ASSETS-TCG.md). Mientras no lleguen las de Valeria,
+     se dibujan aquí con la ilustración de una carta, el nombre y un dorso granate y oro. */
+  let S3 = null, S3carga = null;
+  const LIENZO = {}, TX = 1000, TY = 1700;
+  function carga3d(){
+    if(S3carga) return S3carga;
+    if(reduce()) return S3carga = Promise.resolve(null);
+    const v = (document.querySelector("meta[name=build]") || {}).content || "";
+    S3carga = import("./sobre3d.js?v=" + encodeURIComponent(v)).then(m => (S3 = m.webgl() ? m : null)).catch(e => { console.warn("sobre 3D", e); return null; });
+    return S3carga;
+  }
+  const imagen = src => new Promise(ok => { if(!src || src === VACIA) return ok(null); const i = new Image(); i.crossOrigin = "anonymous"; i.onload = () => ok(i); i.onerror = () => ok(null); i.src = src; });
+  const fuentes = () => document.fonts && document.fonts.load ? Promise.all(['400 160px "Instrument Serif"', '700 30px "Space Mono"'].map(f => document.fonts.load(f).catch(() => null))) : Promise.resolve();
+  function lienzos(k){
+    if(LIENZO[k]) return LIENZO[k];
+    const p = Promise.resolve(miraExtra()).then(() => {
+      const S = SOBRES[k], [id, cl] = S.arte, a = (D1.ART[id] || {})[cl] || {};
+      return Promise.all([imagen(extra["sobre-" + k]), imagen(cl === "gre" ? a.g2 : a.fondo), imagen(a.pj), imagen(extra.reverso), imagen(extra.rasgado), imagen(extra.logo), fuentes()]);
+    }).then(([propia, fondo, pj, rev, ras, logo]) => {
+      const S = SOBRES[k];
+      p.listo = {frente: frenteSobre(S, propia, fondo, pj, logo), dorso: dorsoSobre(rev), rasgado: ras || rasgadoSobre(), color: S.col};
+      return p.listo;
+    }).catch(e => { console.warn("texturas del sobre", e); delete LIENZO[k]; return null; });
+    return LIENZO[k] = p;
+  }
+  function precarga3d(){ carga3d().then(m => { if(!m) return; lienzos(elegido).then(() => ORDEN.forEach(k => lienzos(k))); }); }
+  function lienzo(){ const c = document.createElement("canvas"); c.width = TX; c.height = TY; return [c, c.getContext("2d")]; }
+  function cubre(g, img, pos){
+    const s = Math.max(TX / img.width, TY / img.height), w = img.width * s, h = img.height * s;
+    g.drawImage(img, (TX - w) / 2, (TY - h) * pos, w, h);
+  }
+  const rgb = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16));
+  const mezcla = (a, b, t, al) => { const x = rgb(a), y = rgb(b); return "rgba(" + x.map((v, i) => Math.round(v + (y[i] - v) * t)).join(",") + "," + (al == null ? 1 : al) + ")"; };
+  function espaciado(g, txt, x, y, sep){
+    if("letterSpacing" in g){ g.letterSpacing = sep + "px"; g.fillText(txt, x + sep / 2, y); g.letterSpacing = "0px"; return; }
+    g.fillText(txt.split("").join("\u200A"), x, y);
+  }
+  /* los sellados de arriba y abajo (estrías), la línea de corte perforada y el dentado */
+  function remata(g, c1, c2, perfora){
+    [[0, 56, false], [TY - 56, 56, true]].forEach(([y, h, abajo]) => {
+      const gr = g.createLinearGradient(0, y, 0, y + h); gr.addColorStop(abajo ? 1 : 0, c2); gr.addColorStop(abajo ? 0 : 1, c1);
+      g.fillStyle = gr; g.fillRect(0, y, TX, h);
+      for(let i = 0; i < TX; i += 8){ g.fillStyle = i % 16 ? "rgba(0,0,0,.22)" : "rgba(255,255,255,.3)"; g.fillRect(i, y, 3, h); }
+    });
+    if(perfora){
+      g.save(); g.setLineDash([16, 11]); g.lineWidth = 3;
+      g.strokeStyle = "rgba(0,0,0,.35)"; g.beginPath(); g.moveTo(0, 252); g.lineTo(TX, 252); g.stroke();
+      g.strokeStyle = "rgba(255,255,255,.7)"; g.beginPath(); g.moveTo(0, 249); g.lineTo(TX, 249); g.stroke(); g.restore();
+    }
+    g.save(); g.globalCompositeOperation = "destination-out"; g.fillStyle = "#000"; g.beginPath();
+    const n = 30, a = 30, w = TX / n;
+    for(let i = 0; i < n; i++){ const x = i * w; g.moveTo(x, 0); g.lineTo(x + w / 2, a); g.lineTo(x + w, 0); g.moveTo(x, TY); g.lineTo(x + w / 2, TY - a); g.lineTo(x + w, TY); }
+    g.fill(); g.restore();
+  }
+  function frenteSobre(S, propia, fondo, pj, logo){
+    const [c, g] = lienzo();
+    g.fillStyle = "#0b0610"; g.fillRect(0, 0, TX, TY);
+    if(propia) g.drawImage(propia, 0, 0, TX, TY);
+    else {
+      if(fondo) cubre(g, fondo, .24);
+      if(pj) cubre(g, pj, .24);
+      const v = g.createLinearGradient(0, 0, 0, TY);
+      v.addColorStop(0, "rgba(12,4,12,.9)"); v.addColorStop(.2, "rgba(12,4,12,.35)"); v.addColorStop(.34, "rgba(12,4,12,0)"); v.addColorStop(.58, "rgba(12,4,12,0)");
+      v.addColorStop(.78, mezcla(S.col, S.col, 0, .55)); v.addColorStop(.9, mezcla(S.col, "#0b0610", .6)); v.addColorStop(1, "#0b0610");
+      g.fillStyle = v; g.fillRect(0, 0, TX, TY);
+    }
+    /* logotipo: el de Valeria si está; si no, el nombre en dorado */
+    if(logo) g.drawImage(logo, 500 - 380, 410 - 110, 760, 220);
+    else {
+      g.save(); g.textAlign = "center"; g.font = '400 200px "Instrument Serif", Georgia, serif';
+      const d = g.createLinearGradient(0, 330, 0, 460); d.addColorStop(0, "#fff8de"); d.addColorStop(.6, "#f3cb6c"); d.addColorStop(1, "#b07a1e");
+      g.shadowColor = "rgba(0,0,0,.8)"; g.shadowBlur = 18; g.shadowOffsetY = 5; g.fillStyle = d; g.fillText("Gremory", 500, 450);
+      g.shadowBlur = 8; g.shadowOffsetY = 2; g.font = '700 26px "Space Mono", monospace'; g.fillStyle = "rgba(255,236,200,.9)";
+      espaciado(g, "TRADING CARD GAME · SET 1", 500, 505, 7); g.restore();
+    }
+    /* el nombre del sobre, abajo */
+    g.save(); g.textAlign = "center";
+    if(propia){ const v = g.createLinearGradient(0, 1340, 0, 1640); v.addColorStop(0, "rgba(11,6,16,0)"); v.addColorStop(1, "rgba(11,6,16,.6)"); g.fillStyle = v; g.fillRect(0, 1340, TX, 300); }
+    g.font = '700 30px "Space Mono", monospace'; g.fillStyle = S.col2; g.shadowColor = "rgba(0,0,0,.7)"; g.shadowBlur = 8;
+    espaciado(g, S.sub.toUpperCase(), 500, 1420, 9);
+    g.font = '400 176px "Instrument Serif", Georgia, serif'; g.fillStyle = "#fff"; g.shadowColor = S.col; g.shadowBlur = 34; g.fillText(S.n, 500, 1550);
+    g.shadowColor = "rgba(0,0,0,.8)"; g.shadowBlur = 10; g.fillText(S.n, 500, 1550);
+    g.shadowBlur = 0; g.fillStyle = mezcla(S.col2, S.col2, 0, .6); g.fillRect(410, 1578, 180, 2);
+    g.font = '700 24px "Space Mono", monospace'; g.fillStyle = "rgba(255,255,255,.75)"; espaciado(g, "5 CARTAS", 500, 1620, 8);
+    g.restore();
+    remata(g, S.col, S.col2, true);
+    return c;
+  }
+  function dorsoSobre(propio){
+    const [c, g] = lienzo();
+    if(propio) g.drawImage(propio, 0, 0, TX, TY);
+    else {
+      const r = g.createRadialGradient(500, 820, 40, 500, 850, 1100); r.addColorStop(0, "#8c1832"); r.addColorStop(.45, "#6b0f24"); r.addColorStop(1, "#2c0610");
+      g.fillStyle = r; g.fillRect(0, 0, TX, TY);
+      g.strokeStyle = "rgba(232,182,76,.15)"; g.lineWidth = 2;   /* trama de rombos */
+      for(let i = -TY; i < TX + TY; i += 64){ g.beginPath(); g.moveTo(i, 0); g.lineTo(i + TY, TY); g.stroke(); g.beginPath(); g.moveTo(i, 0); g.lineTo(i - TY, TY); g.stroke(); }
+      const s = g.createLinearGradient(465, 0, 535, 0); s.addColorStop(0, "rgba(0,0,0,.28)"); s.addColorStop(.15, "rgba(255,255,255,.1)"); s.addColorStop(.85, "rgba(255,255,255,.06)"); s.addColorStop(1, "rgba(0,0,0,.3)");
+      g.fillStyle = s; g.fillRect(465, 0, 70, TY);   /* la costura del cierre */
+      g.fillStyle = "rgba(255,231,163,.18)"; for(let y = 70; y < TY - 70; y += 22) g.fillRect(498, y, 4, 11);
+      g.save(); g.translate(500, 850);
+      g.strokeStyle = "#e8b64c"; g.lineWidth = 7; g.beginPath(); g.arc(0, 0, 168, 0, 7); g.stroke();
+      g.lineWidth = 2; g.strokeStyle = "rgba(255,231,163,.6)"; g.beginPath(); g.arc(0, 0, 150, 0, 7); g.stroke();
+      for(let i = 0; i < 24; i++){ const a = i / 24 * Math.PI * 2; g.beginPath(); g.moveTo(Math.cos(a) * 176, Math.sin(a) * 176); g.lineTo(Math.cos(a) * (i % 2 ? 184 : 192), Math.sin(a) * (i % 2 ? 184 : 192)); g.stroke(); }
+      const d = g.createLinearGradient(0, -130, 0, 130); d.addColorStop(0, "#ffe7a3"); d.addColorStop(.55, "#e8b64c"); d.addColorStop(1, "#9a6a1a");
+      g.textAlign = "center"; g.textBaseline = "middle"; g.font = '400 300px "Instrument Serif", Georgia, serif';
+      g.shadowColor = "rgba(0,0,0,.6)"; g.shadowBlur = 16; g.fillStyle = d; g.fillText("G", 0, 18); g.restore();
+    }
+    remata(g, "#6b0f24", "#a8243f", !propio);
+    return c;
+  }
+  /* el borde rasgado (1000×64): arriba transparente; abajo la capa plateada de dentro, con fibras */
+  function rasgadoSobre(){
+    const c = document.createElement("canvas"); c.width = TX; c.height = 64; const g = c.getContext("2d");
+    let sem = 7; const r = () => (sem = (sem * 16807) % 2147483647) / 2147483647;
+    const pts = []; let y = 32;
+    for(let x = 0; x <= TX; x += 6){ y += (r() - .5) * 9 + (32 - y) * .12; if(r() < .05) y += (r() < .5 ? -1 : 1) * 12; y = Math.max(14, Math.min(50, y)); pts.push([x, y]); }
+    pts[pts.length - 1][1] = pts[0][1];
+    g.beginPath(); g.moveTo(0, 64); pts.forEach(([x, y]) => g.lineTo(x, y)); g.lineTo(TX, 64); g.closePath();
+    const gr = g.createLinearGradient(0, 14, 0, 64); gr.addColorStop(0, "#f4f6fa"); gr.addColorStop(.5, "#e9ecf2"); gr.addColorStop(1, "#b8c0cc");
+    g.fillStyle = gr; g.fill();
+    g.strokeStyle = "rgba(255,255,255,.95)"; g.lineWidth = 2; g.beginPath(); pts.forEach(([x, y], i) => i ? g.lineTo(x, y) : g.moveTo(x, y)); g.stroke();
+    g.strokeStyle = "rgba(255,255,255,.8)"; g.lineWidth = 1;
+    pts.forEach(([x, y]) => { if(r() < .55){ g.beginPath(); g.moveTo(x + r() * 4, y + 1); g.lineTo(x + (r() - .5) * 5, y - 2 - r() * 6); g.stroke(); } });
+    return c;
   }
 
   /* ── sonido: todo sintetizado, sin archivos ── */
@@ -337,6 +470,8 @@
     rara(t0){ const c = ac(); if(!c) return; const t = c.currentTime + .05, notas = t0 >= 5 ? [523.3, 659.3, 784, 1046.5, 1318.5, 1568] : t0 >= 4 ? [659.3, 784, 1046.5, 1318.5] : [784, 987.8, 1174.7];
       if(t0 >= 5){ const o = c.createOscillator(), og = c.createGain(); o.type = "sine"; o.frequency.setValueAtTime(110, t); o.frequency.exponentialRampToValueAtTime(40, t + 1.2); env(c, og, t, .02, .6, 1.4); o.connect(og).connect(c.destination); o.start(t); o.stop(t + 1.6); }
       notas.forEach((hz, k) => { const o = c.createOscillator(), og = c.createGain(); o.type = "sine"; o.frequency.value = hz; env(c, og, t + k * .085, .01, .16, 1.1); o.connect(og).connect(c.destination); o.start(t + k * .085); o.stop(t + k * .085 + 1.3); }); },
+    cruje(){ const c = ac(); if(!c) return; const t = c.currentTime, n = ruido(c, .07), f = c.createBiquadFilter(), g = c.createGain();
+      f.type = "highpass"; f.frequency.value = 3000 + Math.random() * 2500; env(c, g, t, .003, .12, .05); n.connect(f).connect(g).connect(c.destination); n.start(t); n.stop(t + .07); },
     miau(){ const c = ac(); if(!c) return; const t = c.currentTime, o = c.createOscillator(), g = c.createGain(), f = c.createBiquadFilter();
       o.type = "sawtooth"; f.type = "bandpass"; f.frequency.value = 1100; f.Q.value = 3;
       o.frequency.setValueAtTime(420, t); o.frequency.linearRampToValueAtTime(760, t + .12); o.frequency.linearRampToValueAtTime(520, t + .38);
@@ -382,7 +517,7 @@
   let elegido = lee("gremory-tcg-sobre", "gatos");
   const ORDEN = ["alberto", "gatos", "cristina"];
   function sobresHTML(){
-    miraExtra();
+    miraExtra(); precarga3d();
     const d = disponibles(yo()), nb = !!nubeBase(), puede = d.total && nb, i0 = ORDEN.indexOf(elegido);
     const motivo = d.pre.length ? d.pre[0].motivo : d.dia ? "Sobres del día" : "";
     return '<div class="gx-tienda" style="--c:' + SOBRES[elegido].col + ';--c2:' + SOBRES[elegido].col2 + '"><div class="gx-cielo"></div>' +
@@ -438,6 +573,7 @@
   }
   function escena(cartas, k){
     const cap = document.getElementById("tgAbre"), S = SOBRES[k];
+    if(cap._s3){ cap._s3.destruye(); cap._s3 = null; }
     const mejor = cartas.reduce((m, x) => { const t = tierDe(x); return t === "sec" || (m !== "sec" && t > m) ? t : m; }, 1);
     cap.className = "tg-capa on gv"; cap.style.cssText = "--c:" + S.col + ";--c2:" + S.col2 + ";--tier:" + TIER[mejor][0] + ";--cielo:#2b3a8f";
     cap.innerHTML = '<div class="gv-cielo"></div><div class="gv-estrellas"></div><div class="gv-estrellas dos"></div><div class="gv-bruma"></div>' +
@@ -448,7 +584,31 @@
       '<div class="gx-pista" id="gxPista">Desliza por la línea de arriba para abrirlo</div><div class="gx-final" id="gxFinal"></div>';
     cap.querySelector("[data-mudo]").onclick = e => { e.stopPropagation(); mudo = !mudo; guarda("gremory-tcg-mudo", mudo); e.currentTarget.innerHTML = icoSon(); };
     G.luz.on(cap);
-    corte(cap, cartas, mejor);
+    if(!pon3d(cap, cartas, mejor, k)) corte(cap, cartas, mejor);
+  }
+  /* el sobre en 3D en lugar del de CSS (que se queda oculto debajo, para medir dónde salen las chispas) */
+  const punto = (x, y) => ({getBoundingClientRect: () => ({left: x - 1, top: y - 1, width: 2, height: 2})});
+  function pon3d(cap, cartas, mejor, k){
+    const L = LIENZO[k] && LIENZO[k].listo;
+    if(!S3 || !L) return false;
+    try {
+      cap._s3 = S3.crea(cap, {frente: L.frente, dorso: L.dorso, rasgado: L.rasgado, color: L.color, tier: TIER[mejor][0],
+        alRasgar: (p, x, y) => { SON.cruje(); chispas(cap, punto(x, y), "#fff", 3, 60, .5); },
+        alAbrir: () => abierto(cap, cartas, mejor)});
+    } catch(e){ console.warn("sobre 3D", e); cap._s3 = null; return false; }
+    const c = cap.querySelector(".gv-centro"); c.style.visibility = "hidden";
+    const g = c.querySelector(".gv-guia"); if(g) g.remove();
+    cap.querySelector("#gxPista").textContent = "Desliza por la línea de arriba para abrirlo";
+    return true;
+  }
+  /* lo que pasa al abrirse, sea el sobre en 3D o el de CSS */
+  function abierto(cap, cartas, mejor){
+    const sob = cap.querySelector(".gx-sobre");
+    SON.corta(); vibra(25);
+    const gu = cap.querySelector(".gv-centro .gv-guia"); if(gu) gu.remove();
+    cap.querySelector("#gxPista").classList.add("fuera");
+    setTimeout(() => { cap.classList.add("estalla"); SON.sube(); chispas(cap, sob, "#fff", 40, 240, .1); }, 200);
+    setTimeout(() => estrella(cap, cartas, mejor), 900);
   }
   function icoSon(){ return mudo
     ? '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9h4l5-4v14l-5-4H4z"/><path d="M17 9l5 6M22 9l-5 6"/></svg>'
@@ -459,10 +619,8 @@
     let x0 = null, ini = 0, p = 0, hecho = false, max = 0, movido = false;
     const pon = v => { p = Math.max(p, Math.min(1, v)); raya.style.setProperty("--p", p.toFixed(3)); sob.classList.toggle("tenso", p > 0 && p < 1); };
     const fin = () => {
-      if(hecho) return; hecho = true; pon(1); SON.corta(); vibra(25);
-      sob.classList.add("cortado"); cap.querySelector(".gv-guia").remove(); cap.querySelector("#gxPista").classList.add("fuera");
-      setTimeout(() => { cap.classList.add("estalla"); SON.sube(); chispas(cap, sob, "#fff", 40, 240, .1); }, 200);
-      setTimeout(() => estrella(cap, cartas, mejor), 900);
+      if(hecho) return; hecho = true; pon(1);
+      sob.classList.add("cortado"); abierto(cap, cartas, mejor);
     };
     const auto = () => { const t0 = performance.now(), v0 = p; const paso = t => { const k = Math.min(1, (t - t0) / 420); pon(v0 + (1 - v0) * k); if(k < 1) requestAnimationFrame(paso); else fin(); }; requestAnimationFrame(paso); };
     setTimeout(() => sob.classList.remove("entra"), 900);
@@ -478,7 +636,7 @@
     const e = document.createElement("div"); e.className = "gv-fugaz" + (mejor >= 4 || mejor === "sec" ? " grande" : "");
     cap.appendChild(e);
     if(mejor >= 3 || mejor === "sec") setTimeout(() => SON.rara(mejor === "sec" ? 5 : mejor), 250);
-    setTimeout(() => { cap.querySelector(".gx-sobre").classList.add("vacia"); }, 300);
+    setTimeout(() => { cap.querySelector(".gx-sobre").classList.add("vacia"); if(cap._s3){ const s3 = cap._s3; cap._s3 = null; s3.vacia(); } }, 300);
     setTimeout(() => { e.remove(); pila(cap, cartas, 0); }, 1500);
   }
   /* 2. la pila: boca arriba, la de encima se pasa deslizando (o tocando); la rara, la última, sale boca abajo */
@@ -546,6 +704,7 @@
   /* 4. el resumen: las cinco a la vista (como en Pocket), cómo va el binder y dos botones iguales */
   function final(cap, cartas){
     if(cap.classList.contains("fin")) return;
+    if(cap._s3){ cap._s3.destruye(); cap._s3 = null; }
     const nuevas = cartas.filter(x => x.nueva).length, col = coleccion(yo()), tengo = Object.keys(col).length, total = L.filter(e => e.ok && e.n !== "061").length;
     cap.classList.remove("pilando", "revela"); cap.classList.add("fin"); G.luz.off();
     const d = disponibles(yo()).total;
