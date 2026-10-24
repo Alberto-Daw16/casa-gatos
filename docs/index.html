@@ -8,7 +8,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>Gremory</title>
-<meta name="build" content="2026-10-14.2">
+<meta name="build" content="2026-10-24.1">
 <!-- El cuadrado de la pantalla de inicio. iOS se guarda el icono por URL y no
      vuelve a pedirlo, así que si se cambia hay que darle un nombre de fichero
      nuevo. El manifest es lo que mira el iPhone moderno; los dos "apple-touch"
@@ -3970,6 +3970,7 @@ function tcgCuenta(pid){
   var sob = S.tcgSobres || [], bo = S.borrados || {}, n = 0, ids = {};
   sob.forEach(function(x){ ids[x.id] = 1; if(x.d===pid && !x.abierto && !bo[x.id]) n++; });
   if(!ids["dia:"+tcgHoy()+":"+pid]) n++;
+  if(!ids["dia:"+tcgHoy()+":"+pid+":2"]) n++;   /* dos sobres al día */
   if(!S.tcgBase) n += 3;
   else {
     var base = S.tcgBase.logros || [];
@@ -3977,9 +3978,8 @@ function tcgCuenta(pid){
   }
   return n;
 }
-/* El TCG está en pruebas: no se enseña hasta que las cartas estén revisadas.
-   Para probarlo en un dispositivo, abrir la app con #tcg al final de la dirección. */
-var TCG_ON = false;
+/* El TCG está en beta (desde el 24/10/2026): visible para los dos. */
+var TCG_ON = true;
 var TCG_VER = TCG_ON || /(^|#)tcg$/.test(location.hash);
 function tcgPinta(){
   var t = document.getElementById("tcgTira"); if(!t) return;
@@ -3990,7 +3990,7 @@ function tcgPinta(){
   if(!pid) return;
   var mias = (S.tcgCartas||[]).filter(function(x){ return x.d===pid; }), dist = {};
   mias.forEach(function(x){ dist[x.c] = 1; });
-  document.getElementById("tcgTiraSub").textContent = n ? (n===1 ? "Tienes 1 sobre por abrir" : "Tienes "+n+" sobres por abrir") : "Tu binder: "+Object.keys(dist).length+" de 61 · mañana, otro sobre";
+  document.getElementById("tcgTiraSub").textContent = n ? (n===1 ? "Tienes 1 sobre por abrir" : "Tienes "+n+" sobres por abrir") : "Tu binder: "+Object.keys(dist).length+" de 61 · mañana, dos más";
   document.getElementById("tcgTiraBtn").textContent = n ? "Abrir" : "Ver";
 }
 var _tcgCarga = null;
