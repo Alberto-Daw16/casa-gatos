@@ -1101,6 +1101,10 @@
   opacity:calc(.06 + var(--pointer-from-center) * .95)}
 .carta[data-rarity="rare holo"] .card__shine:before,.carta[data-rarity="rare holo"] .card__shine:after{display:none}
 .carta[data-rarity="rare holo"] .card__glare{opacity:calc(.2 + var(--pointer-from-center) * .6)}
+/* Holo de los gatos y los grupos (cosmos): las motas de purpurina salían verde lima con la carta quieta.
+   Ahora quietas apenas se ven y al inclinar brillan con colores suaves */
+.carta[data-rarity="rare holo cosmos"] .card__shine{opacity:calc(.08 + var(--pointer-from-center) * .8);filter:brightness(.9) contrast(1) saturate(.35)}
+.carta[data-rarity="rare holo cosmos"] .card__shine:before,.carta[data-rarity="rare holo cosmos"] .card__shine:after{filter:brightness(1.1) contrast(1.4) saturate(.35)}
 /* Grabada: el grabado sigue, pero sin quemar los dibujos claros (vestidos blancos, cielos) */
 .carta[data-rarity="rare ultra"] .card__shine{opacity:calc(.12 + var(--pointer-from-center) * .55)}
 .carta[data-rarity="rare ultra"] .card__glare{opacity:calc(.2 + var(--pointer-from-center) * .5)}
@@ -1477,6 +1481,162 @@
 .carta.base.esc .mb-velo{background:linear-gradient(180deg,rgba(14,17,24,.8) 0%,rgba(14,17,24,.35) 12%,transparent 18%)}
 
 
+/* ══ firma de los gatos: rastro de huellas que entra andando, una huella grande y su nombre a mano, todo en oro ══ */
+.carta .sello.pata{position:absolute}
+.pata .pp{position:absolute;filter:drop-shadow(0 0 1.1px rgba(35,20,0,1)) drop-shadow(0 0 1.1px rgba(35,20,0,1)) drop-shadow(0 .5cqw 1.2cqw rgba(0,0,0,.6))}
+.pata .pp .huella{position:absolute;inset:0;width:100%;height:100%;filter:none}
+.pata .pp .huella::after{content:"";position:absolute;inset:0;
+  background:linear-gradient(calc(115deg + var(--rotate-x) * 2),transparent 35%,rgba(255,255,255,.95) 50%,transparent 65%);
+  background-size:300% 100%;background-position:calc(var(--pointer-from-left) * 100%) 50%;mix-blend-mode:soft-light}
+.pata .p1{left:0;top:30%;width:60%;height:60%;transform:rotate(-6deg)}
+.pata .p2{right:12%;top:4%;width:28%;height:28%;transform:rotate(22deg);opacity:.95}
+.pata .p3{right:-8%;top:-24%;width:24%;height:24%;transform:rotate(28deg);opacity:.85}
+.pata .pn{position:absolute;left:52%;top:64%;white-space:nowrap;line-height:1;font-family:"Firma",cursive;padding:0 .15em;transform:rotate(-8deg);
+  background:linear-gradient(105deg,#6d4a0e 0%,#f9e7a0 18%,#b8872b 34%,#fffbe6 48%,#a57a22 62%,#f5dc8a 78%,#6d4a0e 100%);
+  background-size:260% 100%;background-position:calc(var(--mx)*100%) 50%;-webkit-background-clip:text;background-clip:text;color:transparent;
+  filter:drop-shadow(.6px .6px 0 #2a1600) drop-shadow(-.6px -.6px 0 #2a1600) drop-shadow(.6px -.6px 0 #2a1600) drop-shadow(-.6px .6px 0 #2a1600) drop-shadow(0 0 1.4cqw rgba(0,0,0,.85))}
+
+/* ══ la secreta (061): Love of My Life ══ */
+.carta.secreta{background:#14060a}
+.carta.secreta .fondo{filter:saturate(1.15) brightness(.98)}
+.sec-tono{background:linear-gradient(170deg,#ff9fb6 0%,#ffd2a0 45%,#c23a5e 100%);mix-blend-mode:multiply;opacity:.38}
+.sec-tono2{background:radial-gradient(70% 45% at 50% 30%,rgba(255,248,230,.0),rgba(120,10,40,.35) 100%)}
+.sec-aura{background:radial-gradient(60% 34% at 50% 38%,rgba(255,226,170,.55),rgba(255,140,170,.18) 55%,transparent 75%);mix-blend-mode:screen}
+.carta.secreta .sec-rayos{position:absolute;left:-40%;top:-52%;width:180%;height:180%;
+  background:repeating-conic-gradient(from 0deg at 50% 50%,rgba(255,240,205,.34) 0 4deg,transparent 4deg 13deg);
+  -webkit-mask:radial-gradient(circle at 50% 50%,#000 0,#000 18%,transparent 42%);mask:radial-gradient(circle at 50% 50%,#000 0,#000 18%,transparent 42%);
+  transform-origin:50% 50%;animation:secGira 60s linear infinite;mix-blend-mode:screen}
+@keyframes secGira{to{transform:rotate(360deg)}}
+.carta.secreta>.sec-cor{inset:auto;width:6cqw;height:6cqw;background:radial-gradient(circle at 40% 35%,#fff3f6,#ff8fae 45%,#e0365e);
+  -webkit-mask:var(--cor) center/contain no-repeat;mask:var(--cor) center/contain no-repeat;opacity:0;filter:blur(.15cqw) drop-shadow(0 0 1.2cqw rgba(255,120,150,.9));
+  animation:secSube 7s ease-in infinite}
+@keyframes secSube{0%{transform:translateY(0) scale(.6);opacity:0}15%{opacity:.85}80%{opacity:.6}100%{transform:translateY(-34cqw) scale(1.05) rotate(14deg);opacity:0}}
+.sec-pet{overflow:hidden;pointer-events:none}
+.sec-pet i{position:absolute;top:-8%;width:3.4cqw;height:2.4cqw;border-radius:70% 0 70% 0;background:linear-gradient(135deg,#ff6d8a,#b3102f);opacity:.9;
+  box-shadow:inset .4cqw .3cqw .6cqw rgba(255,210,220,.5);animation:secCae 11s linear infinite}
+@keyframes secCae{0%{transform:translate(0,0) rotate(0)}25%{transform:translate(4cqw,32cqw) rotate(120deg)}50%{transform:translate(-3cqw,68cqw) rotate(220deg)}
+  75%{transform:translate(5cqw,104cqw) rotate(320deg)}100%{transform:translate(0,150cqw) rotate(420deg)}}
+.sec-panel{background:radial-gradient(90% 60% at calc(var(--mx)*100%) 10%,rgba(255,120,150,.28),transparent 60%),linear-gradient(180deg,#8a1531 0%,#5e0b22 45%,#33050f 100%)}
+.sec-fili{-webkit-mask:var(--cor) center top/5.5cqw 5.5cqw space;mask:var(--cor) center top/5.5cqw 5.5cqw space;
+  background:linear-gradient(105deg,#7a5212,#f7dc8c 30%,#b8872b 50%,#fff3c4 65%,#9d7020);background-size:260% 100%;background-position:calc(var(--mx)*100%) 50%;opacity:.10}
+.sec-arco{background:linear-gradient(105deg,#6d4a0e 0%,#f9e7a0 18%,#b8872b 34%,#fffbe6 48%,#a57a22 62%,#f5dc8a 78%,#6d4a0e 100%);
+  background-size:260% 100%;background-position:calc(var(--mx)*100%) 50%;filter:drop-shadow(0 -.6cqw 1.4cqw rgba(0,0,0,.45))}
+.sec-arco2{background:linear-gradient(90deg,#ff9ab0,#ffe6a8,#a6f0ff,#d6a8ff,#ff9ab0);background-size:300% 100%;background-position:calc(var(--mx)*160%) 50%;opacity:.55;mix-blend-mode:overlay}
+.sec-marco{padding:2.6cqw;border-radius:inherit;
+  background:linear-gradient(calc(120deg + var(--rotate-x) * 3),#7a5212,#f7dc8c 14%,#ffb7c6 28%,#fff6d8 40%,#b8872b 52%,#ffd1dc 66%,#f7dc8c 80%,#7a5212);
+  background-size:300% 300%;background-position:calc(var(--mx)*100%) calc(var(--my)*100%);
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;
+  mask:linear-gradient(#000 0 0) content-box exclude,linear-gradient(#000 0 0)}
+.carta.secreta>.sec-marco2{inset:2.6cqw;width:auto;height:auto;border-radius:2.4cqw;border:.35cqw solid rgba(255,236,190,.7);box-shadow:inset 0 0 1.6cqw rgba(0,0,0,.45),0 0 1cqw rgba(255,200,150,.25)}
+.sec-iri{padding:2.6cqw;border-radius:inherit;background:linear-gradient(calc(110deg + var(--rotate-x) * 4),#ff8fb1,#ffe08a,#9ff0d0,#9ec8ff,#e0a8ff,#ff8fb1);
+  background-size:400% 400%;background-position:calc(var(--pointer-from-left)*100%) calc(var(--pointer-from-top)*100%);mix-blend-mode:color-dodge;
+  opacity:calc(.25 + var(--pointer-from-center) * .5);
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;
+  mask:linear-gradient(#000 0 0) content-box exclude,linear-gradient(#000 0 0)}
+.carta.secreta>.sec-esq{inset:auto;width:7.5cqw;height:7.5cqw;
+  background:linear-gradient(135deg,#7a5212,#fff3c4 45%,#b8872b);-webkit-mask:var(--cor) center/contain no-repeat;mask:var(--cor) center/contain no-repeat;
+  filter:drop-shadow(0 0 .8px rgba(40,10,0,1)) drop-shadow(0 .4cqw .8cqw rgba(0,0,0,.5))}
+.carta.secreta>.sec-cab{inset:auto;height:auto;width:auto;left:7%;right:7%;top:5.2%;display:flex;justify-content:space-between;align-items:center;
+  font:700 2.5cqw/1 "Space Mono",monospace;letter-spacing:.24em;text-transform:uppercase;color:#fff6dc;text-shadow:0 .3cqw .8cqw rgba(60,0,15,.85)}
+.sec-cab span{padding:1.2cqw 2.4cqw;border-radius:99px;background:rgba(70,6,22,.62);border:1px solid rgba(255,228,170,.6);-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px)}
+.carta.secreta>.sec-txt{inset:auto;height:auto;width:auto;left:9%;right:9%;top:63%;bottom:6.4%;display:flex;flex-direction:column;align-items:center;text-align:center}
+.sec-txt em{font:700 2.3cqw/1 "Space Mono",monospace;letter-spacing:.32em;text-transform:uppercase;color:#f3d48a;font-style:normal;opacity:.9}
+.sec-tit{margin-top:2.4cqw;font-family:"Firma",cursive;font-size:13.6cqw;line-height:1.05;white-space:nowrap;padding:0 .2em;
+  background:linear-gradient(105deg,#6d4a0e 0%,#f9e7a0 18%,#b8872b 34%,#fffbe6 48%,#a57a22 62%,#f5dc8a 78%,#6d4a0e 100%);
+  background-size:260% 100%;background-position:calc(var(--mx)*100%) 50%;-webkit-background-clip:text;background-clip:text;color:transparent;
+  filter:drop-shadow(0 .6px 0 rgba(60,40,0,.95)) drop-shadow(0 0 1px rgba(30,8,0,.8)) drop-shadow(0 .5cqw 1cqw rgba(0,0,0,.6))}
+.sec-raya{width:62%;height:1px;margin:3cqw 0 2.4cqw;background:linear-gradient(90deg,transparent,rgba(247,220,140,.9),transparent);position:relative}
+.sec-raya::after{content:"";position:absolute;left:50%;top:50%;width:3.2cqw;height:3.2cqw;transform:translate(-50%,-50%);
+  background:linear-gradient(135deg,#f9e7a0,#b8872b);-webkit-mask:var(--cor) center/contain no-repeat;mask:var(--cor) center/contain no-repeat}
+.sec-quien{font:400 5.4cqw/1.1 "Instrument Serif",Georgia,serif;color:#fff1e2;letter-spacing:.02em}
+.sec-quien i{font-style:italic;color:#f3d48a;padding:0 .3em}
+.sec-lore{margin-top:2cqw;font:italic 3.4cqw/1.35 "Instrument Serif",Georgia,serif;color:rgba(255,236,226,.72);max-width:86%}
+.sec-pie{margin-top:auto;width:100%;display:flex;justify-content:space-between;font:700 2cqw/1 "Space Mono",monospace;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,230,200,.6)}
+.carta.secreta .brill{inset:auto;width:6cqw;height:6cqw;background:radial-gradient(circle,#fff 0 18%,rgba(255,220,230,.9) 30%,transparent 62%);
+  -webkit-mask:var(--estr) center/contain no-repeat;mask:var(--estr) center/contain no-repeat;animation:titila 2.6s ease-in-out infinite;opacity:0}
+.carta.secreta .card__glare{background:radial-gradient(farthest-corner circle at var(--pointer-x) var(--pointer-y),rgba(255,240,230,.35) 0%,transparent 55%);mix-blend-mode:overlay;opacity:calc(.3 + var(--pointer-from-center) * .5)}
+
+
+/* la revelación de la secreta: destello, halo y corazones y pétalos que salen disparados */
+.sec-boom{position:absolute;inset:0;pointer-events:none;z-index:20;overflow:visible}
+.sec-boom .sec-flash{position:absolute;inset:-30%;background:radial-gradient(circle at 50% 50%,rgba(255,255,255,.95),rgba(255,190,210,.55) 25%,transparent 60%);animation:secFlash .9s ease-out forwards}
+.sec-boom .sec-halo{position:absolute;left:50%;top:50%;width:170%;aspect-ratio:1;transform:translate(-50%,-50%);border-radius:50%;
+  background:repeating-conic-gradient(rgba(255,220,180,.55) 0 6deg,transparent 6deg 18deg);-webkit-mask:radial-gradient(circle,#000 0 20%,transparent 62%);mask:radial-gradient(circle,#000 0 20%,transparent 62%);
+  mix-blend-mode:screen;animation:secHalo 2.2s ease-out forwards}
+.sec-boom i{position:absolute;left:50%;top:50%;width:5.5vmin;height:5.5vmin;margin:-2.75vmin 0 0 -2.75vmin;opacity:0;animation:secVuela 1.7s cubic-bezier(.15,.75,.3,1) forwards}
+.sec-boom i.c{background:radial-gradient(circle at 40% 35%,#fff3f6,#ff7d9f 45%,#d61f4d);-webkit-mask:var(--cor) center/contain no-repeat;mask:var(--cor) center/contain no-repeat;filter:drop-shadow(0 0 1.2vmin rgba(255,110,150,.9))}
+.sec-boom i.p{width:4.2vmin;height:3vmin;border-radius:70% 0 70% 0;background:linear-gradient(135deg,#ff6d8a,#b3102f)}
+@keyframes secFlash{0%{opacity:0;transform:scale(.6)}15%{opacity:1}100%{opacity:0;transform:scale(1.3)}}
+@keyframes secHalo{0%{opacity:0;transform:translate(-50%,-50%) rotate(0) scale(.5)}20%{opacity:1}100%{opacity:0;transform:translate(-50%,-50%) rotate(70deg) scale(1.15)}}
+@keyframes secVuela{0%{opacity:0;transform:translate(0,0) scale(.2) rotate(0)}12%{opacity:1}75%{opacity:1}
+  100%{opacity:0;transform:translate(var(--dx),calc(var(--dy) + 14vmin)) scale(var(--s)) rotate(var(--r))}}
+@keyframes secLate{0%,100%{transform:scale(1)}14%{transform:scale(1.06)}28%{transform:scale(1)}42%{transform:scale(1.04)}70%{transform:scale(1)}}
+
+
+/* el reverso de la secreta: una carta escrita a mano sobre papel, dentro del marco de oro rosa */
+.carta.sec-dorso .sec-panel{clip-path:none}
+.carta.sec-dorso>.sec-papel{inset:7.5%;width:auto;height:auto;border-radius:2cqw;
+  background:radial-gradient(120% 80% at 30% 20%,#fff8ee,#f7e8d6 60%,#efd9c2);box-shadow:inset 0 0 3cqw rgba(140,70,40,.25),0 1cqw 3cqw rgba(0,0,0,.45)}
+.carta.sec-dorso>.sec-carta{inset:7.5%;width:auto;height:auto;padding:6cqw 6.4cqw 5cqw;display:flex;flex-direction:column;align-items:stretch;color:#4a1a22}
+.sec-fecha{display:flex;align-items:center;gap:2.4cqw;justify-content:center;font:700 2.6cqw/1 "Space Mono",monospace;letter-spacing:.24em;color:#a2203f}
+.sec-fecha span{flex:1;height:1px;background:linear-gradient(90deg,transparent,rgba(162,32,63,.55),transparent)}
+.sec-para{margin-top:4.2cqw;font:italic 400 7cqw/1 "Instrument Serif",Georgia,serif;color:#7a1430}
+.sec-dedi{margin-top:3cqw;display:flex;flex-direction:column;gap:2.4cqw;font:400 4.5cqw/1.34 "Instrument Serif",Georgia,serif;color:#4a1a22}
+.sec-dedi p{margin:0}
+.sec-firma{margin-top:auto;align-self:flex-end;position:relative;height:16cqw;width:46cqw}
+.sec-firma .sello{position:absolute!important;right:0;bottom:0}
+.sec-firma .firma{background:none!important;-webkit-text-fill-color:#8a1a36;color:#8a1a36;filter:none}
+.sec-firma .firma-m{background:#8a1a36!important}
+.sec-dias{margin-top:2.4cqw;text-align:center;font:700 2.4cqw/1 "Space Mono",monospace;letter-spacing:.2em;text-transform:uppercase;color:#a2203f}
+.sec-dias b{font:400 6cqw/1 "Instrument Serif",Georgia,serif;letter-spacing:0;color:#7a1430;margin-right:.2em}
+
+
+/* firmas en tinta de diamante (la secreta): blanco cristal con destellos de arcoíris que se mueven con la luz */
+.carta.secreta>.sec-fdiam{pointer-events:none}
+.sec-fdiam .sello{position:absolute}
+.sec-fdiam .firma{background-image:linear-gradient(calc(100deg + var(--rotate-x) * 3),transparent 38%,#fff 48%,transparent 58%),
+  linear-gradient(115deg,#ffffff 0%,#d8ecff 18%,#ffffff 32%,#ffd9ef 46%,#e6fbff 60%,#fff6d6 74%,#ffffff 100%)!important;
+  background-size:260% 100%,200% 100%!important;background-position:calc(var(--pointer-from-left)*100%) 50%,calc(var(--mx)*100%) 50%!important;
+  -webkit-background-clip:text!important;background-clip:text!important;color:transparent!important;
+  filter:drop-shadow(0 0 .35px rgba(106,16,48,.9)) drop-shadow(0 0 1.2cqw rgba(255,255,255,.9)) drop-shadow(0 0 2.4cqw rgba(255,170,205,.8)) drop-shadow(0 .4cqw .7cqw rgba(80,0,30,.45))!important}
+.sec-fdiam .firma-m{background:linear-gradient(115deg,#ffffff,#d8ecff 25%,#ffffff 45%,#ffd9ef 65%,#ffffff)!important;filter:drop-shadow(0 0 1.6cqw rgba(255,190,220,.9))}
+
+
+/* ══ cartas de grupo (Bond) ══ */
+.carta.bond{--g-lima:#f0c75e}
+.carta.bond .mb-esq{border-color:rgba(240,199,94,.4)}
+.carta.bond .mb-forma{background:linear-gradient(180deg,#fff6d6 0%,#ffe08a 40%,#f0c75e 55%,#9a6f1c 100%);-webkit-background-clip:text;background-clip:text;filter:drop-shadow(0 .3cqw 0 rgba(0,0,0,.8)) drop-shadow(0 0 1.4cqw rgba(240,199,94,.4))}
+.carta.bond>.mb-bg{background:radial-gradient(120% 60% at 50% 0%,rgba(255,230,170,.10),transparent 60%),var(--bondt),#0e1118}
+.carta.bond .mb-info,.carta.bond .mb-hab{background:rgba(14,15,24,.80);box-shadow:inset 0 0 0 1px rgba(240,199,94,.28)}
+.carta.bond>.bond-marco{padding:2.6cqw;border-radius:inherit;pointer-events:none;
+  background:linear-gradient(calc(115deg + var(--rotate-x) * 3),rgba(255,255,255,0) 30%,rgba(255,255,255,.6) 48%,rgba(255,255,255,0) 66%),var(--bondg);
+  background-size:300% 100%,100% 100%;background-position:calc(var(--pointer-from-left)*100%) 50%,center;
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;
+  mask:linear-gradient(#000 0 0) content-box exclude,linear-gradient(#000 0 0)}
+.carta.bond>.bond-iri{padding:2.6cqw;border-radius:inherit;pointer-events:none;
+  background:linear-gradient(calc(110deg + var(--rotate-x) * 4),#ff8fb1,#ffe08a,#9ff0d0,#9ec8ff,#e0a8ff,#ff8fb1);background-size:400% 400%;
+  background-position:calc(var(--pointer-from-left)*100%) calc(var(--pointer-from-top)*100%);mix-blend-mode:color-dodge;opacity:calc(.12 + var(--pointer-from-center) * .45);
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;
+  mask:linear-gradient(#000 0 0) content-box exclude,linear-gradient(#000 0 0)}
+.carta.bond>.bond-filo{inset:2.6cqw;width:auto;height:auto;border-radius:2.2cqw;border:.35cqw solid rgba(255,236,190,.7);box-shadow:inset 0 0 1.4cqw rgba(0,0,0,.6);pointer-events:none}
+.carta.bond>.bond-esq{inset:auto;width:10.4cqw;height:6.2cqw;pointer-events:none;
+  background:linear-gradient(135deg,#7a5212,#fff3c4 45%,#b8872b);-webkit-mask:var(--anillas) center/contain no-repeat;mask:var(--anillas) center/contain no-repeat;
+  filter:drop-shadow(0 0 1px rgba(40,10,0,1)) drop-shadow(0 .3cqw .6cqw rgba(0,0,0,.6))}
+.carta.bond>.bond-sello{inset:auto;width:auto;height:auto;left:50%;top:0;transform:translateX(-50%);display:flex;align-items:center;gap:1cqw;
+  padding:.8cqw 3cqw 1.1cqw;border-radius:0 0 2.6cqw 2.6cqw;background:linear-gradient(#1a1626,#0d0b14);border:.3cqw solid #e6c06a;border-top:0;
+  box-shadow:0 .4cqw 1.2cqw rgba(0,0,0,.55);pointer-events:none}
+.bond-sello i{width:2.3cqw;height:2.3cqw;border-radius:50%;box-shadow:0 0 1.2cqw currentColor,inset 0 0 0 .3cqw rgba(255,255,255,.4)}
+.bond-sello b{font:700 2.2cqw/1 "Space Mono",monospace;letter-spacing:.26em;text-transform:uppercase;color:#f3d48a;margin-left:.4cqw}
+
+/* frase decorativa de Firmadas, Oro y Gremory */
+.carta>.frase-w{inset:auto;left:3%;right:3%;bottom:18%;width:auto;height:auto;text-align:center;pointer-events:none;
+  padding:1.3cqw 4cqw;background:radial-gradient(closest-side,rgba(8,6,14,.72),rgba(8,6,14,.5) 70%,rgba(8,6,14,0));
+  font:italic 400 4cqw/1.2 "Instrument Serif",Georgia,serif;color:#fff;text-shadow:0 0 .6cqw rgba(0,0,0,.95),0 .2cqw 1cqw rgba(0,0,0,.9)}
+.carta.gp>.frase-w{bottom:20.6%;color:#fff3d6}
+.carta.ws.oro>.frase-w{color:#fff6dc;background:radial-gradient(closest-side,rgba(30,18,2,.8),rgba(30,18,2,.55) 70%,rgba(30,18,2,0))}
+.carta.plana>.plana-img{inset:0;width:100%;height:100%;object-fit:cover;border-radius:inherit}
+.carta.plana>.frase-w{bottom:19.4%}
+
 /* ── Casa ── */
 .carta.casa{background:#0d0c10}
 .carta.casa>.casa-amb{overflow:hidden;border-radius:inherit}
@@ -1650,3 +1810,11 @@
 .tg-elige{display:grid;grid-template-columns:repeat(auto-fill,minmax(84px,1fr));gap:8px}
 .tg-elige .bd-bol.sel{box-shadow:0 0 0 3px var(--acc,#c9f24a)}
 .bd-bol .bd-v{position:absolute;right:6px;top:7px;max-width:calc(100% - 12px);overflow:hidden;white-space:nowrap;text-overflow:ellipsis;font:700 8.5px/1 "Space Mono",monospace;color:#fff;background:rgba(10,12,20,.8);padding:3px 4px;border-radius:4px}
+
+/* la secreta en el sobre: fondo granate, la carta late y al girarla estalla */
+#tgAbre.sec{background:radial-gradient(70% 60% at 50% 45%,#5e0b22,#0a0306 75%);transition:background .6s}
+.tg-pila[data-tier="sec"] .tg-giro:not(.vuelta)>.tg-dorso{animation:tgAura .86s ease-in-out infinite,secLate .86s ease-in-out infinite;--au:rgba(255,90,140,1)}
+.tg-pila[data-tier="sec"] .tg-giro{transition-duration:.9s}
+.tg-pila[data-tier="sec"]>.tg-dorso{box-shadow:0 0 30px rgba(255,90,140,.5)}
+.tg-esc{transition:transform .28s ease-in}
+.tg-esc.gira{transform:rotateY(90deg)}

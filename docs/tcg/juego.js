@@ -11,7 +11,7 @@
   const save = () => A.save(), miId = () => A.miId(), nombreDe = id => A.nombreDe(id), apiNube = (r, m, c) => A.apiNube(r, m, c),
     nubeBase = () => A.nubeBase(), toast = m => A.toast(m), esc = x => A.esc(x), uid = () => A.uid(), logrosTodos = () => A.logrosTodos(), render = () => A.render();
   const G = window.GTCG, D1 = G.D1, L = D1.LISTA, PAG = 9, NP = Math.ceil(L.length / PAG);
-  const BIENVENIDA = 3;
+  const BIENVENIDA = 3, DIARIOS = 2, SECRETA_ON = false;   /* beta: la 061 aún no sale en los sobres */
   const TAPAS = {
     oceano:     {n:"Océano",     tapa:"#1d4f9c", hoja:"#14203a", tinta:"#9fb8e6"},
     rosa:       {n:"Rosa",       tapa:"#c4537e", hoja:"#28141e", tinta:"#f0a9c4"},
@@ -61,7 +61,7 @@
     return out.sort((a, b) => a.c > b.c ? 1 : a.c < b.c ? -1 : 0);
   }
 
-  /* ── sobres: uno al día, tres de bienvenida y uno por cada logro nuevo ── */
+  /* ── sobres: dos al día, tres de bienvenida y uno por cada logro nuevo ── */
   function premia(){
     asegura();
     const logros = typeof logrosTodos === "function" ? logrosTodos().filter(l => l.dado) : [];
@@ -77,9 +77,10 @@
   }
   function disponibles(pid){
     asegura();
-    const dia = !A.S.tcgSobres.some(s => s.id === "dia:" + hoy() + ":" + pid);
+    const ids = Array.from({length: DIARIOS}, (_, i) => "dia:" + hoy() + ":" + pid + (i ? ":" + (i + 1) : ""));
+    const libres = ids.filter(id => !A.S.tcgSobres.some(s => s.id === id)), dia = libres.length;
     const pre = A.S.tcgSobres.filter(s => s.d === pid && !s.abierto && !borr()[s.id]);
-    return {dia, pre, total: (dia ? 1 : 0) + pre.length};
+    return {dia, libres, pre, total: dia + pre.length};
   }
   /* el contenido sale de una semilla (el id del sobre): los dos móviles sacan lo mismo */
   function rng(sem){
@@ -93,7 +94,7 @@
   const hayPool = t => POOL[t] && POOL[t].length;
   const elige = (r, a) => a[Math.floor(r() * a.length)];
   /* 5 cartas: tres normales (Holo o Casa), una Reverse o Double Holo, y la rara */
-  const RARA = [["Grabada",42,"SR"],["Escapada",25,"OFR"],["Firmada",14,"SP"],["Oro",9,"HR"],["Estándar",4.5,"RR"],["Gremory",3.5,"G1"],["Gremory",1.5,"G2"],["Secreta",.5,"SR"]];
+  const RARA = [["Grabada",42,"SR"],["Escapada",25,"OFR"],["Firmada",14,"SP"],["Oro",9,"HR"],["Estándar",4.5,"RR"],["Gremory",3.5,"G1"],["Gremory",2,"G2"],["Secreta",.5,"SR"]].filter(x => SECRETA_ON || x[0] !== "Secreta");
   function genera(id){
     const r = rng(id), out = [];
     for(let i = 0; i < 3; i++) out.push(r() < .7 && hayPool("Estándar") ? {c: elige(r, POOL["Estándar"]), v:"R"} : hayPool("Casa") ? {c: elige(r, POOL["Casa"]), v:"CASA"} : {c: elige(r, POOL["Estándar"]), v:"R"});
@@ -248,6 +249,7 @@
       '<div class="tg-esc' + (n ? '' : ' bloq') + '">' + G.carta(c, v) + (n ? '' : '<div class="tg-candado"><span>' + (mia ? "Te falta" : "No la tiene") + '</span></div>') + '</div>' +
       '<div class="tg-vers">' + G.versiones(c).map(x => '<button data-ver="' + x + '" class="' + (x === v ? "on" : "") + (col.v[x] ? "" : " no") + '">' + G.icono(c, x) + G.nombreVer(c, x) + (col.v[x] ? '<em>×' + col.v[x] + '</em>' : '') + '</button>').join("") + '</div>' +
       '<div class="tg-acc">' +
+        (c === "s01-061" && n && G.cartaSecretaDorso ? '<button class="tg-btn sec" data-v-acc="gira">Darle la vuelta</button>' : '') +
         (sob.length && otro() ? '<button class="tg-btn sec" data-v-acc="ofrece" data-inst="' + sob[0].id + '">' + ICO.cambio + ' Ofrecérsela a ' + esc(nom(otro())) + '</button>' : '') +
         (suya.length ? '<button class="tg-btn sec" data-v-acc="pide" data-inst="' + suya[0].id + '">' + ICO.cambio + ' Pedírsela a ' + esc(nom(quien)) + '</button>' : '') + '</div>';
   }
@@ -262,6 +264,13 @@
     const b = e.target.closest("[data-v-acc],[data-ver]"); if(!b) return;
     if(b.dataset.ver){ vVer = b.dataset.ver; pintaVisor(); G.luz.on(document.querySelector("#tgVisor .tg-esc")); return; }
     const a = b.dataset.vAcc;
+    if(a === "gira"){
+      const z = document.querySelector("#tgVisor .tg-esc"); z.classList.add("gira");
+      setTimeout(() => { const atras = b.dataset.atras !== "1"; const k = z.querySelector(".carta");
+        if(k) k.outerHTML = atras ? G.cartaSecretaDorso() : G.carta(vCarta, vVer);
+        b.dataset.atras = atras ? "1" : ""; b.textContent = atras ? "Ver la cara" : "Darle la vuelta"; z.classList.remove("gira"); }, 280);
+      return;
+    }
     if(a === "cierra") cierraVisor();
     else if(a === "ant") otraVisor(-1);
     else if(a === "sig") otraVisor(1);
@@ -276,16 +285,16 @@
     return '<div class="tg-sobres"><div class="tg-pack' + (d.total ? '' : ' vacio') + '" data-acc="abrir"><div class="tira"></div><div class="rot"><b>Set 1</b><span>Gremory · 5 cartas</span></div></div>' +
       '<div class="tg-cuantos"><b>' + (d.total ? (d.total === 1 ? "Tienes 1 sobre" : "Tienes " + d.total + " sobres") : "Sin sobres por hoy") + '</b><span>' + (d.total ? esc(motivo) : "Mañana te espera otro") + '</span></div>' +
       (d.total ? '<button class="tg-btn" data-acc="abrir">Abrir sobre</button>' : '') +
-      '<div class="tg-gana"><div><b>Cómo se consiguen</b></div><div>Uno cada día<span>' + (d.dia ? "listo" : "abierto hoy") + '</span></div>' +
+      '<div class="tg-gana"><div><b>Cómo se consiguen</b></div><div>Dos cada día<span>' + (d.dia ? (d.dia === DIARIOS ? "listos" : "te queda " + d.dia) : "abiertos hoy") + '</span></div>' +
         '<div>Tres de bienvenida<span>al estrenar el Set 1</span></div><div>Uno por cada logro nuevo de la casa<span>para los dos</span></div></div>' +
-      '<p class="tg-nota" style="max-width:460px;text-align:center">Cada sobre trae 5 cartas: tres normales, una Reverse o Double Holo y una rara. Con suerte, una Firmada, una Oro, una Gremory o la secreta.</p></div>';
+      '<p class="tg-nota" style="max-width:460px;text-align:center">Cada sobre trae 5 cartas: tres normales, una Reverse o Double Holo y una rara. Con suerte, una Firmada, una Oro o una Gremory.</p></div>';
   }
   function abreSobre(){
     const pid = yo(), d = disponibles(pid);
     if(!d.total) return;
     let s;
     if(d.pre.length){ s = d.pre[0]; s.abierto = true; s.t = ahora(); }
-    else { s = {id: "dia:" + hoy() + ":" + pid, d: pid, tipo: "dia", motivo: "Sobre del día", f: hoy(), abierto: true, t: ahora()}; A.S.tcgSobres.push(s); }
+    else { s = {id: d.libres[0], d: pid, tipo: "dia", motivo: "Sobre del día", f: hoy(), abierto: true, t: ahora()}; A.S.tcgSobres.push(s); }
     const tenia = coleccion(pid), vistas = {};
     const cartas = genera(s.id).map((x, i) => {
       const k = x.c + "|" + x.v, nueva = !(tenia[x.c] && tenia[x.c].v[x.v]) && !vistas[k]; vistas[k] = 1;
@@ -302,7 +311,7 @@
     cap.classList.add("on");
     const pack = cap.querySelector("#tgPack"); let x0 = null, hecho = false;
     const rasga = () => {
-      if(hecho) return; hecho = true;
+      if(hecho) return; hecho = true; if(G.secretaAudio) G.secretaAudio();
       pack.classList.add("rasga", "baja"); cap.querySelector(".tg-pista").style.opacity = 0;
       setTimeout(() => pila(cartas, 0), 950);
     };
@@ -313,16 +322,19 @@
   function pila(cartas, i){
     const cap = document.getElementById("tgAbre");
     if(i >= cartas.length) return resumen(cartas);
-    const x = cartas[i], quedan = cartas.length - i;
+    const x = cartas[i], quedan = cartas.length - i, sec = x.c === "s01-061";
+    cap.classList.toggle("sec", sec);
     cap.innerHTML = '<div class="tg-sello" id="tgSello">&nbsp;</div>' +
-      '<div class="tg-pila" data-tier="' + x.nivel + '">' + Array.from({length: quedan - 1}, (_, k) => '<div class="tg-dorso" style="transform:translate(' + ((k + 1) * 3) + 'px,' + ((k + 1) * 3) + 'px)"></div>').reverse().join("") +
+      '<div class="tg-pila" data-tier="' + (sec ? "sec" : x.nivel) + '">' + Array.from({length: quedan - 1}, (_, k) => '<div class="tg-dorso" style="transform:translate(' + ((k + 1) * 3) + 'px,' + ((k + 1) * 3) + 'px)"></div>').reverse().join("") +
       '<div class="tg-giro" id="tgGiro"><div class="tg-dorso"></div><div class="cara">' + G.carta(x.c, x.v) + '</div></div></div>' +
-      '<div class="tg-pista">' + (i === 0 ? "Toca para darle la vuelta" : (cartas.length - i) + " por ver") + '</div>';
+      '<div class="tg-pista">' + (sec ? "Algo late dentro…" : i === 0 ? "Toca para darle la vuelta" : (cartas.length - i) + " por ver") + '</div>';
+    if(sec && G.secretaLatido) G.secretaLatido(99);
     const giro = cap.querySelector("#tgGiro"), zona = cap.querySelector(".tg-pila");
     let fase = 0;
     zona.onclick = () => {
       if(fase === 0){
         fase = 1; giro.classList.add("vuelta"); G.luz.on(zona);
+        if(sec && G.secretaEstalla){ G.secretaLatido(0); setTimeout(() => G.secretaEstalla(zona), 420); }
         cap.querySelector("#tgSello").innerHTML = (x.nueva ? '<span class="nueva">Nueva</span>' : '') + G.nombreVer(x.c, x.v) + ' · ' + entrada(x.c).n;
         cap.querySelector(".tg-pista").textContent = i < cartas.length - 1 ? "Toca para la siguiente" : "Toca para terminar";
       } else if(fase === 1){
@@ -332,6 +344,7 @@
   }
   function resumen(cartas){
     const cap = document.getElementById("tgAbre"), col = coleccion(yo());
+    cap.classList.remove("sec"); if(G.secretaLatido) G.secretaLatido(0);
     G.luz.off();
     cap.innerHTML = '<div class="tg-tit"><b>Al binder</b><span>' + cartas.filter(x => x.nueva).length + ' nuevas de 5</span></div>' +
       '<div class="tg-resumen">' + cartas.map(x => { const e = entrada(x.c); return '<div class="bd-bol"><img src="' + e.th + '" alt="">' + '<span class="bd-num">' + e.n + '</span>' + (x.nueva ? '<span class="bd-nueva">Nueva</span>' : '') + '</div>'; }).join("") + '</div>' +
