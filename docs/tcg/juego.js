@@ -107,7 +107,8 @@
   const nivel = (c, v) => c === "s01-061" || v === "G1" || v === "G2" ? 5 : v === "SP" || v === "HR" ? 4 : v === "SR" || v === "OFR" || v === "RR" ? 3 : v === "RH" ? 2 : 1;
 
   /* ── imágenes del Worker ── */
-  function url(n){ const nb = nubeBase(); return nb ? nb.base + "/img/" + encodeURIComponent(n) + "?k=" + encodeURIComponent(nb.k) : ""; }
+  const VACIA = "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==";
+  function url(n){ const nb = nubeBase(); return nb ? nb.base + "/img/" + encodeURIComponent(n) + "?k=" + encodeURIComponent(nb.k) : VACIA; }
   let listo = false, faltanImg = false;
   function prepara(){
     if(listo) return Promise.resolve();
@@ -279,19 +280,42 @@
   }
 
   /* ── sobres ── */
+  /* ── el sobre: diseño propio. Cada sobre lleva de portada una ilustración del set (elegida por su id) ── */
+  const ARTES = [["s01-026","gre"],["s01-040","gre"],["s01-033","gre"],["s01-006","gre"],["s01-012","full"]];
+  function arteSobre(sem){
+    const r = rng(sem || "gremory"), [id, k] = ARTES[Math.floor(r() * ARTES.length)], a = (D1.ART[id] || {})[k] || {};
+    const fondo = k === "gre" ? a.g2 : a.fondo;
+    return a.pj && a.pj !== VACIA && /^(https?:|data:image\/webp)/.test(a.pj) ? {pj: a.pj, fondo} : null;
+  }
+  const dientes = (n, h, arriba) => "polygon(" + (arriba
+    ? Array.from({length: n * 2 + 1}, (_, i) => (i / (n * 2) * 100).toFixed(2) + "% " + (i % 2 ? 0 : h) + "%").join(",") + ",100% 100%,0 100%"
+    : "0 0,100% 0," + Array.from({length: n * 2 + 1}, (_, i) => (100 - i / (n * 2) * 100).toFixed(2) + "% " + (i % 2 ? 100 : 100 - h) + "%").join(",")) + ")";
+  const DI_A = dientes(30, 22, true), DI_B = dientes(30, 26, false);
+  function sobreHTML(sem, clase){
+    const a = arteSobre(sem);
+    return '<div class="gp-pack ' + (clase || "") + '">' +
+      '<div class="gp-cuerpo"><div class="gp-arte">' + (a ? '<img class="gp-fondo" src="' + a.fondo + '" alt=""><img class="gp-pj" src="' + a.pj + '" alt="">' : '<div class="gp-sinarte"></div>') + '</div>' +
+        '<div class="gp-tinta"></div><div class="gp-foil"></div><div class="gp-brillo"></div>' +
+        '<div class="gp-cab"><i class="gp-logo"></i><b>Gremory</b><span>Trading Card Game</span></div>' +
+        '<div class="gp-pie"><b>Set 1</b><span>Casa Gremory · 5 cartas</span></div><div class="gp-filo"></div></div>' +
+      '<div class="gp-tapa" style="clip-path:' + DI_A + '"><div class="gp-rasga"><i></i></div></div>' +
+      '<div class="gp-cola" style="clip-path:' + DI_B + '"></div><div class="gp-luz"></div></div>';
+  }
   function sobresHTML(){
-    const d = disponibles(yo());
+    const d = disponibles(yo()), nb = !!nubeBase();
     const motivo = d.pre.length ? d.pre[0].motivo : d.dia ? "Sobre del día" : "";
-    return '<div class="tg-sobres"><div class="tg-pack' + (d.total ? '' : ' vacio') + '" data-acc="abrir"><div class="tira"></div><div class="rot"><b>Set 1</b><span>Gremory · 5 cartas</span></div></div>' +
-      '<div class="tg-cuantos"><b>' + (d.total ? (d.total === 1 ? "Tienes 1 sobre" : "Tienes " + d.total + " sobres") : "Sin sobres por hoy") + '</b><span>' + (d.total ? esc(motivo) : "Mañana te espera otro") + '</span></div>' +
-      (d.total ? '<button class="tg-btn" data-acc="abrir">Abrir sobre</button>' : '') +
+    const sem = d.pre.length ? d.pre[0].id : d.libres && d.libres[0];
+    return '<div class="tg-sobres"><div class="gp-escena' + (d.total && nb ? '' : ' vacio') + '"' + (d.total && nb ? ' data-acc="abrir"' : '') + '>' +
+        (d.total > 1 ? '<div class="gp-detras">' + sobreHTML((sem || "") + "b", "atras") + '</div>' : '') + sobreHTML(sem, "quieto") + '</div>' +
+      '<div class="tg-cuantos"><b>' + (d.total ? (d.total === 1 ? "Tienes 1 sobre" : "Tienes " + d.total + " sobres") : "Sin sobres por hoy") + '</b><span>' + (d.total ? esc(motivo) : "Mañana te esperan dos más") + '</span></div>' +
+      (d.total && nb ? '<button class="tg-btn" data-acc="abrir">Abrir sobre</button>' : d.total ? '<p class="tg-nota" style="text-align:center">Para abrirlos, activa la sincronización en Ajustes.</p>' : '') +
       '<div class="tg-gana"><div><b>Cómo se consiguen</b></div><div>Dos cada día<span>' + (d.dia ? (d.dia === DIARIOS ? "listos" : "te queda " + d.dia) : "abiertos hoy") + '</span></div>' +
         '<div>Tres de bienvenida<span>al estrenar el Set 1</span></div><div>Uno por cada logro nuevo de la casa<span>para los dos</span></div></div>' +
       '<p class="tg-nota" style="max-width:460px;text-align:center">Cada sobre trae 5 cartas: tres normales, una Reverse o Double Holo y una rara. Con suerte, una Firmada, una Oro o una Gremory.</p></div>';
   }
   function abreSobre(){
     const pid = yo(), d = disponibles(pid);
-    if(!d.total) return;
+    if(!d.total || !nubeBase()) return;
     let s;
     if(d.pre.length){ s = d.pre[0]; s.abierto = true; s.t = ahora(); }
     else { s = {id: d.libres[0], d: pid, tipo: "dia", motivo: "Sobre del día", f: hoy(), abierto: true, t: ahora()}; A.S.tcgSobres.push(s); }
@@ -302,55 +326,93 @@
     });
     cartas.forEach(x => { if(!inst(x.id)) A.S.tcgCartas.push({id: x.id, c: x.c, v: x.v, d: pid, t: ahora(), o: "sobre"}); });
     save();
-    animaSobre(cartas);
+    animaSobre(cartas, s.id);
   }
-  /* la apertura: rasgar, la pila boca abajo y una a una se dan la vuelta (la rara, la última) */
-  function animaSobre(cartas){
-    const cap = document.getElementById("tgAbre");
-    cap.innerHTML = '<div class="tg-pack" id="tgPack"><div class="tira"></div><div class="rot"><b>Set 1</b><span>Gremory · 5 cartas</span></div></div><div class="tg-pista">Toca o desliza para abrir</div>';
-    cap.classList.add("on");
-    const pack = cap.querySelector("#tgPack"); let x0 = null, hecho = false;
+  /* ── la apertura ──
+     1. el sobre: se rasga deslizando por la línea de arriba (o tocando)
+     2. la tapa sale volando, se escapa la luz del color de la mejor carta y las cartas suben del sobre
+     3. la pila: cada toque da la vuelta a una carta; la rara va la última y avisa antes
+     4. el resumen */
+  const TIER = {1:["#aab3c5","Común"], 2:["#7cc7ff","Holo"], 3:["#8a9bff","Rara"], 4:["#ffcf5a","Muy rara"], 5:["#ff6ad5","Gremory"], sec:["#ff5a8c","Secreta"]};
+  const tierDe = x => x.c === "s01-061" ? "sec" : x.nivel;
+  const reduce = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
+  function chispas(host, color, n, fuerza){
+    if(reduce()) return;
+    const r = host.getBoundingClientRect(), cap = document.getElementById("tgAbre"), rc = cap.getBoundingClientRect();
+    for(let k = 0; k < n; k++){
+      const c = document.createElement("i"), ang = Math.random() * Math.PI * 2, d = (.5 + Math.random()) * (fuerza || 160);
+      c.className = "gp-chispa";
+      c.style.cssText = "left:" + (r.left - rc.left + r.width / 2) + "px;top:" + (r.top - rc.top + r.height * (fuerza > 200 ? .5 : .12)) + "px;--dx:" + (Math.cos(ang) * d).toFixed(0) + "px;--dy:" + (Math.sin(ang) * d - 40).toFixed(0) + "px;--c:" + color + ";animation-delay:" + (Math.random() * 120).toFixed(0) + "ms";
+      cap.appendChild(c); setTimeout(() => c.remove(), 1500);
+    }
+  }
+  function animaSobre(cartas, sem){
+    const cap = document.getElementById("tgAbre"), mejor = cartas.reduce((m, x) => { const t = tierDe(x); return t === "sec" || (m !== "sec" && t > m) ? t : m; }, 1);
+    cap.className = "tg-capa on gp-abre"; cap.style.setProperty("--tier", TIER[mejor][0]);
+    cap.innerHTML = '<div class="gp-halo"></div><div class="gp-mesa">' + sobreHTML(sem, "vivo") + '</div>' +
+      '<div class="tg-pista" id="gpPista">Desliza por la línea de arriba para abrirlo</div>';
+    G.luz.on(cap);
+    const pack = cap.querySelector(".gp-pack"), tapa = pack.querySelector(".gp-tapa");
+    let x0 = null, p = 0, hecho = false, movido = false;
+    const pon = v => { p = Math.max(0, Math.min(1, v)); pack.style.setProperty("--corte", p.toFixed(3)); };
     const rasga = () => {
-      if(hecho) return; hecho = true; if(G.secretaAudio) G.secretaAudio();
-      pack.classList.add("rasga", "baja"); cap.querySelector(".tg-pista").style.opacity = 0;
-      setTimeout(() => pila(cartas, 0), 950);
+      if(hecho) return; hecho = true; pon(1);
+      pack.classList.add("rasgado"); cap.querySelector("#gpPista").style.opacity = 0;
+      if(navigator.vibrate) try { navigator.vibrate(18); } catch(e){}
+      setTimeout(() => { cap.classList.add("estalla"); chispas(tapa, TIER[mejor][0], mejor >= 4 || mejor === "sec" ? 46 : 26, 190); }, 120);
+      setTimeout(() => pack.classList.add("baja"), 520);
+      setTimeout(() => pila(cartas, 0, true), 760);
     };
-    pack.addEventListener("pointerdown", e => { x0 = e.clientX; });
-    pack.addEventListener("pointerup", e => { if(x0 != null && Math.abs(e.clientX - x0) > 40) rasga(); x0 = null; });
-    pack.addEventListener("click", rasga);
+    const auto = () => { if(hecho) return; const t0 = performance.now(), v0 = p; const paso = t => { const k = Math.min(1, (t - t0) / 380); pon(v0 + (1 - v0) * k); if(k < 1) requestAnimationFrame(paso); else rasga(); }; requestAnimationFrame(paso); };
+    pack.addEventListener("pointerdown", e => { if(hecho) return; x0 = e.clientX; movido = false; pack.setPointerCapture && pack.setPointerCapture(e.pointerId); pack.classList.add("tenso"); });
+    pack.addEventListener("pointermove", e => { if(x0 == null || hecho) return; const dx = Math.abs(e.clientX - x0); if(dx > 6) movido = true; pon(dx / (pack.offsetWidth * .8)); if(p >= 1) rasga(); });
+    pack.addEventListener("pointerup", () => { if(x0 == null) return; x0 = null; pack.classList.remove("tenso");
+      if(hecho) return; if(!movido || p > .45) auto(); else pon(0); });
+    pack.addEventListener("pointercancel", () => { x0 = null; pack.classList.remove("tenso"); if(!hecho) pon(0); });
   }
-  function pila(cartas, i){
+  function puntos(cartas, i){
+    return '<div class="gp-puntos">' + cartas.map((x, k) => '<i class="' + (k < i ? "visto" : k === i ? "ahora" : "") + '"' + (k < i ? ' style="--c:' + TIER[tierDe(x)][0] + '"' : '') + '></i>').join("") + '</div>';
+  }
+  function pila(cartas, i, entra){
     const cap = document.getElementById("tgAbre");
     if(i >= cartas.length) return resumen(cartas);
-    const x = cartas[i], quedan = cartas.length - i, sec = x.c === "s01-061";
-    cap.classList.toggle("sec", sec);
-    cap.innerHTML = '<div class="tg-sello" id="tgSello">&nbsp;</div>' +
-      '<div class="tg-pila" data-tier="' + (sec ? "sec" : x.nivel) + '">' + Array.from({length: quedan - 1}, (_, k) => '<div class="tg-dorso" style="transform:translate(' + ((k + 1) * 3) + 'px,' + ((k + 1) * 3) + 'px)"></div>').reverse().join("") +
-      '<div class="tg-giro" id="tgGiro"><div class="tg-dorso"></div><div class="cara">' + G.carta(x.c, x.v) + '</div></div></div>' +
-      '<div class="tg-pista">' + (sec ? "Algo late dentro…" : i === 0 ? "Toca para darle la vuelta" : (cartas.length - i) + " por ver") + '</div>';
+    const x = cartas[i], quedan = cartas.length - i, t = tierDe(x), sec = t === "sec", col = TIER[t][0], ult = i === cartas.length - 1;
+    cap.className = "tg-capa on gp-abre" + (sec ? " sec" : "");
+    cap.style.setProperty("--tier", col);
+    cap.dataset.t = t;
+    cap.innerHTML = '<div class="gp-halo"></div><div class="gp-rayos"></div>' +
+      '<div class="gp-pila' + (entra ? " sube" : "") + '" data-tier="' + t + '">' +
+        Array.from({length: quedan - 1}, (_, k) => '<div class="tg-dorso gp-debajo" style="--k:' + (quedan - 1 - k) + '"></div>').join("") +
+        '<div class="tg-giro" id="tgGiro"><div class="tg-dorso"></div><div class="cara">' + G.carta(x.c, x.v) + (x.nueva ? '<span class="gp-nueva">Nueva</span>' : '') + '</div></div></div>' +
+      '<div class="gp-nombre" id="gpNombre">&nbsp;</div>' + puntos(cartas, i) +
+      '<div class="tg-pista" id="gpPista">' + (sec ? "Algo late dentro…" : ult && t >= 3 ? "La última brilla distinto…" : i === 0 ? "Toca para darle la vuelta" : quedan + " por ver") + '</div>';
     if(sec && G.secretaLatido) G.secretaLatido(99);
-    const giro = cap.querySelector("#tgGiro"), zona = cap.querySelector(".tg-pila");
-    let fase = 0;
-    zona.onclick = () => {
-      if(fase === 0){
-        fase = 1; giro.classList.add("vuelta"); G.luz.on(zona);
-        if(sec && G.secretaEstalla){ G.secretaLatido(0); setTimeout(() => G.secretaEstalla(zona), 420); }
-        cap.querySelector("#tgSello").innerHTML = (x.nueva ? '<span class="nueva">Nueva</span>' : '') + G.nombreVer(x.c, x.v) + ' · ' + entrada(x.c).n;
-        cap.querySelector(".tg-pista").textContent = i < cartas.length - 1 ? "Toca para la siguiente" : "Toca para terminar";
-      } else if(fase === 1){
-        fase = 2; giro.classList.add("vete"); setTimeout(() => pila(cartas, i + 1), 380);
-      }
+    const giro = cap.querySelector("#tgGiro"), zona = cap.querySelector(".gp-pila");
+    let fase = 0, x0 = null;
+    const gira = () => {
+      fase = 1; giro.classList.add("vuelta"); G.luz.on(zona);
+      if(sec && G.secretaEstalla){ G.secretaLatido(0); setTimeout(() => G.secretaEstalla(zona), 420); }
+      setTimeout(() => {
+        if(t >= 3 || sec){ cap.classList.add("revela"); chispas(zona, col, t >= 4 || sec ? 40 : 22, 260); if(navigator.vibrate) try { navigator.vibrate(t >= 4 ? [20, 40, 30] : 15); } catch(e){} }
+        if(t >= 5 || sec) cap.classList.add("flash");
+      }, 260);
+      cap.querySelector("#gpNombre").innerHTML = '<b style="color:' + col + '">' + G.nombreVer(x.c, x.v) + '</b><span>' + esc((G.CARTAS[x.c] || {}).n || "") + ' <i>Nº' + esc(entrada(x.c).n || "") + '</i></span>';
+      cap.querySelector("#gpPista").textContent = ult ? "Toca para terminar" : "Toca o desliza para la siguiente";
     };
+    const vete = dir => { fase = 2; giro.style.setProperty("--dir", dir < 0 ? -1 : 1); giro.classList.add("vete"); setTimeout(() => pila(cartas, i + 1), 340); };
+    zona.addEventListener("pointerdown", e => { x0 = e.clientX; });
+    zona.addEventListener("pointerup", e => { const dx = x0 == null ? 0 : e.clientX - x0; x0 = null;
+      if(fase === 0) gira(); else if(fase === 1) vete(Math.abs(dx) > 40 ? dx : -1); });
   }
   function resumen(cartas){
-    const cap = document.getElementById("tgAbre"), col = coleccion(yo());
-    cap.classList.remove("sec"); if(G.secretaLatido) G.secretaLatido(0);
+    const cap = document.getElementById("tgAbre"), nuevas = cartas.filter(x => x.nueva).length;
+    cap.className = "tg-capa on gp-abre fin"; if(G.secretaLatido) G.secretaLatido(0);
     G.luz.off();
-    cap.innerHTML = '<div class="tg-tit"><b>Al binder</b><span>' + cartas.filter(x => x.nueva).length + ' nuevas de 5</span></div>' +
-      '<div class="tg-resumen">' + cartas.map(x => { const e = entrada(x.c); return '<div class="bd-bol"><img src="' + e.th + '" alt="">' + '<span class="bd-num">' + e.n + '</span>' + (x.nueva ? '<span class="bd-nueva">Nueva</span>' : '') + '</div>'; }).join("") + '</div>' +
-      '<div class="tg-sello">' + cartas.map(x => G.nombreVer(x.c, x.v)).join(" · ") + '</div>' +
-      '<div class="tg-acc"><button class="tg-btn" data-ab="fin">Hecho</button>' + (disponibles(yo()).total ? '<button class="tg-btn sec" data-ab="otro">Abrir otro</button>' : '') + '</div>';
-    cap.onclick = e => { const b = e.target.closest("[data-ab]"); if(!b) return; cap.onclick = null; cap.classList.remove("on");
+    cap.innerHTML = '<div class="gp-halo"></div><div class="tg-tit"><b>' + (nuevas ? (nuevas === 1 ? "Una nueva para el binder" : nuevas + " nuevas para el binder") : "Todas repetidas") + '</b><span>' + (nuevas === 5 ? "las cinco, estrenadas" : nuevas ? (5 - nuevas) + (5 - nuevas === 1 ? " repetida para cambiar" : " repetidas para cambiar") : "buenas para cambiar") + '</span></div>' +
+      '<div class="gp-abanico">' + cartas.map((x, k) => { const e = entrada(x.c), t = tierDe(x);
+        return '<div class="gp-mini' + (t >= 3 || t === "sec" ? ' brilla' : '') + '" style="--c:' + TIER[t][0] + ';--d:' + (k * 90) + 'ms;transform:rotate(' + ((k - 2) * 5) + 'deg) translateY(' + ((k - 2) * (k - 2) * 5) + 'px)"><img src="' + e.th + '" alt="">' + (x.nueva ? '<span class="gp-nueva">Nueva</span>' : '') + '<em>' + G.nombreVer(x.c, x.v) + '</em></div>'; }).join("") + '</div>' +
+      '<div class="tg-acc"><button class="tg-btn" data-ab="fin">Al binder</button>' + (disponibles(yo()).total ? '<button class="tg-btn sec" data-ab="otro">Abrir otro</button>' : '') + '</div>';
+    cap.onclick = e => { const b = e.target.closest("[data-ab]"); if(!b) return; cap.onclick = null; cap.className = "tg-capa";
       if(b.dataset.ab === "otro") abreSobre(); else { tab = "binder"; quien = yo(); pinta(); } };
   }
 
