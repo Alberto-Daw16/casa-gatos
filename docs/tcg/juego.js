@@ -390,7 +390,7 @@
              : d.total ? '<p class="tg-nota" style="text-align:center">Para abrirlos, activa la sincronización en Ajustes.</p>' : '') +
       '<div class="tg-gana"><div><b>Cómo se consiguen</b></div><div>Dos cada día<span>' + (d.dia ? (d.dia === DIARIOS ? "listos" : "te queda " + d.dia) : "abiertos hoy") + '</span></div>' +
         '<div>Tres de bienvenida<span>al estrenar el Set 1</span></div><div>Uno por cada logro nuevo de la casa<span>para los dos</span></div></div>' +
-      '<p class="tg-nota" style="max-width:460px;text-align:center">Cada sobre trae 5 cartas y la última siempre es rara. El sobre de cada uno trae más cartas suyas.</p></div>';
+      '<p class="tg-nota" style="max-width:460px;text-align:center">Cada sobre trae 5 cartas y la última siempre es rara. Los tres sobres traen lo mismo: elige la portada que más te guste.</p></div>';
   }
   function eligeSobre(k){ elegido = k; guarda("gremory-tcg-sobre", k); pinta(); }
 
@@ -401,7 +401,7 @@
     if(d.pre.length){ s = d.pre[0]; s.abierto = true; s.t = ahora(); s.sobre = elegido; }
     else { s = {id: d.libres[0], d: pid, tipo: "dia", motivo: "Sobre del día", f: hoy(), abierto: true, t: ahora(), sobre: elegido}; A.S.tcgSobres.push(s); }
     const tenia = coleccion(pid), vistas = {};
-    const cartas = genera(s.id, s.sobre).map((x, i) => {
+    const cartas = genera(s.id).map((x, i) => {   /* los tres sobres traen lo mismo: solo cambia la portada */
       const k = x.c + "|" + x.v, nueva = !(tenia[x.c] && tenia[x.c].v[x.v]) && !vistas[k]; vistas[k] = 1;
       return Object.assign(x, {id: s.id + ":" + i, nueva, nivel: nivel(x.c, x.v)});
     });
