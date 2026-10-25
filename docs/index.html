@@ -8,7 +8,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>Gremory</title>
-<meta name="build" content="2026-10-25.15">
+<meta name="build" content="2026-10-25.16">
 <!-- El cuadrado de la pantalla de inicio. iOS se guarda el icono por URL y no
      vuelve a pedirlo, así que si se cambia hay que darle un nombre de fichero
      nuevo. El manifest es lo que mira el iPhone moderno; los dos "apple-touch"
@@ -3984,7 +3984,7 @@ function tcgCuenta(pid){
 }
 /* El TCG está en beta y oculto hasta retocarlo todo (24/10/2026).
    Para verlo en un dispositivo, abrir la app con #tcg al final de la dirección. */
-var TCG_ON = false;
+var TCG_ON = true;   /* 25/10/2026: lanzado para los dos */
 /* En un móvil concreto se puede ver antes de tiempo: abriendo la app una vez con #tcg, o tocando 5 veces
    el número de versión en Ajustes (para la app instalada en la pantalla de inicio, que no deja poner #tcg). */
 var TCG_VER = TCG_ON || /(^|#)tcg$/.test(location.hash) || (function(){ try { return localStorage.getItem("gremory-tcg-ver") === "1"; } catch(e){ return false; } })();

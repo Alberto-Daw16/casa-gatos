@@ -349,7 +349,7 @@
     if(nueva < 0 || nueva >= NP) return;
     const bd = document.getElementById("tgBd");
     if(!bd || matchMedia("(prefers-reduced-motion: reduce)").matches){ pag = nueva; pinta(); return; }
-    girando = true;
+    girando = true; SON.pasa();
     const col = coleccion(quien), hs = bd.querySelectorAll(".bd-hoja"), rb = bd.getBoundingClientRect();
     const ref = movil() ? hs[0] : (dir > 0 ? hs[1] : hs[0]), r = ref.getBoundingClientRect();
     let delante, detras;
@@ -646,6 +646,15 @@
       [261.6, 392, 523.3].forEach((hz, k) => { const o = c.createOscillator(), og = c.createGain(); o.type = "triangle"; o.frequency.value = hz; env(c, og, t + .15 + k * .07, .02, .08, .9); o.connect(og).connect(c.destination); o.start(t + .15 + k * .07); o.stop(t + 1.3); }); },
     reparte(k){ const c = ac(); if(!c) return; const t = c.currentTime + k * .07, n = ruido(c, .12), f = c.createBiquadFilter(), g = c.createGain();
       f.type = "highpass"; f.frequency.value = 2500; env(c, g, t, .005, .25, .09); n.connect(f).connect(g).connect(c.destination); n.start(t); n.stop(t + .12); },
+    /* pasar página del binder: papel que se dobla (barrido de ruido de agudo a grave) y un golpecito al caer */
+    pasa(){ const c = ac(); if(!c) return; const t = c.currentTime, n = ruido(c, .42), f = c.createBiquadFilter(), g = c.createGain();
+      f.type = "bandpass"; f.Q.value = .9; f.frequency.setValueAtTime(3800, t); f.frequency.exponentialRampToValueAtTime(700, t + .34);
+      env(c, g, t, .04, .16, .34); n.connect(f).connect(g).connect(c.destination); n.start(t); n.stop(t + .42);
+      const k = ruido(c, .08), kf = c.createBiquadFilter(), kg = c.createGain(); kf.type = "lowpass"; kf.frequency.value = 600;
+      env(c, kg, t + .3, .005, .18, .07); k.connect(kf).connect(kg).connect(c.destination); k.start(t + .3); k.stop(t + .38); },
+    /* cambiar de sobre en el carrusel: un roce corto */
+    roce(){ const c = ac(); if(!c) return; const t = c.currentTime, n = ruido(c, .14), f = c.createBiquadFilter(), g = c.createGain();
+      f.type = "highpass"; f.frequency.setValueAtTime(1200, t); env(c, g, t, .02, .09, .11); n.connect(f).connect(g).connect(c.destination); n.start(t); n.stop(t + .14); },
     gira(){ const c = ac(); if(!c) return; const t = c.currentTime, n = ruido(c, .16), f = c.createBiquadFilter(), g = c.createGain();
       f.type = "bandpass"; f.frequency.setValueAtTime(1800, t); f.frequency.exponentialRampToValueAtTime(5200, t + .12); env(c, g, t, .01, .35, .13); n.connect(f).connect(g).connect(c.destination); n.start(t); n.stop(t + .16); },
     rara(t0){ const c = ac(); if(!c) return; const t = c.currentTime + .05, notas = t0 >= 5 ? [523.3, 659.3, 784, 1046.5, 1318.5, 1568] : t0 >= 4 ? [659.3, 784, 1046.5, 1318.5] : [784, 987.8, 1174.7];
@@ -708,6 +717,7 @@
   const posCarrusel = p => "transform:translateX(-50%) translateX(" + (p * 64) + "%) scale(" + (p ? .72 : 1) + ") rotate(" + (p * 4) + "deg);z-index:" + (3 - Math.abs(p));
   /* elegir sobre mueve el carrusel sin volver a pintar la pestaña (repintar recargaba las portadas y parpadeaba todo) */
   function eligeSobre(k){
+    if(k !== elegido) SON.roce();
     elegido = k; guarda("gremory-tcg-sobre", k);
     const c = cuerpo && cuerpo.querySelector("#gxCarrusel");
     if(!c) return pinta();
