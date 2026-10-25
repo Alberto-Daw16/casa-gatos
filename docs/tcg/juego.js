@@ -547,11 +547,13 @@
   const fuentes = () => document.fonts && document.fonts.load ? Promise.all(['400 160px "Instrument Serif"', '700 30px "Space Mono"'].map(f => document.fonts.load(f).catch(() => null))) : Promise.resolve();
   function lienzos(k){
     if(LIENZO[k]) return LIENZO[k];
-    const p = Promise.resolve(miraExtra()).then(() => {
-      const S = SOBRES[k], [id, cl] = S.arte, a = (D1.ART[id] || {})[cl] || {}, propia = extra["sobre-" + k];
-      return Promise.all([imagen(propia), propia ? null : imagen(cl === "gre" ? a.g2 : a.fondo), propia ? null : imagen(a.pj), imagen(propia && extra["brillo-" + k]),
+    const p = Promise.resolve().then(() => { miraExtra();
+      /* 25/10: la portada de Valeria se pide siempre (antes, si tardaba más de 5 s en llegar, el sobre se quedaba con la
+         ilustración provisional, fondo y personaje de una carta, y parecían dos fotos pisándose) */
+      const S = SOBRES[k], [id, cl] = S.arte, a = (D1.ART[id] || {})[cl] || {};
+      return imagen(extra["sobre-" + k] || url(S.img)).then(propia => Promise.all([propia, propia ? null : imagen(cl === "gre" ? a.g2 : a.fondo), propia ? null : imagen(a.pj), propia ? imagen(extra["brillo-" + k] || url("sobre-" + k + "-brillo.webp")) : null,
         imagen(ARTE("sobre-reverso")), imagen(ARTE("sobre-reverso-brillo")), imagen(ARTE("sobre-rasgado")), imagen(ARTE("logotipo-gremory")), imagen(ARTE("sobre-sellado")),
-        imagen(ARTE("sobre-arrugas")), imagen(ARTE("sobre-interior")), imagen(ARTE("destello")), fuentes()]);
+        imagen(ARTE("sobre-arrugas")), imagen(ARTE("sobre-interior")), imagen(ARTE("destello")), fuentes()]));
     }).then(([propia, fondo, pj, brillo, rev, revBr, ras, logo, sellado, arrugas, interior, destello]) => {
       const S = SOBRES[k], frente = frenteSobre(S, propia, fondo, pj, logo, sellado);
       p.listo = {frente, dorso: dorsoSobre(rev, sellado), rasgado: ras || rasgadoSobre(), color: S.col,
@@ -729,7 +731,7 @@
     : "0 0,100% 0," + Array.from({length: n * 2 + 1}, (_, i) => (100 - i / (n * 2) * 100).toFixed(2) + "% " + (i % 2 ? 100 : 100 - h) + "%").join(",")) + ")";
   const DI_A = dientes(34, 30, true), DI_B = dientes(34, 30, false);
   function arteDe(k){
-    if(extra["sobre-" + k]) return '<img class="gx-solo" src="' + extra["sobre-" + k] + '" alt="">';
+    if(nubeBase()) return '<img class="gx-solo" src="' + (extra["sobre-" + k] || url(SOBRES[k].img)) + '" alt="">';   /* la portada de Valeria, aunque aún no haya contestado la prueba */
     const [id, cl] = SOBRES[k].arte, a = (D1.ART[id] || {})[cl] || {}, fondo = cl === "gre" ? a.g2 : a.fondo;
     return a.pj && a.pj !== VACIA ? '<img src="' + fondo + '" alt=""><img src="' + a.pj + '" alt="">' : '';
   }
