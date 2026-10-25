@@ -2470,3 +2470,7 @@
  background:linear-gradient(132deg,transparent 0 15%,#eaf3ff 15.15% 15.5%,transparent 15.7% 72%,#eaf3ff 72.15% 72.5%,transparent 72.7%),repeating-conic-gradient(from 25deg at 50% 50%,#090b11 0deg 24deg,#48505f 25deg 27deg,#12151e 28deg 66deg,#727e90 67deg 68deg,#0b0e16 69deg 90deg);
  box-shadow:inset 0 0 0 .2cqw #b5c2d5,inset 0 0 0 .4cqw #0b0d14;
 }
+
+/* 25/10: la G de Gremory vuelve a las Obsidian (Alberto), a la derecha de la cabecera */
+.carta.mg-fullart.mg-obsidian .emb{display:block;z-index:7;left:auto;right:6.5%;top:1.6%;transform:none;width:10.5cqw;height:13.1cqw}
+.carta.mg-fullart.mg-obsidian .emb-rombo{width:11cqw;height:11cqw}
