@@ -100,7 +100,7 @@
     const g = {}, res = reservadas();
     de(pid).forEach(x => { (g[x.c + "|" + x.v] = g[x.c + "|" + x.v] || []).push(x); });
     const out = [];
-    Object.values(g).forEach(a => { a.sort((p, q) => (p.t > q.t ? 1 : -1)); a.slice(1).forEach(x => { if(!res[x.id]) out.push(x); }); });
+    Object.values(g).forEach(a => { a.sort((p, q) => (p.pe ? -1 : q.pe ? 1 : p.t > q.t ? 1 : -1)); a.slice(1).forEach(x => { if(!res[x.id]) out.push(x); }); });
     return out.sort((a, b) => a.c > b.c ? 1 : a.c < b.c ? -1 : 0);
   }
 
@@ -882,12 +882,13 @@
   function pintaProp(){
     const cap = document.getElementById("tgProp"), o = otro(), res = reservadas();
     const mias = sobrantes(yo());
-    const vistas = {}, suyas = de(o).filter(x => !res[x.id]).filter(x => { const k = x.c + "|" + x.v; if(vistas[k]) return false; vistas[k] = 1; return true; }).sort((a, b) => a.c > b.c ? 1 : -1);
+    /* solo sus repetidas: su binder no se ve, y así nunca se le quita la única copia */
+    const vistas = {}, suyas = sobrantes(o).filter(x => { const k = x.c + "|" + x.v; if(vistas[k]) return false; vistas[k] = 1; return true; });
     cap.innerHTML = '<button class="tg-x" data-p="cierra" aria-label="Cerrar">' + ICO.x + '</button>' +
       '<div style="width:min(100%,720px);max-height:100%;overflow:auto;display:flex;flex-direction:column;gap:6px">' +
-      '<div class="tg-tit"><b>Proponer un cambio</b><span>Una tuya repetida por una de ' + esc(nom(o)) + '</span></div>' +
+      '<div class="tg-tit"><b>Proponer un cambio</b><span>Una repetida tuya por una repetida de ' + esc(nom(o)) + '</span></div>' +
       '<div class="tg-h3">Tú das (tus repetidas)</div>' + (mias.length ? '<div class="tg-elige">' + mias.map(x => miniBol(x, x.id === prop.doy, "data-doy")).join("") + '</div>' : '<p class="tg-nota">Aún no tienes repetidas. Abre sobres y vuelve.</p>') +
-      '<div class="tg-h3">Te llevas (de ' + esc(nom(o)) + ')</div>' + (suyas.length ? '<div class="tg-elige">' + suyas.map(x => miniBol(x, x.id === prop.pido, "data-pido")).join("") + '</div>' : '<p class="tg-nota">' + esc(nom(o)) + ' aún no tiene cartas.</p>') +
+      '<div class="tg-h3">Te llevas (repetidas de ' + esc(nom(o)) + ')</div>' + (suyas.length ? '<div class="tg-elige">' + suyas.map(x => miniBol(x, x.id === prop.pido, "data-pido")).join("") + '</div>' : '<p class="tg-nota">' + esc(nom(o)) + ' aún no tiene repetidas.</p>') +
       '<div class="tg-acc" style="margin-top:12px;position:sticky;bottom:0;padding:10px 0;background:rgba(6,5,10,.85)"><button class="tg-btn" data-p="manda"' + (prop.doy && prop.pido ? '' : ' disabled') + '>Proponer cambio</button></div></div>';
   }
   function clicProp(e){
@@ -912,17 +913,18 @@
     const ent = mios.filter(c => c.estado === "pendiente" && c.para === yo()), sal = mios.filter(c => c.estado === "pendiente" && c.de === yo()), his = mios.filter(c => c.estado !== "pendiente").slice(0, 12);
     const fila = (c, pie) => {
       const a = inst(c.doy), z = inst(c.pido), meDa = c.para === yo();
-      const izq = meDa ? a : z, der = meDa ? z : a;
+      const izq = meDa ? z : a, der = meDa ? a : z;   /* a la izquierda lo que das, a la derecha lo que te llevas */
       return '<div class="tg-cambio"><div class="que">' + (meDa ? '<b>' + esc(nom(c.de)) + '</b> te da su ' + esc(desc(a)) + ' por tu ' + esc(desc(z)) : 'Das tu ' + esc(desc(a)) + ' por su ' + esc(desc(z))) +
         '<small>' + (c.estado === "pendiente" ? (meDa ? "Te toca decidir" : "Esperando a " + esc(nom(c.para))) : ({aceptado:"Hecho", rechazado:"Rechazado", cancelado:"Cancelado", caducado:"Ya no se podía"}[c.estado] || c.estado)) + ' · ' + c.f + '</small></div>' +
         '<div class="par">' + (izq ? miniBol(izq, false, "data-x") : '<div></div>') + '<div class="flecha">' + ICO.cambio + '</div>' + (der ? miniBol(der, false, "data-x") : '<div></div>') + '</div>' +
+        '<div class="par-et"><span>Das</span><span></span><span>Te llevas</span></div>' +
         (pie ? '<div class="pie">' + pie + '</div>' : '') + '</div>';
     };
     return (otro() ? '<div class="tg-acc" style="margin:2px 0 14px"><button class="tg-btn" data-acc="propon">' + ICO.cambio + ' Proponer un cambio</button></div>' : '') +
       (ent.length ? '<div class="tg-h3">Te proponen</div><div class="tg-lista">' + ent.map(c => fila(c, '<button class="tg-btn mal" data-cb="rechaza" data-id="' + c.id + '">Rechazar</button><button class="tg-btn" data-cb="acepta" data-id="' + c.id + '">Aceptar</button>')).join("") + '</div>' : '') +
       (sal.length ? '<div class="tg-h3">Has propuesto</div><div class="tg-lista">' + sal.map(c => fila(c, '<button class="tg-btn sec" data-cb="cancela" data-id="' + c.id + '">Cancelar</button>')).join("") + '</div>' : '') +
       (his.length ? '<div class="tg-h3">Últimos</div><div class="tg-lista">' + his.map(c => fila(c, "")).join("") + '</div>' : '') +
-      (!ent.length && !sal.length && !his.length ? '<p class="tg-nota" style="text-align:center;margin-top:20px">Aún no hay cambios. Abre una carta repetida en tu binder y ofrécesela, o pide una desde el binder del otro.</p>' : '');
+      (!ent.length && !sal.length && !his.length ? '<p class="tg-nota" style="text-align:center;margin-top:20px">Aún no hay cambios. Propón uno: una repetida tuya por una repetida del otro.</p>' : '');
   }
   function resuelve(id, que){
     const c = A.S.tcgCambios.find(x => x.id === id); if(!c || c.estado !== "pendiente") return;

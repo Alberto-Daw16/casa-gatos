@@ -2313,3 +2313,4 @@
 .tg-mio{font:400 22px/1 "Instrument Serif",Georgia,serif;font-weight:400;padding:6px 4px}
 .gx-pe{position:absolute;left:4%;top:2.5%;z-index:21;padding:5px 9px;border-radius:6px;font:700 10px/1 "Space Mono",monospace;letter-spacing:.14em;text-transform:uppercase;color:#3a0814;background:linear-gradient(140deg,#fff1bf,#e8b64c 55%,#b07a1e);box-shadow:0 0 16px rgba(232,182,76,.7);animation:gxPop .5s .3s cubic-bezier(.3,1.6,.5,1) both}
 .lg-item em.antes{color:var(--dim,#8f94a2)}
+.tg-cambio .par-et{display:grid;grid-template-columns:1fr 30px 1fr;gap:8px;text-align:center;font:700 9.5px/1 "Space Mono",monospace;letter-spacing:.14em;text-transform:uppercase;color:var(--dim,#8f94a2);margin-top:6px}
