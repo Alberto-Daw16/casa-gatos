@@ -37,7 +37,33 @@
     if(FIT[k] === undefined) FIT[k] = mideFit(html);
     return FIT[k] < 1 ? html.replace('class="mb-txt"', 'class="mb-txt" style="--fit:' + FIT[k] + '"') : html;
   };
-  const BIENVENIDA = 3, DIARIOS = 2, SECRETA_ON = false;   /* beta: la 061 aún no sale en los sobres */
+  const BIENVENIDA = 3, DIARIOS = 2, SECRETA_ON = false;   /* la 061 nunca sale al azar en los sobres */
+  /* la 061 «Love of My Life»: le llega a Cristina (solo a ella) en un sobre especial cuando completa las 60 del set,
+     en cualquier versión y sin necesitar ninguna 1ª edición (decisión de Alberto, 25/10/2026). No se cambia. */
+  const SEC_ID = "s01-061", SEC_V = "SR";
+  const esCris = p => /^cris/i.test(String(p && p.name || "").trim());
+  const setCompleto = pid => { const col = coleccion(pid); return L.filter(e => e.ok && e.n !== "061").every(e => col[e.id]); };
+  const tieneSec = pid => de(pid).some(x => x.c === SEC_ID);
+  /* la dedicatoria no está en el repo: es un archivo privado del Worker (s01-061-dedi.json, se sube como las imágenes) */
+  let DEDI = null, dediP = null;
+  const cargaDedi = () => DEDI ? Promise.resolve(DEDI) : dediP || (dediP = fetch(url("s01-061-dedi.json")).then(r => r.ok ? r.json() : null).then(j => { DEDI = j && Array.isArray(j.texto) ? j : null; dediP = null; return DEDI; }).catch(() => { dediP = null; return null; }));
+  /* la vista inmersiva de la 061 (tcg/inmersiva.js, la del álbum): capas, pétalos y las polaroids, todo privado en el Worker */
+  let inmP = null;
+  const cargaInm = () => window.GTCG_INM ? Promise.resolve(window.GTCG_INM) : inmP || (inmP = new Promise((ok, ko) => {
+    const sc = document.createElement("script"); sc.src = "tcg/inmersiva.js" + (VER ? "?v=" + encodeURIComponent(VER) : ""); sc.onload = () => ok(window.GTCG_INM); sc.onerror = () => { inmP = null; ko(); }; document.head.appendChild(sc); }));
+  function entraSec(){
+    Promise.all([cargaInm(), cargaDedi()]).then(([I, D]) => {
+      if(!I || !I.webgl2()) return toast("Este móvil no puede abrir la vista inmersiva");
+      if(!I.hay(SEC_ID)) I.pon(SEC_ID, {dos: true, capas: true, w: 1600, h: 2400, petalos: url("s01-061-inm-petalos.webp"),
+        fondo: url("s01-061-inm-fondo.webp"), fondo_d: url("s01-061-inm-fondo-d.webp"), pj: url("s01-061-inm-pj.webp"), pj_d: url("s01-061-inm-pj-d.webp"),
+        recuerdos: (D && D.recuerdos || []).map(r => ({src: url(r.f), pie: esc(r.pie), w: r.w, h: r.h}))});
+      const z = document.querySelector("#tgVisor .tg-esc"), k = z && z.querySelector(".carta:not(.sec-dorso)");
+      if(!k) return toast("Dale la vuelta a la carta para entrar");
+      I.entra(SEC_ID, SEC_V, k, z);
+    }).catch(() => toast("No he podido abrir la vista inmersiva. ¿Hay conexión?"));
+  }
+  const dorsoSec = () => { const h = G.cartaSecretaDorso(); if(!DEDI) return h;
+    return h.replace('<div class="sec-dedi"></div>', '<div class="sec-dedi">' + DEDI.texto.map(t => '<p>' + esc(t) + '</p>').join("") + '</div>').replace(/<div class="sec-para">Para [^<]*<\/div>/, '<div class="sec-para">Para ' + esc(DEDI.para || "Cristina") + '</div>'); };
   const TAPAS = {
     oceano:     {n:"Océano",     tapa:"#1d4f9c", hoja:"#14203a", tinta:"#9fb8e6"},
     rosa:       {n:"Rosa",       tapa:"#c4537e", hoja:"#28141e", tinta:"#f0a9c4"},
@@ -98,7 +124,7 @@
   /* de cada carta y versión puedes dar todas las copias menos una */
   function sobrantes(pid){
     const g = {}, res = reservadas();
-    de(pid).forEach(x => { (g[x.c + "|" + x.v] = g[x.c + "|" + x.v] || []).push(x); });
+    de(pid).forEach(x => { if(x.c !== SEC_ID) (g[x.c + "|" + x.v] = g[x.c + "|" + x.v] || []).push(x); });
     const out = [];
     Object.values(g).forEach(a => { a.sort((p, q) => (p.pe ? -1 : q.pe ? 1 : p.t > q.t ? 1 : -1)); a.slice(1).forEach(x => { if(!res[x.id]) out.push(x); }); });
     return out.sort((a, b) => a.c > b.c ? 1 : a.c < b.c ? -1 : 0);
@@ -158,6 +184,7 @@
       }
       const baseT = (A.S.tcgBaseTcg && A.S.tcgBaseTcg[p.id] || {k: []}).k;
       if(LOGROS_PREMIAN) logrosTcg(p.id).filter(l => l.dado && baseT.indexOf(l.k) < 0).forEach(l => { for(let i = 1; i <= PREMIO[l.nivel]; i++) pon("logro-tcg:" + l.k + ":" + p.id + (i > 1 ? ":" + i : ""), p.id, "Logro: " + l.label); });
+      if(esCris(p) && !tieneSec(p.id) && setCompleto(p.id)){ pon("secreta:" + p.id, p.id, "Love of My Life"); const s = A.S.tcgSobres.find(x => x.id === "secreta:" + p.id); if(s) s.tipo = "secreta"; }
     });
     return nuevos;
   }
@@ -165,7 +192,7 @@
     asegura();
     const ids = Array.from({length: DIARIOS}, (_, i) => "dia:" + hoy() + ":" + pid + (i ? ":" + (i + 1) : ""));
     const libres = ids.filter(id => !A.S.tcgSobres.some(s => s.id === id)), dia = libres.length;
-    const pre = A.S.tcgSobres.filter(s => s.d === pid && !s.abierto && !borr()[s.id]);
+    const pre = A.S.tcgSobres.filter(s => s.d === pid && !s.abierto && !borr()[s.id]).sort((a, b) => (/^secreta:/.test(b.id) ? 1 : 0) - (/^secreta:/.test(a.id) ? 1 : 0));
     return {dia, libres, pre, total: dia + pre.length};
   }
   /* el contenido sale de una semilla (el id del sobre): los dos móviles sacan lo mismo */
@@ -284,6 +311,7 @@
     if(!e) return '<div class="bd-bol" style="visibility:hidden"></div>';
     if(!e.ok) return '<div class="bd-bol falta" title="' + e.n + '"><div class="tg-dorso"></div><span class="bd-num">' + e.n + '</span></div>';
     const c = col[e.id];
+    if(e.id === SEC_ID && !c) return '<div class="bd-bol falta secreta" title="???"><div class="tg-dorso"></div><span class="bd-num">???</span></div>';   /* la secreta no se enseña hasta tenerla */
     return '<div class="bd-bol' + (c ? '' : ' no') + (c && c.n > 1 ? ' rep' : '') + '" data-id="' + e.id + '" title="' + esc(e.n + ' · ' + e.t) + '"><img src="' + e.th + '" alt="" loading="lazy">' +
       '<span class="bd-num">' + e.n + '</span>' + (c && c.n > 1 ? '<span class="bd-n">×' + c.n + '</span>' : '') + (c && c.inst.some(esPrimera) ? '<i class="bd-1a">' + SELLO + '</i>' : '') + (extra || "") + '</div>';
   }
@@ -362,7 +390,7 @@
         (de(quien).some(x => x.c === c && x.v === v && esPrimera(x)) ? '<i class="tg-1a" title="Primera edición">' + SELLO + '</i>' : '') + '</div>' +
       '<div class="tg-vers">' + G.versiones(c).map(x => '<button data-ver="' + x + '" class="' + (x === v ? "on" : "") + (col.v[x] ? "" : " no") + '">' + G.icono(c, x) + G.nombreVer(c, x) + (col.v[x] ? '<em>×' + col.v[x] + '</em>' : '') + '</button>').join("") + '</div>' +
       '<div class="tg-acc">' +
-        (c === "s01-061" && n && G.cartaSecretaDorso ? '<button class="tg-btn sec" data-v-acc="gira">Darle la vuelta</button>' : '') +
+        (c === "s01-061" && n && G.cartaSecretaDorso ? '<button class="tg-btn sec" data-v-acc="gira">Darle la vuelta</button><button class="tg-btn sec" data-v-acc="entra">' + GEMA.secreta + ' Entrar</button>' : '') +
         (sob.length && otro() ? '<button class="tg-btn sec" data-v-acc="ofrece" data-inst="' + sob[0].id + '">' + ICO.cambio + ' Ofrecérsela a ' + esc(nom(otro())) + '</button>' : '') +
         (suya.length ? '<button class="tg-btn sec" data-v-acc="pide" data-inst="' + suya[0].id + '">' + ICO.cambio + ' Pedírsela a ' + esc(nom(quien)) + '</button>' : '') + '</div>';
   }
@@ -377,10 +405,12 @@
     const b = e.target.closest("[data-v-acc],[data-ver]"); if(!b) return;
     if(b.dataset.ver){ vVer = b.dataset.ver; pintaVisor(); G.luz.on(document.querySelector("#tgVisor .tg-esc")); return; }
     const a = b.dataset.vAcc;
+    if(a === "entra") return entraSec();
     if(a === "gira"){
       const z = document.querySelector("#tgVisor .tg-esc"); z.classList.add("gira");
       setTimeout(() => { const atras = b.dataset.atras !== "1"; const k = z.querySelector(".carta");
-        if(k) k.outerHTML = atras ? G.cartaSecretaDorso() : G.carta(vCarta, vVer);
+        if(k) k.outerHTML = atras ? dorsoSec() : G.carta(vCarta, vVer);
+        if(atras && !DEDI) cargaDedi().then(() => { const q = z.querySelector(".sec-dorso"); if(q && DEDI) q.outerHTML = dorsoSec(); });
         b.dataset.atras = atras ? "1" : ""; b.textContent = atras ? "Ver la cara" : "Darle la vuelta"; z.classList.remove("gira"); }, 280);
       return;
     }
@@ -671,7 +701,7 @@
       '<div class="gx-set"><small>Set ' + SET.num + '</small><b>' + SET.nombre + '</b></div>' +
       '<div class="gx-carrusel' + (puede ? " puede" : " apagado") + '" id="gxCarrusel">' + ORDEN.map((k, i) => { const p = i - i0; return '<button class="gx-elige' + (p ? '' : ' on') + '" data-elige="' + k + '" aria-label="' + (puede ? "Abrir sobre" : "Sobre") + '" style="' + posCarrusel(p) + '">' + sobreHTML(k, "", true) + '</button>'; }).join("") + '</div>' +
       (d.total ? '' : '<img class="gx-vacio" src="' + ARTE("vacio-sin-sobres") + '" alt="">') +
-      '<div class="gx-contador' + (d.total ? '' : ' cero') + '">' + (d.total ? ICO.sobre + '<b>' + d.total + '</b>' : ICO.reloj + '<span>Mañana, dos más</span>') + '</div>' +
+      '<div class="gx-contador' + (d.total ? '' : ' cero') + (d.pre.some(x => /^secreta:/.test(x.id)) ? ' especial' : '') + '">' + (d.total ? ICO.sobre + '<b>' + d.total + '</b>' + (d.pre.some(x => /^secreta:/.test(x.id)) ? '<span class="gx-esp">' + GEMA.secreta + ' Hay un sobre especial para ti</span>' : '') : ICO.reloj + '<span>Mañana, dos más</span>') + '</div>' +
       (d.total && !nb ? '<p class="tg-nota" style="text-align:center">Para abrirlos, activa la sincronización en Ajustes.</p>' : '') + '</div>';
   }
 
@@ -708,13 +738,14 @@
     else { s = {id: d.libres[0], d: pid, tipo: "dia", motivo: "Sobre del día", f: hoy(), abierto: true, t: ahora(), sobre: elegido}; A.S.tcgSobres.push(s); }
     const tenia = coleccion(pid), vistas = {};
     const yaPe = {}; vivas().forEach(x => { if(x.pe) yaPe[x.c] = 1; });
-    const cartas = genera(s.id).map((x, i) => {   /* los tres sobres traen lo mismo: solo cambia la portada */
+    const especial = /^secreta:/.test(s.id);
+    const cartas = (especial ? [{c: SEC_ID, v: SEC_V}] : genera(s.id)).map((x, i) => {   /* los tres sobres traen lo mismo: solo cambia la portada */
       const k = x.c + "|" + x.v, nueva = !(tenia[x.c] && tenia[x.c].v[x.v]) && !vistas[k]; vistas[k] = 1;
-      const pe = !yaPe[x.c] && rng(s.id + ":pe:" + i)() < PRIMERA_P; if(pe) yaPe[x.c] = 1;
+      const pe = !especial && !yaPe[x.c] && rng(s.id + ":pe:" + i)() < PRIMERA_P; if(pe) yaPe[x.c] = 1;
       return Object.assign(x, {id: s.id + ":" + i, nueva, nivel: nivel(x.c, x.v)}, pe ? {pe: 1} : {});
     });
-    cartas.forEach(x => { if(!inst(x.id)) A.S.tcgCartas.push(Object.assign({id: x.id, c: x.c, v: x.v, d: pid, t: ahora(), o: "sobre"}, x.pe ? {pe: 1} : {})); });
-    save();
+    cartas.forEach(x => { if(!inst(x.id)) A.S.tcgCartas.push(Object.assign({id: x.id, c: x.c, v: x.v, d: pid, t: ahora(), o: especial ? "secreta" : "sobre"}, x.pe ? {pe: 1} : {})); });
+    premia(); save();
     escena(cartas, s.sobre || elegido);
   }
 
@@ -844,7 +875,8 @@
     const t = tierDe(x), sp = cap.querySelector("#gvSplash"), cs = capasDe(x.c), nom = (G.CARTAS[x.c] || {}).n || "", [marca, est] = MARCAS[t];
     cap.style.setProperty("--tier", TIER[t][0]); cap.style.setProperty("--cielo", CIELO[t]);
     cap.classList.add("revela"); if(t >= 5 || t === "sec") cap.classList.add("flash");
-    SON.rara(t === "sec" ? 5 : t); vibra(t >= 4 ? [20, 50, 40] : 20);
+    SON.rara(t === "sec" ? 5 : t); vibra(t === "sec" ? [60, 120, 60, 120, 200] : t >= 4 ? [20, 50, 40] : 20);
+    if(t === "sec"){ try { G.secretaLatido && G.secretaLatido(3); } catch(e){} setTimeout(() => { try { G.secretaEstalla && G.secretaEstalla(sp); } catch(e){} }, 1500); }
     sp.innerHTML = '<div class="gv-sp-fondo" style="background-image:url(' + ARTE("splash-" + SPLASH[t]) + ')"></div><div class="gv-sp-rayos"></div><div class="gv-sp-magia">' + circuloSVG() + '</div><div class="gv-sp-lineas"></div>' +
       (cs && cs.pj ? '<img class="gv-sp-pj" src="' + cs.pj + '" alt="">' : cs && cs.fondo ? '<img class="gv-sp-cuadro" src="' + cs.fondo + '" alt="">' : '') +
       '<div class="gv-sp-txt"><em>' + TIER[t][1] + ' · ' + G.nombreVer(x.c, x.v) + '</em><b>' + esc(nom) + '</b><div class="gv-sp-est m-' + marca + '">' + Array.from({length: est}, (_, k) => '<i style="--k:' + k + '">' + GEMA[marca] + '</i>').join("") + '</div>' +

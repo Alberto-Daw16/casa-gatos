@@ -8,7 +8,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>Gremory</title>
-<meta name="build" content="2026-10-25.13">
+<meta name="build" content="2026-10-25.14">
 <!-- El cuadrado de la pantalla de inicio. iOS se guarda el icono por URL y no
      vuelve a pedirlo, así que si se cambia hay que darle un nombre de fichero
      nuevo. El manifest es lo que mira el iPhone moderno; los dos "apple-touch"
@@ -767,7 +767,7 @@
       <button class="add" id="tcgAbrir" style="color:var(--acc);border-color:var(--acc)">Abrir el binder</button>
       <details style="margin-top:10px"><summary class="mini" style="cursor:pointer">Subir las ilustraciones del Set 1 (una vez, desde el ordenador)</summary>
         <div class="mini" style="margin:8px 0">Elige todos los archivos de la carpeta <b>Descargas/gremory-cartas/subir-app</b>. Se guardan en privado en vuestro Worker. Hace falta el secreto de subida (SUBIDA, el de Cloudflare); no se guarda en ningún sitio.</div>
-        <input type="file" id="tcgFich" multiple accept="image/webp" style="width:100%;margin-bottom:8px">
+        <input type="file" id="tcgFich" multiple accept="image/webp,.json,application/json" style="width:100%;margin-bottom:8px">
         <input type="password" id="tcgSecreto" placeholder="Secreto de subida" autocomplete="off" style="width:100%;margin-bottom:8px">
         <button class="add" id="tcgSubir">Subir</button>
         <div class="mini" id="tcgSubEstado"></div>
@@ -4042,7 +4042,7 @@ function tcgSube(){
   function sig(){
     if(i >= fs.length){ if(!vivos){ est.textContent = "Subidas "+bien+" de "+fs.length+(mal.length ? ". Fallaron: "+mal.slice(0,5).join(", ")+(mal.length>5?"…":"") : ". Listo: ya podéis abrir el binder."); if(!mal.length){ _tcgPend = {}; document.getElementById("tcgSecreto").value = ""; } } return; }
     var f = fs[i++]; vivos++;
-    fetch(nb.base+"/img/"+encodeURIComponent(f.name)+"?up="+encodeURIComponent(sec), {method:"PUT", headers:{"content-type":"image/webp"}, body:f})
+    fetch(nb.base+"/img/"+encodeURIComponent(f.name)+"?up="+encodeURIComponent(sec), {method:"PUT", headers:{"content-type": /\.json$/i.test(f.name) ? "application/json" : "image/webp"}, body:f})
       .then(function(r){ if(r.status===403) throw new Error("secreto"); if(!r.ok) throw new Error("HTTP "+r.status); bien++; delete _tcgPend[f.name]; })
       .catch(function(e){ mal.push(f.name+(e.message==="secreto"?" (secreto incorrecto)":"")); if(e.message==="secreto") i = fs.length; })
       .then(function(){ vivos--; est.textContent = "Subiendo… "+bien+" de "+fs.length; sig(); });
@@ -4059,7 +4059,7 @@ document.getElementById("tcgSubir").onclick = tcgSube;
 /* se pueden elegir los archivos en varias tandas: se van sumando */
 var _tcgPend = {};
 document.getElementById("tcgFich").onchange = function(e){
-  [].slice.call(e.target.files || []).forEach(function(f){ if(/\.webp$/i.test(f.name)) _tcgPend[f.name] = f; });
+  [].slice.call(e.target.files || []).forEach(function(f){ if(/\.(webp|json)$/i.test(f.name)) _tcgPend[f.name] = f; });
   document.getElementById("tcgSubEstado").textContent = Object.keys(_tcgPend).length + " archivos listos para subir";
 };
 

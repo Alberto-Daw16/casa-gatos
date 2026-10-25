@@ -2315,6 +2315,15 @@
 .lg-item em.antes{color:var(--dim,#8f94a2)}
 .tg-cambio .par-et{display:grid;grid-template-columns:1fr 30px 1fr;gap:8px;text-align:center;font:700 9.5px/1 "Space Mono",monospace;letter-spacing:.14em;text-transform:uppercase;color:var(--dim,#8f94a2);margin-top:6px}
 
+/* ══ la 061 (25/10): sobre especial, hueco misterioso en el binder y vista inmersiva ══ */
+.gx-contador.especial{border-color:rgba(255,79,125,.7);box-shadow:0 0 24px rgba(255,79,125,.35);flex-wrap:wrap;justify-content:center}
+.gx-contador .gx-esp{display:inline-flex;align-items:center;gap:6px;color:#ffc2d3;font-size:12.5px}
+.gx-contador .gx-esp svg{width:15px;height:15px;color:#ff4f7d}
+.bd-bol.falta.secreta .tg-dorso{opacity:.55;filter:none;box-shadow:0 0 0 1px rgba(255,79,125,.35),0 0 18px rgba(255,79,125,.18)}
+.bd-bol.falta.secreta .bd-num{color:#ffb3c7}
+.tg-esc.volando{position:relative;z-index:401;pointer-events:none;will-change:transform,opacity}
+.tg-btn.sec[data-v-acc="entra"] svg{width:16px;height:16px;color:#ff4f7d;vertical-align:-3px}
+
 /* Manga anatomy is opt-in; premium materials stay in motor.css. */
 .carta.mg:where(:not(.mg-premium)){--g-tinta:#17151b;--g-panel:#eee9dc;--g-linea:#b9a8a3;--g-txt:#20171c;--g-dim:#68505a;--g-lima:#ab1934;background:#17151b;color:#eee9dc}
 .carta.mg:where(:not(.mg-premium)) .mb-bg{background:#17151b}
