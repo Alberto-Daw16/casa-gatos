@@ -109,7 +109,19 @@
   const otro = () => { const g = gente().filter(p => p.id !== yo()); return g[0] ? g[0].id : ""; };
   const nom = pid => (typeof nombreDe === "function" ? nombreDe(pid) : pid) || "?";
   const borr = () => A.S.borrados || {};
-  const vivas = () => A.S.tcgCartas.filter(x => !borr()[x.id]);
+  /* empezar de cero (25/10/2026, lo pidió Alberto para su cuenta): lo de antes del corte de cada uno no cuenta
+     (cartas, sobres, cambios y logros). Va por regla y no borrando uno a uno, así da igual qué móvil sincronice antes. */
+  const RESETS = [{quien: /^alberto/i, t: "2026-10-25T20:08:00.000Z"}];
+  const corteDe = pid => (A.S.tcgReset || {})[pid] || "";
+  const gen = pid => { const c = corteDe(pid); return c ? ":r" + c.slice(0, 16).replace(/\D/g, "") : ""; };
+  function aplicaResets(){
+    let hubo = false; A.S.tcgReset = A.S.tcgReset || {};
+    RESETS.forEach(r => { const p = gente().find(p => r.quien.test(String(p.name || "").trim())); if(p && corteDe(p.id) < r.t){ A.S.tcgReset[p.id] = r.t; hubo = true; } });
+    return hubo;
+  }
+  const antes = (t, pid) => !!corteDe(pid) && (t || "") < corteDe(pid);
+  const vivas = () => A.S.tcgCartas.filter(x => !borr()[x.id] && !antes(x.t, x.d));
+  const cambVivos = () => A.S.tcgCambios.filter(c => !borr()[c.id] && !antes(c.t, c.de) && !antes(c.t, c.para));
   const de = pid => vivas().filter(x => x.d === pid);
   const inst = id => A.S.tcgCartas.find(x => x.id === id);
   const entrada = c => L.find(e => e.id === c) || {};
@@ -119,7 +131,7 @@
     return m;
   }
   function reservadas(){
-    const r = {}; A.S.tcgCambios.filter(c => c.estado === "pendiente").forEach(c => { r[c.doy] = 1; r[c.pido] = 1; }); return r;
+    const r = {}; cambVivos().filter(c => c.estado === "pendiente").forEach(c => { r[c.doy] = 1; r[c.pido] = 1; }); return r;
   }
   /* de cada carta y versión puedes dar todas las copias menos una */
   function sobrantes(pid){
@@ -148,18 +160,18 @@
     L1("firma", "Rarezas", "Primera Firmada", "con firma", "bronce", "gema", tv(["SP"]), 1);
     L1("oro", "Rarezas", "Primera Oro", "una de las doradas", "plata", "gema", tv(["HR"]), 1);
     L1("gre", "Rarezas", "Primera Gremory", "la más rara del sobre", "oro", "gremory", tv(["G1", "G2"]), 1);
-    const abiertos = A.S.tcgSobres.filter(x => x.d === pid && x.abierto).length;
+    const abiertos = A.S.tcgSobres.filter(x => x.d === pid && x.abierto && !borr()[x.id] && !antes(x.t, pid)).length;
     L1("sob10", "Sobres y cambios", "Diez sobres", "abiertos", "bronce", "sobre", abiertos, 10);
     L1("sob50", "Sobres y cambios", "Cincuenta sobres", "abiertos", "plata", "sobre", abiertos, 50);
     L1("sob100", "Sobres y cambios", "Cien sobres", "abiertos", "oro", "sobre", abiertos, 100);
-    const camb = A.S.tcgCambios.filter(c => c.estado === "aceptado" && (c.de === pid || c.para === pid)).length;
+    const camb = cambVivos().filter(c => c.estado === "aceptado" && (c.de === pid || c.para === pid)).length;
     L1("cam1", "Sobres y cambios", "Primer cambio", "entre los dos", "bronce", "cambio", camb, 1);
     L1("cam10", "Sobres y cambios", "Diez cambios", "negociando en casa", "plata", "cambio", camb, 10);
     return out;
   }
   function logrosHTML(){
     const ls = logrosTcg(yo()), hechos = ls.filter(l => l.dado).length, grupos = [...new Set(ls.map(l => l.g))];
-    const base = (A.S.tcgBaseTcg && A.S.tcgBaseTcg[yo()] || {k: []}).k;
+    const base = baseTcg(yo());
     const icoDe = k => k === "gema" ? GEMA.gema : k === "gremory" ? GEMA.gremory : ICO[k] || ICO.logro;
     return '<div class="lg-cab"><b>' + hechos + '</b> de ' + ls.length + ' logros · ' + (LOGROS_PREMIAN ? 'cada medalla da sobres: bronce 1, plata 2, oro 3' : 'prueba: aún no dan sobres') + '</div>' +
       grupos.map(g => '<div class="lg-grupo"><h3>' + g + '</h3><div class="lg-rejilla">' + ls.filter(l => l.g === g).map(l =>
@@ -168,6 +180,7 @@
   }
 
   /* ── sobres: dos al día, tres de bienvenida y uno por cada logro nuevo ── */
+  const baseTcg = pid => { const b = A.S.tcgBaseTcg && A.S.tcgBaseTcg[pid]; return !b || antes(b.f, pid) ? [] : b.k; };
   function premia(){
     asegura();
     const logros = typeof logrosTodos === "function" ? logrosTodos().filter(l => l.dado) : [];
@@ -176,23 +189,23 @@
     let nuevos = 0;
     const pon = (id, d, motivo) => { if(hay[id] || borr()[id]) return; A.S.tcgSobres.push({id, d, tipo:"premio", motivo, f: hoy(), abierto:false, t: ahora()}); hay[id] = 1; nuevos++; };
     gente().forEach(p => {
-      for(let i = 1; i <= BIENVENIDA; i++) pon("bienvenida:" + i + ":" + p.id, p.id, "Bienvenida al Set 1");
+      for(let i = 1; i <= BIENVENIDA; i++) pon("bienvenida:" + i + ":" + p.id + gen(p.id), p.id, "Bienvenida al Set 1");
       logros.filter(l => A.S.tcgBase.logros.indexOf(l.k) < 0).forEach(l => pon("logro:" + l.k + ":" + p.id, p.id, "Logro: " + l.label));
       if(LOGROS_PREMIAN){
         A.S.tcgBaseTcg = A.S.tcgBaseTcg || {};
         if(!A.S.tcgBaseTcg[p.id]) A.S.tcgBaseTcg[p.id] = {f: ahora(), k: logrosTcg(p.id).filter(l => l.dado).map(l => l.k)};
       }
-      const baseT = (A.S.tcgBaseTcg && A.S.tcgBaseTcg[p.id] || {k: []}).k;
-      if(LOGROS_PREMIAN) logrosTcg(p.id).filter(l => l.dado && baseT.indexOf(l.k) < 0).forEach(l => { for(let i = 1; i <= PREMIO[l.nivel]; i++) pon("logro-tcg:" + l.k + ":" + p.id + (i > 1 ? ":" + i : ""), p.id, "Logro: " + l.label); });
+      const baseT = baseTcg(p.id);
+      if(LOGROS_PREMIAN) logrosTcg(p.id).filter(l => l.dado && baseT.indexOf(l.k) < 0).forEach(l => { for(let i = 1; i <= PREMIO[l.nivel]; i++) pon("logro-tcg:" + l.k + ":" + p.id + gen(p.id) + (i > 1 ? ":" + i : ""), p.id, "Logro: " + l.label); });
       if(esCris(p) && !tieneSec(p.id) && setCompleto(p.id)){ pon("secreta:" + p.id, p.id, "Love of My Life"); const s = A.S.tcgSobres.find(x => x.id === "secreta:" + p.id); if(s) s.tipo = "secreta"; }
     });
     return nuevos;
   }
   function disponibles(pid){
     asegura();
-    const ids = Array.from({length: DIARIOS}, (_, i) => "dia:" + hoy() + ":" + pid + (i ? ":" + (i + 1) : ""));
+    const ids = Array.from({length: DIARIOS}, (_, i) => "dia:" + hoy() + ":" + pid + gen(pid) + (i ? ":" + (i + 1) : ""));
     const libres = ids.filter(id => !A.S.tcgSobres.some(s => s.id === id)), dia = libres.length;
-    const pre = A.S.tcgSobres.filter(s => s.d === pid && !s.abierto && !borr()[s.id]).sort((a, b) => (/^secreta:/.test(b.id) ? 1 : 0) - (/^secreta:/.test(a.id) ? 1 : 0));
+    const pre = A.S.tcgSobres.filter(s => s.d === pid && !s.abierto && !borr()[s.id] && (!antes(s.t, pid) || (gen(pid) && s.id.indexOf(gen(pid)) >= 0))).sort((a, b) => (/^secreta:/.test(b.id) ? 1 : 0) - (/^secreta:/.test(a.id) ? 1 : 0));
     return {dia, libres, pre, total: dia + pre.length};
   }
   /* el contenido sale de una semilla (el id del sobre): los dos móviles sacan lo mismo */
@@ -283,7 +296,7 @@
   function pinta(){
     asegura();
     const d = yo() ? disponibles(yo()) : {total:0};
-    const ent = A.S.tcgCambios.filter(c => c.estado === "pendiente" && c.para === yo()).length;
+    const ent = cambVivos().filter(c => c.estado === "pendiente" && c.para === yo()).length;
     raiz.querySelector("#tgTabs").innerHTML =
       '<button data-tab="binder" class="' + (tab === "binder" ? "on" : "") + '">' + ICO.carpeta + 'Binder</button>' +
       '<button data-tab="sobres" class="' + (tab === "sobres" ? "on" : "") + '">' + ICO.sobre + 'Sobres' + (d.total ? '<i>' + d.total + '</i>' : '') + '</button>' +
@@ -977,7 +990,7 @@
   const desc = x => x ? G.CARTAS[x.c].n + " " + G.nombreVer(x.c, x.v) + " (" + entrada(x.c).n + ")" : "carta";
   function avisa(para, titulo, cuerpoTxt){ try { apiNube("/avisa", "POST", {de: yo(), para, titulo, cuerpo: cuerpoTxt}).catch(() => {}); } catch(e){} }
   function cambiosHTML(){
-    const mios = A.S.tcgCambios.filter(c => (c.de === yo() || c.para === yo()) && !borr()[c.id]).sort((a, b) => a.t < b.t ? 1 : -1);
+    const mios = cambVivos().filter(c => (c.de === yo() || c.para === yo())).sort((a, b) => a.t < b.t ? 1 : -1);
     const ent = mios.filter(c => c.estado === "pendiente" && c.para === yo()), sal = mios.filter(c => c.estado === "pendiente" && c.de === yo()), his = mios.filter(c => c.estado !== "pendiente").slice(0, 12);
     const fila = (c, pie) => {
       const a = inst(c.doy), z = inst(c.pido), meDa = c.para === yo();
@@ -1038,7 +1051,7 @@
   function cierra(){ raiz.classList.remove("on"); G.luz.off(); document.body.style.overflow = ""; if(typeof render === "function") try { render(); } catch(e){} }
   window.TCG = {
     abre(t){
-      monta(); asegura(); if(premia()) save();
+      monta(); asegura(); const rs = aplicaResets(); if(premia() || rs) save();
       if(t) tab = t; quien = yo() || ""; raiz.classList.add("on"); document.body.style.overflow = "hidden";
       cuerpo.innerHTML = '<p class="tg-nota" style="text-align:center;margin-top:30px">Abriendo el binder…</p>';
       prepara().then(pinta);
