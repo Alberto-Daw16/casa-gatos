@@ -111,7 +111,7 @@
   const borr = () => A.S.borrados || {};
   /* empezar de cero (25/10/2026, lo pidió Alberto para su cuenta): lo de antes del corte de cada uno no cuenta
      (cartas, sobres, cambios y logros). Va por regla y no borrando uno a uno, así da igual qué móvil sincronice antes. */
-  const RESETS = [{quien: /^alberto/i, t: "2026-10-25T20:08:00.000Z"}];
+  const RESETS = [{quien: /^alberto/i, t: "2026-10-25T21:17:00.000Z"}];   /* 2º corte: antes de enseñárselo a Cristina */
   const corteDe = pid => (A.S.tcgReset || {})[pid] || "";
   const gen = pid => { const c = corteDe(pid); return c ? ":r" + c.slice(0, 16).replace(/\D/g, "") : ""; };
   function aplicaResets(){
