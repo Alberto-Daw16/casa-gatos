@@ -14,7 +14,8 @@ const CORTE = H / 2 - H * 250 / 1700;       /* la línea de corte (y=250 en la t
 const BANDA = H * 64 / 1700;                /* alto del borde rasgado */
 const SX = 90;                              /* divisiones a lo ancho */
 const cl = (v, a, b) => Math.max(a, Math.min(b, v));
-const RS = document.documentElement.style;
+/* 25/10: en el móvil, menos resolución y un brillo más barato (sin la capa de barniz), y 30 fps mientras está quieto */
+const MOVIL = matchMedia("(pointer:coarse)").matches;
 
 /* la forma: abombado en el centro, pegado en los sellados y en los laterales, y arrugas suaves */
 function forma(x, y){
@@ -106,11 +107,11 @@ export function crea(capa, op){
   cvs.style.cssText = "position:absolute;inset:0;width:100%;height:100%;z-index:5;touch-action:none;display:block";
   const guia = document.createElement("div");
   guia.className = "gv-guia gv-guia3d"; guia.innerHTML = "<i></i>";
-  guia.style.cssText = "z-index:6;right:auto;transition:opacity .3s";
+  guia.style.cssText = "z-index:6;right:auto;transition:opacity .3s;opacity:0";
   /* si el móvil no deja crear el contexto, esto lanza antes de tocar la pantalla y juego.js sigue con el sobre en CSS */
   const renderer = new THREE.WebGLRenderer({canvas: cvs, antialias: true, alpha: true, powerPreference: "high-performance"});
   capa.appendChild(cvs); capa.appendChild(guia);
-  renderer.setPixelRatio(Math.min(2, devicePixelRatio || 1));
+  renderer.setPixelRatio(Math.min(MOVIL ? 1.5 : 2, devicePixelRatio || 1));
   renderer.toneMapping = THREE.NeutralToneMapping; renderer.toneMappingExposure = 1.1;   /* respeta los colores de la ilustración */
   const scene = new THREE.Scene();
   scene.environment = entorno(renderer, new THREE.Color(op.color || "#ff8a3d"));
@@ -125,8 +126,8 @@ export function crea(capa, op){
   /* cada cara solo se pinta por fuera: así el dorso nunca asoma por delante en los sellados, donde las dos caras casi se tocan.
      Con máscara de brillo, el metalizado y el arcoíris salen solo donde ella dice (las caras quedan mates) */
   const mat = (map, side, br) => new THREE.MeshPhysicalMaterial(Object.assign({map, side, alphaTest: .5, transparent: false, roughness: .34, clearcoatRoughness: .18},
-    br ? {metalness: .3, metalnessMap: br, clearcoat: 1, clearcoatMap: br, iridescence: 1, iridescenceMap: br, iridescenceIOR: 1.35, iridescenceThicknessRange: [180, 520]}
-       : {metalness: .18, clearcoat: .85},
+    br ? Object.assign({metalness: .3, metalnessMap: br, iridescence: 1, iridescenceMap: br, iridescenceIOR: 1.35, iridescenceThicknessRange: [180, 520]}, MOVIL ? {roughness: .3} : {clearcoat: 1, clearcoatMap: br})
+       : (MOVIL ? {metalness: .18, roughness: .3} : {metalness: .18, clearcoat: .85}),
     ar ? {bumpMap: ar, bumpScale: 2.2} : {}));
   const mF = mat(tf, THREE.FrontSide, bF), mD = mat(td, THREE.BackSide, bD);
   const mR = new THREE.MeshStandardMaterial({map: tr, vertexColors: true, transparent: true, roughness: .4, metalness: .6, side: THREE.DoubleSide, depthWrite: false});
@@ -230,11 +231,15 @@ export function crea(capa, op){
   }
   function lineaCorte(){ const a = enPantalla(-W / 2 * .92, CORTE, .1), b = enPantalla(W / 2 * .92, CORTE, .1); return {a, b}; }
 
+  let ultCuadro = 0;
   function pinta(){
     if(!vivo) return;
+    /* quieto y en el móvil, uno de cada dos fotogramas (el vaivén es lento y no se nota) */
+    if(MOVIL && modo === "cerrado" && !gesto && !auto && escala.s > .995 && performance.now() - ultCuadro < 30){ requestAnimationFrame(pinta); return; }
+    ultCuadro = performance.now();
     const ahora = performance.now(), dt = Math.min(.05, (ahora - tPrev) / 1000), t = (ahora - t0) / 1000; tPrev = ahora;
     /* inclinación: la luz de motor.js (puntero o giroscopio) da hasta 12°, más el arrastre del dedo */
-    const rx = parseFloat(RS.getPropertyValue("--rotate-x")) || 0, ry = parseFloat(RS.getPropertyValue("--rotate-y")) || 0;
+    const rx = parseFloat(capa.style.getPropertyValue("--rotate-x")) || 0, ry = parseFloat(capa.style.getPropertyValue("--rotate-y")) || 0;   /* la luz de motor.js escribe en la capa */
     if(!rot.arrastre){ rot.v += (-rot.y) * .08; rot.v *= .84; rot.y += rot.v; }
     if(!cae){
       pack.rotation.y = THREE.MathUtils.degToRad(cl(-rx * .75, -12, 12)) + rot.y + Math.sin(t * .7) * .05;
@@ -342,7 +347,11 @@ export function crea(capa, op){
     cvs.remove(); guia.remove();
   }
 
-  requestAnimationFrame(pinta);
+  /* los shaders se compilan antes del primer fotograma (en el móvil tardan): mientras, juego.js deja ver el sobre en CSS,
+     que es igual, y al estar listo lo cambia por este. Así no hay un hueco vacío ni un tirón al tocar */
+  const tCrea = performance.now();
+  const arranca = () => { if(!vivo) return; if(performance.now() - tCrea > 150){ escala.s = 1; escala.v = 0; } t0 = tPrev = performance.now(); if(modo === "cerrado") guia.style.opacity = "1"; renderer.render(scene, camera); if(op.listo) op.listo(); requestAnimationFrame(pinta); };
+  (renderer.compileAsync ? renderer.compileAsync(scene, camera).catch(() => null) : Promise.resolve()).then(() => requestAnimationFrame(arranca));
   return {
     vacia(fin){ if(vivo && !cae) cae = {k: 0, fin}; else if(fin) fin(); },   /* se va hacia abajo y desaparece */
     tinte(c){ const k = new THREE.Color(c); halo.material.color = k; luzBoca.color = k; },

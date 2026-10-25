@@ -683,39 +683,57 @@ carta = function(id, v){
    obligaba al móvil a recalcular toda la app (por debajo del juego) 60 veces por segundo */
 let RS = document.documentElement.style;
 const cl = (v, a, b) => Math.max(a, Math.min(b, v)), aj = (v, a, b, c, d) => c + (d - c) * (v - a) / (b - a);
-let obj = {x:0, y:0}, pos = {x:0, y:0}, vel = {x:0, y:0}, ultimo = 0, t0 = performance.now(), base = null, raf = 0, encima = false;
+let obj = {x:0, y:0}, pos = {x:0, y:0}, vel = {x:0, y:0}, ultimo = 0, t0 = performance.now(), base = null, raf = 0, encima = false, activa = false;
+/* 25/10 (el móvil se calentaba): el bucle ya no corre siempre. El vaivén suave dura unos segundos tras tocar o abrir algo
+   y luego la luz se queda quieta y el bucle se para; vuelve con el dedo, el ratón o el giroscopio. En el móvil escribe
+   a 30 fps y solo lo que cambia: cada variable nueva obliga a repintar los brillos de la carta */
+const MOVIL = matchMedia("(pointer:coarse)").matches, VAIVEN = 7000;
+let cuadro = 0, prev = {};
+function pon(k, v){ if(prev[k] !== v){ prev[k] = v; RS.setProperty(k, v); } }
+function despierta(){ ultimo = performance.now(); if(activa && !raf) raf = requestAnimationFrame(bucle); }
 function orienta(e){
   if(e.gamma == null) return;
   if(!base) base = {b:e.beta, g:e.gamma};
   base.b += (e.beta - base.b) * .003; base.g += (e.gamma - base.g) * .003;
-  obj = {x: cl(e.gamma - base.g, -16, 16), y: cl(e.beta - base.b, -18, 18)}; ultimo = performance.now();
+  const n = {x: cl(e.gamma - base.g, -16, 16), y: cl(e.beta - base.b, -18, 18)};
+  if(Math.abs(n.x - obj.x) < .25 && Math.abs(n.y - obj.y) < .25) return;   /* el temblor de la mano no despierta nada */
+  obj = n; despierta();
 }
 function bucle(){
-  const t = Math.max(0, performance.now() - t0) / 1000;
-  if(!encima && performance.now() - ultimo > 1500) obj = {x: Math.sin(t*.9) * 6, y: Math.sin(t*.7) * 6.5};
+  raf = 0;
+  const ahora = performance.now(), t = Math.max(0, ahora - t0) / 1000, quieto = ahora - ultimo;
+  if(!encima && quieto > 1500) obj = quieto < VAIVEN ? {x: Math.sin(t*.9) * 6, y: Math.sin(t*.7) * 6.5} : {x: 0, y: 0};
   for(const k of ["x","y"]){ vel[k] = (vel[k] + (obj[k] - pos[k]) * .066) * .75; pos[k] += vel[k]; }
-  const px = aj(pos.x, -16, 16, 0, 100), py = aj(pos.y, -18, 18, 0, 100);
-  RS.setProperty("--pointer-x", px.toFixed(2) + "%"); RS.setProperty("--pointer-y", py.toFixed(2) + "%");
-  RS.setProperty("--background-x", aj(pos.x, -16, 16, 37, 63).toFixed(2) + "%"); RS.setProperty("--background-y", aj(pos.y, -18, 18, 33, 67).toFixed(2) + "%");
-  RS.setProperty("--pointer-from-center", cl(Math.hypot(px - 50, py - 50) / 50, 0, 1).toFixed(3));
-  RS.setProperty("--pointer-from-left", (px/100).toFixed(3)); RS.setProperty("--pointer-from-top", (py/100).toFixed(3));
-  RS.setProperty("--rotate-x", (-pos.x).toFixed(2) + "deg"); RS.setProperty("--rotate-y", pos.y.toFixed(2) + "deg");
-  RS.setProperty("--mx", (px/100).toFixed(3)); RS.setProperty("--my", (py/100).toFixed(3));
-  raf = requestAnimationFrame(bucle);
+  if(!MOVIL || (cuadro++ & 1) === 0){
+    const px = aj(pos.x, -16, 16, 0, 100), py = aj(pos.y, -18, 18, 0, 100);
+    pon("--pointer-x", px.toFixed(1) + "%"); pon("--pointer-y", py.toFixed(1) + "%");
+    pon("--background-x", aj(pos.x, -16, 16, 37, 63).toFixed(1) + "%"); pon("--background-y", aj(pos.y, -18, 18, 33, 67).toFixed(1) + "%");
+    pon("--pointer-from-center", cl(Math.hypot(px - 50, py - 50) / 50, 0, 1).toFixed(2));
+    pon("--pointer-from-left", (px/100).toFixed(3)); pon("--pointer-from-top", (py/100).toFixed(3));
+    pon("--rotate-x", (-pos.x).toFixed(1) + "deg"); pon("--rotate-y", pos.y.toFixed(1) + "deg");
+    pon("--mx", (px/100).toFixed(3)); pon("--my", (py/100).toFixed(3));
+  }
+  /* parado del todo: no se pide otro fotograma hasta que algo lo despierte */
+  const parado = quieto > VAIVEN && !encima && Math.abs(pos.x - obj.x) + Math.abs(pos.y - obj.y) < .02 && Math.abs(vel.x) + Math.abs(vel.y) < .01;
+  if(activa && !parado) raf = requestAnimationFrame(bucle);
 }
 const luz = {
   on(zona){
-    RS = (zona && zona.style) || document.documentElement.style;
-    if(!raf){ addEventListener("deviceorientation", orienta); raf = requestAnimationFrame(bucle); }
+    const nueva = (zona && zona.style) || document.documentElement.style;
+    if(nueva !== RS){ RS = nueva; prev = {}; }
+    if(!activa){ activa = true; addEventListener("deviceorientation", orienta); }
     this.quieta();
+    if(!raf) raf = requestAnimationFrame(bucle);
     if(zona && !zona._luz){ zona._luz = 1;
       zona.addEventListener("pointermove", e => { if(e.pointerType !== "mouse") return; const c = zona.querySelector(".carta"); if(!c) return;
-        const r = c.getBoundingClientRect(); obj = {x: cl(aj(e.clientX, r.left, r.right, -16, 16), -16, 16), y: cl(aj(e.clientY, r.top, r.bottom, -18, 18), -18, 18)}; encima = true; ultimo = performance.now(); });
-      zona.addEventListener("pointerleave", () => { encima = false; obj = {x:0, y:0}; ultimo = performance.now(); });
+        const r = c.getBoundingClientRect(); obj = {x: cl(aj(e.clientX, r.left, r.right, -16, 16), -16, 16), y: cl(aj(e.clientY, r.top, r.bottom, -18, 18), -18, 18)}; encima = true; despierta(); });
+      zona.addEventListener("pointerleave", () => { encima = false; obj = {x:0, y:0}; despierta(); });
+      zona.addEventListener("pointerdown", despierta);
     }
   },
-  off(){ if(raf){ cancelAnimationFrame(raf); raf = 0; removeEventListener("deviceorientation", orienta); } },
+  off(){ activa = false; if(raf){ cancelAnimationFrame(raf); raf = 0; } removeEventListener("deviceorientation", orienta); },
   quieta(){ pos = {x:0, y:0}; vel = {x:0, y:0}; obj = {x:0, y:0}; ultimo = performance.now(); t0 = performance.now() + 1500; },
+  despierta,
   pidePermiso(){ const DO = window.DeviceOrientationEvent; if(DO && typeof DO.requestPermission === "function") return DO.requestPermission().catch(() => "denied"); return Promise.resolve("granted"); }
 };
 /* las imágenes van como «IMG:fichero»; la app dice de dónde se sacan (el Worker, con la clave) */

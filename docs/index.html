@@ -8,7 +8,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>Gremory</title>
-<meta name="build" content="2026-10-25.25">
+<meta name="build" content="2026-10-25.26">
 <!-- El cuadrado de la pantalla de inicio. iOS se guarda el icono por URL y no
      vuelve a pedirlo, así que si se cambia hay que darle un nombre de fichero
      nuevo. El manifest es lo que mira el iPhone moderno; los dos "apple-touch"
@@ -59,6 +59,13 @@
   @keyframes deriva1{0%,100%{transform:translate(0,0)}50%{transform:translate(13%,9%)}}
   @keyframes deriva2{0%,100%{transform:translate(0,0)}50%{transform:translate(-11%,13%)}}
   @keyframes deriva3{0%,100%{transform:translate(0,0)}50%{transform:translate(7%,-11%)}}
+  /* 25/10, el móvil se calentaba: el fondo vivo lleva un desenfoque de 80 px y, si las manchas se mueven, el móvil lo recalcula
+     en cada fotograma. En el móvil se quedan quietas (se ve igual) y la cabecera y la barra de abajo van sin desenfoque (casi opacas ya) */
+  @media (pointer:coarse){
+    #campo i{animation:none!important}
+    header{backdrop-filter:none;-webkit-backdrop-filter:none;background:rgba(14,17,24,.97)}
+    nav{backdrop-filter:none;-webkit-backdrop-filter:none;background:rgba(11,12,16,.98)}
+  }
   #grano{position:fixed;inset:0;z-index:1;background-image:var(--grano);opacity:.055;
     pointer-events:none;mix-blend-mode:overlay}
   /* papel milimetrado muy flojito: quita el negro plano sin llamar la atención */

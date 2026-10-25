@@ -2360,8 +2360,25 @@
 /* la rara al darse la vuelta: en Safari el dorso (borde granate y logotipo) se quedaba encima de la cara, porque lo que gira
    dentro del dorso no respeta backface-visibility. A mitad del giro se esconde el dorso y aparece la cara, sin depender de eso */
 .gv-carta.oculta .gx-voltea>.gx-cara{visibility:hidden}
-.gv-carta.girada .gx-voltea>.gx-cara{visibility:visible;transition:visibility 0s .28s}
-.gv-carta.girada .gx-voltea>.tg-dorso{visibility:hidden;transition:visibility 0s .28s}
+.gv-carta:not(.oculta) .gx-voltea>.gx-cara{visibility:visible;transition:visibility 0s .28s}
+.gv-carta:not(.oculta) .gx-voltea:not(.plana)>.tg-dorso{visibility:hidden;transition:visibility 0s .28s}
+
+/* 25/10 · repaso del calor en el móvil: fuera las animaciones que obligan a repintar en cada fotograma
+   (fondos que se desplazan, sombras que laten, sombras que siguen a la luz). Las de mover y aparecer, que las hace la GPU, se quedan */
+@media (pointer:coarse){
+  .gv-nubes{animation:none}
+  .gx-elige .gx-foil,.tg-foil{animation:none}
+  .gv-carta.oculta .tg-dorso,.gx-carta:not(.vista) .tg-dorso,.tg-pila .tg-giro:not(.vuelta)>.tg-dorso{box-shadow:0 0 22px 4px var(--tc,rgba(255,206,90,.8))}
+  .gv-carta.oculta .tg-dorso{animation:none}
+  .gv-carta.oculta[data-tier="5"] .tg-dorso,.gv-carta.oculta[data-tier="sec"] .tg-dorso{animation:gxTiembla .3s linear infinite}
+  .carta.oro{box-shadow:0 22px 50px rgba(0,0,0,.65),0 0 0 1.5px #c9a24a,0 0 28px rgba(242,193,78,.35)}
+  .carta.gremory{box-shadow:0 22px 50px rgba(0,0,0,.65),0 0 30px rgba(255,210,120,.35),0 0 60px rgba(180,120,255,.25)}
+  .carta.g1{box-shadow:0 22px 50px rgba(0,0,0,.7),0 0 26px rgba(242,193,78,.4)}
+  .carta.g2{box-shadow:0 22px 50px rgba(0,0,0,.7),0 0 30px rgba(120,120,255,.45)}
+}
+/* esquinas: Safari no recorta con border-radius lo que va en capas propias dentro de la carta (se veían esquinas rectas en el resumen).
+   clip-path sí lo recorta todo; en el resumen y en la pila el brillo de alrededor lo pone el contenedor, así que no se pierde nada */
+.gv-mini .carta,.gv-carta .carta{clip-path:inset(0 round 3.7% / 2.6%)}
 
 /* Manga anatomy is opt-in; premium materials stay in motor.css. */
 .carta.mg:where(:not(.mg-premium)){--g-tinta:#17151b;--g-panel:#eee9dc;--g-linea:#b9a8a3;--g-txt:#20171c;--g-dim:#68505a;--g-lima:#ab1934;background:#17151b;color:#eee9dc}
