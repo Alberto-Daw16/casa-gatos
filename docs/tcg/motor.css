@@ -2236,3 +2236,12 @@
 .gv-nubes{animation:none}
 .gv-estrellas{animation:none;opacity:.35}
 @media (prefers-reduced-motion: reduce){.gx-carrusel.puede .gx-elige.on::before,.td-chispa{animation:none}}
+
+/* dorso: borde burdeos oscuro y el logotipo más legible (25/10/2026) */
+.tg-dorso.v2::before{display:block;content:"";position:absolute;inset:0;z-index:3;border-radius:inherit;pointer-events:none;
+  background:none;-webkit-mask:none;mask:none;mix-blend-mode:normal;opacity:1;
+  border:4.6cqw solid #2a050e;box-shadow:inset 0 0 0 .5cqw rgba(232,182,76,.55),inset 0 0 3cqw rgba(0,0,0,.45)}
+.td-circulo{opacity:.72}
+.td-logo{width:80%;z-index:2;filter:drop-shadow(0 0 1px rgba(0,0,0,.95)) drop-shadow(0 3px 8px rgba(0,0,0,.85)) drop-shadow(0 0 16px rgba(255,214,130,.35))}
+.td-logo::before{content:"";position:absolute;left:-12%;right:-12%;top:-55%;bottom:-55%;z-index:-1;border-radius:50%;background:radial-gradient(closest-side,rgba(20,3,8,.72),transparent)}
+.gv-carta.oculta .td-circulo{opacity:.8}
