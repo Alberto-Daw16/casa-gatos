@@ -679,7 +679,9 @@ carta = function(id, v){
 };
 
 /* ── la luz: con el ratón sigue al puntero; en el móvil, el giroscopio; si no, un vaivén suave ── */
-const RS = document.documentElement.style;
+/* 25/10: la luz escribe sus variables en la zona de la carta y no en <html>: cambiar :root en cada fotograma
+   obligaba al móvil a recalcular toda la app (por debajo del juego) 60 veces por segundo */
+let RS = document.documentElement.style;
 const cl = (v, a, b) => Math.max(a, Math.min(b, v)), aj = (v, a, b, c, d) => c + (d - c) * (v - a) / (b - a);
 let obj = {x:0, y:0}, pos = {x:0, y:0}, vel = {x:0, y:0}, ultimo = 0, t0 = performance.now(), base = null, raf = 0, encima = false;
 function orienta(e){
@@ -703,6 +705,7 @@ function bucle(){
 }
 const luz = {
   on(zona){
+    RS = (zona && zona.style) || document.documentElement.style;
     if(!raf){ addEventListener("deviceorientation", orienta); raf = requestAnimationFrame(bucle); }
     this.quieta();
     if(zona && !zona._luz){ zona._luz = 1;

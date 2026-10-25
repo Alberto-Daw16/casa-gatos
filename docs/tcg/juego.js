@@ -369,6 +369,19 @@
     girando = true; SON.pasa();
     const col = coleccion(quien), hs = bd.querySelectorAll(".bd-hoja"), rb = bd.getBoundingClientRect();
     const ref = movil() ? hs[0] : (dir > 0 ? hs[1] : hs[0]), r = ref.getBoundingClientRect();
+    if(movil()){
+      /* en el móvil la hoja se desliza dentro del binder (girarla en 3D la sacaba por la izquierda, fuera de la pantalla) */
+      bd.innerHTML = lomo() + hoja(dir > 0 ? nueva : pag, "izq", col);
+      const g = document.createElement("div"); g.className = "bd-hojaDesliza";
+      Object.assign(g.style, {left: (r.left - rb.left) + "px", top: (r.top - rb.top) + "px", width: r.width + "px", height: r.height + "px"});
+      g.innerHTML = hoja(dir > 0 ? pag : nueva, "izq", col);
+      if(dir < 0) g.style.transform = "translateX(-110%) rotate(-2deg)";
+      bd.appendChild(g); g.getBoundingClientRect();
+      g.style.transform = dir > 0 ? "translateX(-110%) rotate(-2deg)" : "translateX(0) rotate(0)";
+      const fin = () => { if(!girando) return; pag = nueva; girando = false; pinta(); };
+      g.addEventListener("transitionend", fin, {once:true}); setTimeout(fin, 700);
+      return;
+    }
     let delante, detras;
     if(movil()){ delante = hoja(dir > 0 ? pag : nueva, "izq", col); detras = hoja(-1, "izq", col); }
     else if(dir > 0){ delante = hoja(pag + 1, "der", col); detras = hoja(nueva, "izq", col); }
@@ -1052,11 +1065,21 @@
     const k = L.findIndex(x => x.n === e.target.value), p = Math.floor(k / PAG); pag = movil() ? p : p - (p % 2); pinta();
   });
 
-  function cierra(){ raiz.classList.remove("on"); G.luz.off(); document.body.style.overflow = ""; if(typeof render === "function") try { render(); } catch(e){} }
+  /* con el juego abierto, la app de debajo se oculta (visibility): el móvil deja de pintarla y recalcularla */
+  const PROPIOS = ["tcg", "tgVisor", "tgAbre", "tgProp", "inm", "toast"];
+  function ocultaApp(si){
+    [...document.body.children].forEach(el => {
+      if(PROPIOS.indexOf(el.id) >= 0 || /^(SCRIPT|STYLE|LINK)$/.test(el.tagName)) return;
+      if(si){ if(!el.hasAttribute("data-tcg-oculto")){ el.setAttribute("data-tcg-oculto", el.style.visibility || ""); el.style.visibility = "hidden"; } }
+      else if(el.hasAttribute("data-tcg-oculto")){ el.style.visibility = el.getAttribute("data-tcg-oculto"); el.removeAttribute("data-tcg-oculto"); }
+    });
+  }
+  function cierra(){ raiz.classList.remove("on"); G.luz.off(); ocultaApp(false); document.body.style.overflow = ""; if(typeof render === "function") try { render(); } catch(e){} }
   window.TCG = {
     abre(t){
       monta(); asegura(); const rs = aplicaResets(); if(premia() || rs) save();
       if(t) tab = t; quien = yo() || ""; raiz.classList.add("on"); document.body.style.overflow = "hidden";
+      setTimeout(() => { if(raiz.classList.contains("on")) ocultaApp(true); }, 350);
       cuerpo.innerHTML = '<p class="tg-nota" style="text-align:center;margin-top:30px">Abriendo el binder…</p>';
       prepara().then(pinta);
     },
