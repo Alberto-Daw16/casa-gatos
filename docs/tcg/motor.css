@@ -2193,3 +2193,17 @@
 @media (prefers-reduced-motion: reduce){.gv-nubes,.gm-anillo-ext,.gm-runas,.gm-anillo-med,.gm-anillo-int,.gv-sp-rayos{animation:none!important}}
 .gx-nombre-sobre small{display:block;margin-bottom:5px;font:700 10px/1 "Space Mono",monospace;letter-spacing:.26em;text-transform:uppercase;color:var(--c2);text-shadow:none;text-align:center}
 .gx-nombre-sobre{text-align:center}
+
+/* la pestaña de sobres sin textos (25/10/2026): el set arriba, el carrusel y un contador; se abre tocando el sobre */
+.gx-set{text-align:center;line-height:1}
+.gx-set small{display:block;margin-bottom:6px;font:700 10px/1 "Space Mono",monospace;letter-spacing:.3em;text-transform:uppercase;color:var(--c2)}
+.gx-set b{font:400 32px/1 "Instrument Serif",Georgia,serif;font-weight:400;color:#fff;text-shadow:0 0 22px var(--c)}
+.gx-carrusel.puede .gx-elige.on{cursor:pointer}
+.gx-carrusel.puede .gx-elige.on .gx-gira{animation:gxMece 4.5s ease-in-out infinite,gxLlama 2.4s ease-in-out infinite}
+@keyframes gxLlama{0%,100%{filter:drop-shadow(0 22px 26px rgba(0,0,0,.55)) drop-shadow(0 0 0 transparent)}50%{filter:drop-shadow(0 22px 26px rgba(0,0,0,.55)) drop-shadow(0 0 16px var(--c))}}
+.gx-contador{display:inline-flex;align-items:center;gap:8px;padding:9px 16px;border-radius:999px;background:rgba(10,12,30,.55);border:1px solid color-mix(in srgb,var(--c2) 40%,transparent);color:#fff;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+.gx-contador svg{width:18px;height:18px;color:var(--c2)}
+.gx-contador b{font:700 15px/1 "Space Mono",monospace}
+.gx-contador span{font-size:13px;color:var(--dim,#c3c7d4)}
+.gx-contador.cero svg{color:var(--dim,#8f94a2)}
+@media (prefers-reduced-motion: reduce){.gx-carrusel.puede .gx-elige.on .gx-gira{animation:none}}

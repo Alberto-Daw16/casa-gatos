@@ -426,15 +426,13 @@
       g.shadowBlur = 8; g.shadowOffsetY = 2; g.font = '700 26px "Space Mono", monospace'; g.fillStyle = "rgba(255,236,200,.9)";
       espaciado(g, "TRADING CARD GAME · SET 1", 500, 505, 7); g.restore();
     }
-    /* el nombre del sobre, abajo */
+    /* abajo, el nombre del set (el de cada sobre ya no va: los tres traen lo mismo) */
     g.save(); g.textAlign = "center";
-    if(propia){ const v = g.createLinearGradient(0, 1340, 0, 1640); v.addColorStop(0, "rgba(11,6,16,0)"); v.addColorStop(1, "rgba(11,6,16,.6)"); g.fillStyle = v; g.fillRect(0, 1340, TX, 300); }
-    g.font = '700 30px "Space Mono", monospace'; g.fillStyle = S.col2; g.shadowColor = "rgba(0,0,0,.7)"; g.shadowBlur = 8;
-    espaciado(g, SET_TXT.toUpperCase(), 500, 1420, 9);
-    g.font = '400 176px "Instrument Serif", Georgia, serif'; g.fillStyle = "#fff"; g.shadowColor = S.col; g.shadowBlur = 34; g.fillText(S.n, 500, 1550);
-    g.shadowColor = "rgba(0,0,0,.8)"; g.shadowBlur = 10; g.fillText(S.n, 500, 1550);
-    g.shadowBlur = 0; g.fillStyle = mezcla(S.col2, S.col2, 0, .6); g.fillRect(410, 1578, 180, 2);
-    g.font = '700 24px "Space Mono", monospace'; g.fillStyle = "rgba(255,255,255,.75)"; espaciado(g, "5 CARTAS", 500, 1620, 8);
+    if(propia){ const v = g.createLinearGradient(0, 1360, 0, 1640); v.addColorStop(0, "rgba(11,6,16,0)"); v.addColorStop(1, "rgba(11,6,16,.55)"); g.fillStyle = v; g.fillRect(0, 1360, TX, 280); }
+    g.font = '700 28px "Space Mono", monospace'; g.fillStyle = S.col2; g.shadowColor = "rgba(0,0,0,.7)"; g.shadowBlur = 8;
+    espaciado(g, "SET " + SET.num, 500, 1452, 10);
+    g.font = '400 128px "Instrument Serif", Georgia, serif'; g.fillStyle = "#fff"; g.shadowColor = S.col; g.shadowBlur = 30; g.fillText(SET.nombre, 500, 1565);
+    g.shadowColor = "rgba(0,0,0,.8)"; g.shadowBlur = 10; g.fillText(SET.nombre, 500, 1565);
     g.restore();
     remata(g, S.col, S.col2, true, propia ? sellado : null);
     return c;
@@ -539,7 +537,7 @@
     return '<div class="gx-sobre ' + (clase || "") + '" data-sobre="' + k + '" style="--c:' + S.col + ';--c2:' + S.col2 + '">' +
       '<div class="gx-gira"><div class="gx-cuerpo"><div class="gx-arte">' + arteDe(k) + '</div><div class="gx-velo"></div><div class="gx-foil"></div><div class="gx-luz"></div>' +
         '<div class="gx-cab"><i class="gx-logo"></i><b>Gremory</b><span>Trading Card Game · Set 1</span></div>' +
-        '<div class="gx-pie"><span>' + SET_TXT + '</span><b>' + S.n + '</b><em>5 cartas</em></div><div class="gx-filo"></div></div>' +
+        '<div class="gx-pie"><span>Set ' + SET.num + '</span><b>' + SET.nombre + '</b></div><div class="gx-filo"></div></div>' +
       '<div class="gx-tapa" style="clip-path:' + DI_A + '"><i class="gx-raya"></i></div><div class="gx-cola" style="clip-path:' + DI_B + '"></div></div></div>';
   }
 
@@ -550,18 +548,14 @@
   function sobresHTML(){
     miraExtra(); precarga3d();
     const d = disponibles(yo()), nb = !!nubeBase(), puede = d.total && nb, i0 = ORDEN.indexOf(elegido);
-    const motivo = d.pre.length ? d.pre[0].motivo : d.dia ? "Sobres del día" : "";
     return '<div class="gx-tienda" style="--c:' + SOBRES[elegido].col + ';--c2:' + SOBRES[elegido].col2 + '"><div class="gx-cielo"></div>' +
-      '<div class="gx-cuenta"><b>' + (d.total ? (d.total === 1 ? "1 sobre" : d.total + " sobres") : "Sin sobres") + '</b><span>' + (d.total ? esc(motivo) : "Mañana te esperan dos más") + '</span></div>' +
-      '<div class="gx-carrusel' + (puede ? "" : " apagado") + '" id="gxCarrusel">' + ORDEN.map((k, i) => { const p = i - i0; return '<button class="gx-elige' + (p ? '' : ' on') + '" data-elige="' + k + '" style="' + posCarrusel(p) + '">' + sobreHTML(k, "", true) + '</button>'; }).join("") + '</div>' +
+      '<div class="gx-set"><small>Set ' + SET.num + '</small><b>' + SET.nombre + '</b></div>' +
+      '<div class="gx-carrusel' + (puede ? " puede" : " apagado") + '" id="gxCarrusel">' + ORDEN.map((k, i) => { const p = i - i0; return '<button class="gx-elige' + (p ? '' : ' on') + '" data-elige="' + k + '" aria-label="' + (puede ? "Abrir sobre" : "Sobre") + '" style="' + posCarrusel(p) + '">' + sobreHTML(k, "", true) + '</button>'; }).join("") + '</div>' +
       (d.total ? '' : '<img class="gx-vacio" src="' + ARTE("vacio-sin-sobres") + '" alt="">') +
-      '<div class="gx-nombre-sobre"><small>Set ' + SET.num + '</small>' + SET.nombre + '</div>' +
-      (puede ? '<button class="tg-btn gx-abrir" data-acc="abrir">Abrir</button>'
-             : d.total ? '<p class="tg-nota" style="text-align:center">Para abrirlos, activa la sincronización en Ajustes.</p>' : '') +
-      '<div class="tg-gana"><div><b>Cómo se consiguen</b></div><div>Dos cada día<span>' + (d.dia ? (d.dia === DIARIOS ? "listos" : "te queda " + d.dia) : "abiertos hoy") + '</span></div>' +
-        '<div>Tres de bienvenida<span>al estrenar el Set 1</span></div><div>Uno por cada logro nuevo de la casa<span>para los dos</span></div></div>' +
-      '<p class="tg-nota" style="max-width:460px;text-align:center">Cada sobre trae 5 cartas y la última siempre es rara. Los tres traen lo mismo: elige la portada que más te guste.</p></div>';
+      '<div class="gx-contador' + (d.total ? '' : ' cero') + '">' + (d.total ? ICO.sobre + '<b>' + d.total + '</b>' : ICO.reloj + '<span>Mañana, dos más</span>') + '</div>' +
+      (d.total && !nb ? '<p class="tg-nota" style="text-align:center">Para abrirlos, activa la sincronización en Ajustes.</p>' : '') + '</div>';
   }
+
   const posCarrusel = p => "transform:translateX(-50%) translateX(" + (p * 64) + "%) scale(" + (p ? .72 : 1) + ") rotate(" + (p * 4) + "deg);z-index:" + (3 - Math.abs(p));
   /* elegir sobre mueve el carrusel sin volver a pintar la pestaña (repintar recargaba las portadas y parpadeaba todo) */
   function eligeSobre(k){
@@ -853,7 +847,10 @@
   function clic(e){
     const b = e.target.closest("[data-elige],[data-acc],[data-tab],[data-yo],[data-quien],[data-tapa],[data-ir],[data-cb],.bd-bol[data-id]"); if(!b) return;
     if(b.dataset.acc === "cierra") return cierra();
-    if(b.dataset.elige) return eligeSobre(b.dataset.elige);
+    if(b.dataset.elige){   /* el sobre del centro se abre al tocarlo (si quedan); los de los lados se traen al centro */
+      if(b.dataset.elige === elegido){ const dd = disponibles(yo()); if(dd.total && nubeBase()) return abreSobre(); return; }
+      return eligeSobre(b.dataset.elige);
+    }
     if(b.dataset.acc === "abrir") return abreSobre();
     if(b.dataset.acc === "propon") return propuesta({});
     if(b.dataset.tab){ tab = b.dataset.tab; return pinta(); }
