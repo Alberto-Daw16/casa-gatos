@@ -8,7 +8,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>Gremory</title>
-<meta name="build" content="2026-10-25.17">
+<meta name="build" content="2026-10-25.18">
 <!-- El cuadrado de la pantalla de inicio. iOS se guarda el icono por URL y no
      vuelve a pedirlo, así que si se cambia hay que darle un nombre de fichero
      nuevo. El manifest es lo que mira el iPhone moderno; los dos "apple-touch"
@@ -765,7 +765,7 @@
       <h2>Gremory TCG</h2>
       <div class="mini">Vuestro juego de cartas. Dos sobres cada día, tres de bienvenida y uno por cada logro nuevo de la casa. Cada uno tiene su binder y os podéis cambiar las repetidas.</div>
       <button class="add" id="tcgAbrir" style="color:var(--acc);border-color:var(--acc)">Abrir el binder</button>
-      <details style="margin-top:10px"><summary class="mini" style="cursor:pointer">Subir las ilustraciones del Set 1 (una vez, desde el ordenador)</summary>
+      <details id="tcgSubirBox" style="margin-top:10px;display:none"><summary class="mini" style="cursor:pointer">Subir las ilustraciones del Set 1 (una vez, desde el ordenador)</summary>
         <div class="mini" style="margin:8px 0">Elige todos los archivos de la carpeta <b>Descargas/gremory-cartas/subir-app</b>. Se guardan en privado en vuestro Worker. Hace falta el secreto de subida (SUBIDA, el de Cloudflare); no se guarda en ningún sitio.</div>
         <input type="file" id="tcgFich" multiple accept="image/webp,.json,application/json" style="width:100%;margin-bottom:8px">
         <input type="password" id="tcgSecreto" placeholder="Secreto de subida" autocomplete="off" style="width:100%;margin-bottom:8px">
@@ -3988,6 +3988,7 @@ function tcgCuenta(pid){
 }
 /* El TCG está en beta y oculto hasta retocarlo todo (24/10/2026).
    Para verlo en un dispositivo, abrir la app con #tcg al final de la dirección. */
+(function(){ function mira(){ var d = document.getElementById("tcgSubirBox"); if(d) d.style.display = /(^|#)subir$/.test(location.hash) ? "" : "none"; } window.addEventListener("hashchange", mira); document.addEventListener("DOMContentLoaded", mira); setTimeout(mira, 0); })();   /* la subida de ilustraciones solo sale con #subir al final de la dirección */
 var TCG_ON = true;   /* 25/10/2026: lanzado para los dos */
 /* En un móvil concreto se puede ver antes de tiempo: abriendo la app una vez con #tcg, o tocando 5 veces
    el número de versión en Ajustes (para la app instalada en la pantalla de inicio, que no deja poner #tcg). */

@@ -246,20 +246,22 @@
   /* ── imágenes del Worker ── */
   const VACIA = "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==";
   function url(n){ const nb = nubeBase(); return nb ? nb.base + "/img/" + encodeURIComponent(n) + "?k=" + encodeURIComponent(nb.k) : VACIA; }
-  let listo = false, faltanImg = false, prep = null;
+  let listo = false, faltanImg = false, prep = null, sinRed = false;
   /* miniaturas del binder con el diseño manga (25/10): van al Worker con otro nombre (s01-thm-NNN) para no chocar con la caché de 7 días;
      si aún no están subidas, se siguen usando las de antes */
   const TH_M = n => /^s01-th-0([0-5]\d|60)\.webp$/.test(n) && n !== "s01-th-000.webp" ? n.replace("s01-th-", "s01-thm-") : n;
   function prepara(){
     if(listo) return Promise.resolve();
     if(prep) return prep;
-    const sigue = man => {
-      G.ponImagenes(man ? n => url(TH_M(n)) : url); listo = true;
-      const e = L.find(x => x.ok);
-      if(!nubeBase() || !e) { faltanImg = true; return; }
-      return fetch(e.th, {method:"GET"}).then(r => { faltanImg = !r.ok; }).catch(() => { faltanImg = true; });
-    };
-    prep = (nubeBase() ? fetch(url("s01-thm-060.webp"), {method:"GET"}).then(r => r.ok, () => false) : Promise.resolve(false)).then(sigue);
+    /* las miniaturas nuevas ya están subidas (25/10): se usan siempre. La comprobación de que llegan las imágenes
+       no puede dejar el binder colgado: si el Worker no contesta en 5 s (los bloqueos del fútbol a Cloudflare), se abre igual */
+    G.ponImagenes(n => url(TH_M(n))); listo = true;
+    const e = L.find(x => x.ok);
+    if(!nubeBase() || !e) { faltanImg = true; return Promise.resolve(); }
+    const ctl = window.AbortController ? new AbortController() : null;
+    let hecho = false;
+    const espera = new Promise(ok => setTimeout(() => { if(hecho) return; if(ctl) ctl.abort(); sinRed = true; ok(); }, 5000));
+    prep = Promise.race([fetch(e.th, {method:"GET", signal: ctl ? ctl.signal : undefined}).then(r => { hecho = true; faltanImg = !r.ok; sinRed = false; }).catch(() => { hecho = true; }), espera]);
     return prep;
   }
 
@@ -309,7 +311,8 @@
       cuerpo.innerHTML = h; return;
     }
     if(!nubeBase()) h += '<div class="tg-vacio"><img src="' + ARTE("vacio-sin-conexion") + '" alt=""><p>Para ver las cartas y jugar entre los dos hace falta la sincronización (Ajustes → Sincronizar).</p></div>';
-    else if(faltanImg) h += '<div class="tg-aviso">Aún no están subidas las ilustraciones del Set 1. Súbelas una vez desde Ajustes → Gremory TCG.</div>';
+    else if(sinRed) h += '<div class="tg-aviso">No llego al servidor de las ilustraciones. Suele ser por los bloqueos del fútbol a Cloudflare: prueba con datos móviles o con una VPN.</div>';
+    else if(faltanImg) h += '<div class="tg-aviso">Aún no están subidas las ilustraciones del Set 1.</div>';
     if(tab === "binder") h += binderHTML();
     else if(tab === "sobres") h += sobresHTML();
     else if(tab === "logros") h += logrosHTML();
@@ -325,6 +328,7 @@
     if(!e.ok) return '<div class="bd-bol falta" title="' + e.n + '"><div class="tg-dorso"></div><span class="bd-num">' + e.n + '</span></div>';
     const c = col[e.id];
     if(e.id === SEC_ID && !c) return '<div class="bd-bol falta secreta" title="???"><div class="tg-dorso"></div><span class="bd-num">???</span></div>';   /* la secreta no se enseña hasta tenerla */
+    if(!c) return '<div class="bd-bol falta oculta" title="' + e.n + ' · ?"><div class="tg-dorso"></div><b class="bd-q">?</b><span class="bd-num">' + e.n + '</span></div>';   /* las que faltan no se ven hasta tenerlas */
     return '<div class="bd-bol' + (c ? '' : ' no') + (c && c.n > 1 ? ' rep' : '') + '" data-id="' + e.id + '" title="' + esc(e.n + ' · ' + e.t) + '"><img src="' + e.th + '" alt="" loading="lazy">' +
       '<span class="bd-num">' + e.n + '</span>' + (c && c.n > 1 ? '<span class="bd-n">×' + c.n + '</span>' : '') + (c && c.inst.some(esPrimera) ? '<i class="bd-1a">' + SELLO + '</i>' : '') + (extra || "") + '</div>';
   }
@@ -491,7 +495,7 @@
   function miraExtra(){
     if(extra.listo) return extra.listo;
     if(!nubeBase()) return Promise.resolve();
-    const prueba = (k, n) => new Promise(ok => { const i = new Image(); i.onload = () => { extra[k] = url(n); ok(); }; i.onerror = () => ok(); i.src = url(n); });
+    const prueba = (k, n) => new Promise(ok => { const i = new Image(); const tm = setTimeout(ok, 5000); i.onload = () => { clearTimeout(tm); extra[k] = url(n); ok(); }; i.onerror = () => { clearTimeout(tm); ok(); }; i.src = url(n); });
     /* las portadas de Valeria y sus máscaras de brillo (subidas al Worker desde subir-app-tcg) */
     const ps = Object.keys(SOBRES).map(k => prueba("sobre-" + k, SOBRES[k].img));
     Object.keys(SOBRES).forEach(k => ps.push(prueba("brillo-" + k, "sobre-" + k + "-brillo.webp")));
