@@ -2338,6 +2338,26 @@
 .bd-hojaDesliza>.bd-hoja{width:100%;height:100%}
 @media (max-width:760px){ .bd{overflow:hidden} }
 
+/* móvil: la apertura más ligera (25/10, en el iPhone se cerraba la web por memoria al llegar a la 5ª carta).
+   Lo de detrás no se pinta mientras se abre, y los rayos y círculos grandes dejan de girar (cada uno era una capa de 50-100 MB) */
+@media (max-width:760px){
+  body:has(> #tgAbre.on) > #tcg{visibility:hidden}
+  .gv-cielo,.gv-nubes,.gv-tejados,.gv-carta{will-change:auto}
+  .gv.estalla .gv-rayos,.gv.revela .gv-rayos,.gv-sp-rayos{animation:none}
+  .gv.pilando .gv-rayos,.gv.pilando .gv-magia,.gv.pilando .gv-centro,.gv.pilando .gv-3d,.gv.fin .gv-rayos,.gv.fin .gv-magia,.gv.fin .gv-centro{display:none}
+  .gv.pilando .gv-3d{display:none!important}
+  .gv-sp-lineas{display:none}
+  /* los anillos giraban cada uno por su lado y cada giro era una capa enorme: en el móvil gira el círculo entero */
+  .gm-anillo-ext,.gm-anillo-med,.gm-runas,.gm-anillo-int{animation:none!important}
+  .td-circulo svg,.gv-sp-magia svg{animation:gxGira 24s linear infinite}
+  .gv-carta.oculta .td-circulo svg{animation-duration:10s}
+  .gv-sp-rayos{width:105vmax;height:105vmax}
+  .gv.revela .gv-magia{filter:none}
+  .gv-sp-pj{filter:drop-shadow(0 0 12px var(--tier))}
+}
+/* en la pila, las de debajo son solo el canto (la carta de verdad se pinta al llegar arriba) */
+.gv-hueco{position:absolute;inset:0;border-radius:4.5%/3.2%;background:linear-gradient(160deg,#2a2440,#120f1d);box-shadow:inset 0 0 0 2px rgba(255,255,255,.12)}
+
 /* Manga anatomy is opt-in; premium materials stay in motor.css. */
 .carta.mg:where(:not(.mg-premium)){--g-tinta:#17151b;--g-panel:#eee9dc;--g-linea:#b9a8a3;--g-txt:#20171c;--g-dim:#68505a;--g-lima:#ab1934;background:#17151b;color:#eee9dc}
 .carta.mg:where(:not(.mg-premium)) .mb-bg{background:#17151b}

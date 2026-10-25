@@ -899,7 +899,8 @@
     pl.innerHTML = cartas.slice(i).map((y, k) => { const ty = tierDe(y), oculta = k === 0 ? (rara && ult) : (i + k === n - 1);
       return '<div class="gv-carta' + (k === 0 ? " arriba" : "") + (oculta ? " oculta" : "") + '" data-tier="' + ty + '" style="--k:' + k + ';--tc:' + TIER[ty][0] + ';z-index:' + (10 - k) + '">' +
         /* boca arriba, sin 3D: solo la cara (el giro y el dorso solo para la rara que sale boca abajo) */
-        (oculta ? '<div class="gx-voltea">' + DORSO : '<div class="gx-voltea plana">') + '<div class="gx-cara">' + G.carta(y.c, y.v) + (y.nueva ? '<span class="gx-nueva">Nueva</span>' : '') + (y.pe ? '<i class="gx-1a">' + SELLO + '</i><span class="gx-pe">1ª edición</span>' : '') + '</div></div></div>'; }).reverse().join("") +
+        (k > 1 ? '<div class="gv-hueco"></div></div>' :   /* las de más abajo, solo el canto: cinco cartas enteras a la vez se comían la memoria del móvil */
+        (oculta ? '<div class="gx-voltea">' + DORSO : '<div class="gx-voltea plana">') + '<div class="gx-cara">' + G.carta(y.c, y.v) + (y.nueva ? '<span class="gx-nueva">Nueva</span>' : '') + (y.pe ? '<i class="gx-1a">' + SELLO + '</i><span class="gx-pe">1ª edición</span>' : '') + '</div></div></div>'); }).reverse().join("") +
       '<div class="gv-cuenta">' + (i + 1) + ' / ' + n + '</div>';
     const top = pl.querySelector(".gv-carta.arriba");
     pista.classList.remove("fuera");
