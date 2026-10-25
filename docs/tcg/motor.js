@@ -726,7 +726,8 @@ window.GTCG = {carta, versiones, nombreVer, icono, VERS, CARTAS, FICHA, D1, luz,
   'use strict';
   const g = window.GTCG;
   if (!g || g.mangaTreatment) return;
-  const treatments = new Map([[null,'normal'],['R','holo'],['RH','reverse'],['RR','double'],['SR','etched'],['OFR','breakout'],['SP','signed'],['HR','gold'],['CR','gremory'],['G1','obsidian']]);
+  /* 25/10: las Estándar (Holo, Reverse, Double Holo) se quedan con su marco de siempre, sin fullart (lo pidió Alberto) */
+  const treatments = new Map([['SR','etched'],['OFR','breakout'],['SP','signed'],['HR','gold'],['CR','gremory'],['G1','obsidian']]);
   const original = g.carta;
   const escape = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   g.mangaTreatment = v => treatments.get(v) || null;
