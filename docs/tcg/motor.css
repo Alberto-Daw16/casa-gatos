@@ -2260,3 +2260,53 @@
 .carta .mb-txt .mb-hab p,.carta .mb-txt .mb-atq p{font-size:calc(2.3cqw * var(--fit,1));margin-top:calc(.7cqw * var(--fit,1))}
 .carta .mb-txt .mb-atq strong{font-size:calc(5.4cqw * var(--fit,1))}
 .carta .mb-txt .mb-hab{padding:calc(1.3cqw * var(--fit,1)) 2cqw calc(1.4cqw * var(--fit,1))}
+
+/* ══ 1ª edición, binder y logros (25/10/2026) ══ */
+/* el sello de primera edición */
+.sello1a{width:100%;height:100%;display:block;filter:drop-shadow(0 1px 2px rgba(0,0,0,.6))}
+.bd-1a{position:absolute;right:6px;bottom:6px;width:20px;height:20px;z-index:3}
+.tg-esc{position:relative}
+.tg-1a{position:absolute;right:5%;bottom:3.5%;width:min(11%,44px);aspect-ratio:1;z-index:6}
+.gx-cara{position:relative}
+.gx-1a{position:absolute;right:4.5%;bottom:3%;width:11%;aspect-ratio:1;z-index:21;pointer-events:none}
+.gv-mini .gx-1a{width:16%;right:3%;bottom:2%}
+
+/* binder: familias con su progreso, filtro y tapa de cuero (la de Valeria, teñida del color elegido) */
+.tg-fams{display:flex;gap:6px;overflow-x:auto;padding:2px 0 10px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.tg-fams::-webkit-scrollbar{display:none}
+.tg-fams button{position:relative;flex:0 0 auto;display:flex;flex-direction:column;align-items:flex-start;gap:3px;min-width:84px;padding:8px 11px 9px;border-radius:12px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.04);color:inherit;cursor:pointer;overflow:hidden;text-align:left}
+.tg-fams b{font:400 15px/1 "Instrument Serif",Georgia,serif;font-weight:400}
+.tg-fams span{font:700 10px/1 "Space Mono",monospace;letter-spacing:.06em;color:var(--dim,#8f94a2)}
+.tg-fams i{position:absolute;left:0;bottom:0;height:3px;background:var(--acc,#c9f24a);border-radius:0 3px 3px 0}
+.tg-fams button.llena{border-color:color-mix(in srgb,#e8b64c 60%,transparent);background:linear-gradient(160deg,rgba(232,182,76,.16),rgba(255,255,255,.03))}
+.tg-fams button.llena i{background:#e8b64c}
+.tg-fams button.llena span{color:#ffe7a3}
+.tg-filtro{display:flex;justify-content:center;gap:6px;margin:0 0 12px}
+.tg-filtro button{border:1px solid rgba(255,255,255,.12);background:transparent;color:var(--dim,#8f94a2);padding:7px 12px;border-radius:999px;font:600 12px/1 -apple-system,system-ui,sans-serif;cursor:pointer}
+.tg-filtro button.on{background:rgba(255,255,255,.1);color:#fff;border-color:rgba(255,255,255,.3)}
+.bd.f-faltan .bd-bol:not(.no):not(.falta),.bd.f-repes .bd-bol:not(.rep){opacity:.22;filter:saturate(.4)}
+.bd .bd-bol{transition:opacity .25s,filter .25s}
+.bd{background:url(arte/tapa-carpeta.webp) center/cover,linear-gradient(160deg,color-mix(in srgb,var(--tapa) 82%,#fff 18%),var(--tapa) 45%,color-mix(in srgb,var(--tapa) 70%,#000 30%));background-blend-mode:soft-light,normal}
+
+/* logros: medallas de Valeria con su icono, progreso y premio */
+.lg-cab{text-align:center;font:700 10.5px/1.4 "Space Mono",monospace;letter-spacing:.1em;text-transform:uppercase;color:var(--dim,#8f94a2);margin:4px 0 14px}
+.lg-cab b{color:#fff}
+.lg-grupo{margin-bottom:18px}
+.lg-grupo h3{margin:0 0 9px;font:400 20px/1 "Instrument Serif",Georgia,serif;font-weight:400}
+.lg-rejilla{display:grid;grid-template-columns:repeat(auto-fill,minmax(132px,1fr));gap:9px}
+.lg-item{display:flex;flex-direction:column;align-items:center;text-align:center;gap:4px;padding:12px 8px 11px;border-radius:14px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.08)}
+.lg-item.on{background:rgba(232,182,76,.08);border-color:rgba(232,182,76,.35)}
+.lg-med{position:relative;width:64px;height:64px;background:center/contain no-repeat;filter:grayscale(1) brightness(.55);opacity:.7}
+.lg-item.on .lg-med{filter:drop-shadow(0 4px 10px rgba(0,0,0,.5));opacity:1}
+.lg-med i{position:absolute;left:50%;top:41%;width:44%;height:44%;transform:translate(-50%,-50%);display:grid;place-items:center;color:#3a0814}
+.lg-med i svg{width:100%;height:100%}
+.lg-item b{font:400 16px/1.05 "Instrument Serif",Georgia,serif;font-weight:400;margin-top:2px}
+.lg-item small{font-size:11px;color:var(--dim,#8f94a2);line-height:1.25}
+.lg-item em{font:700 10px/1 "Space Mono",monospace;font-style:normal;letter-spacing:.06em;color:#ffe7a3;margin-top:3px}
+.lg-item span{font:700 10px/1 "Space Mono",monospace;color:var(--dim,#8f94a2)}
+.lg-barra{width:80%;height:4px;border-radius:4px;background:rgba(255,255,255,.1);overflow:hidden;margin-top:4px}
+.lg-barra i{display:block;height:100%;background:var(--acc,#c9f24a);border-radius:4px}
+.bd.f-faltan .bd-bol:not(.no):not(.falta){opacity:.14}
+.bd.f-faltan .bd-bol.no img{opacity:.75;filter:grayscale(.85) brightness(1.05)}
+.bd.f-faltan .bd-bol.no{box-shadow:inset 0 0 0 1.5px rgba(201,242,74,.55),0 1px 2px rgba(0,0,0,.25)}
+@media (max-width:460px){.tg-tabs{gap:5px;padding:0 12px 10px}.tg-tabs button{padding:8px 10px;font-size:12.5px;gap:5px}.tg-tabs button>svg{width:14px;height:14px}}

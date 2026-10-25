@@ -104,6 +104,42 @@
     return out.sort((a, b) => a.c > b.c ? 1 : a.c < b.c ? -1 : 0);
   }
 
+  /* ── logros del TCG (de cada uno): bronce da 1 sobre, plata 2 y oro 3 ── */
+  const PREMIO = {bronce: 1, plata: 2, oro: 3};
+  const LOGROS_PREMIAN = false;   /* hasta que Alberto dé el visto bueno: se ven, pero aún no dan sobres */
+  function logrosTcg(pid){
+    const col = coleccion(pid), mias = de(pid), out = [];
+    const tiene = L.filter(e => e.ok && e.n !== "061" && col[e.id]).length, total = L.filter(e => e.ok && e.n !== "061").length;
+    const L1 = (k, g, label, sub, nivel, ico, a, z) => out.push({k, g, label, sub, nivel, ico, dado: a >= z, a: Math.min(a, z), z});
+    L1("col10", "Colección", "Diez distintas", "las primeras del binder", "bronce", "carpeta", tiene, 10);
+    L1("col30", "Colección", "Medio binder", "30 cartas distintas", "plata", "carpeta", tiene, 30);
+    L1("col60", "Colección", "Set completo", "las " + total + " de " + SET.nombre, "oro", "carpeta", tiene, total);
+    GRUPOS.forEach(([nm, a, z]) => L1("fam" + a, "Familias", nm === "En grupo" || nm === "La casa" ? (nm === "En grupo" ? "Todos juntos" : "Toda la casa") : "Todo " + nm, (nm === "En grupo" ? "las " + (z - a + 1) + " de grupo" : nm === "La casa" ? "las " + (z - a + 1) + " de la casa" : "las " + (z - a + 1) + " de " + nm),
+      "plata", "repetida", L.filter(e => e.ok && nDe(e.id) >= a && nDe(e.id) <= z && col[e.id]).length, z - a + 1));
+    const tv = v => mias.some(x => v.indexOf(x.v) >= 0) ? 1 : 0;
+    L1("grab", "Rarezas", "Primera Grabada", "una carta grabada", "bronce", "gema", tv(["SR"]), 1);
+    L1("esc", "Rarezas", "Primera Escapada", "el personaje se sale", "bronce", "gema", tv(["OFR"]), 1);
+    L1("firma", "Rarezas", "Primera Firmada", "con firma", "bronce", "gema", tv(["SP"]), 1);
+    L1("oro", "Rarezas", "Primera Oro", "una de las doradas", "plata", "gema", tv(["HR"]), 1);
+    L1("gre", "Rarezas", "Primera Gremory", "la más rara del sobre", "oro", "gremory", tv(["G1", "G2"]), 1);
+    const abiertos = A.S.tcgSobres.filter(x => x.d === pid && x.abierto).length;
+    L1("sob10", "Sobres y cambios", "Diez sobres", "abiertos", "bronce", "sobre", abiertos, 10);
+    L1("sob50", "Sobres y cambios", "Cincuenta sobres", "abiertos", "plata", "sobre", abiertos, 50);
+    L1("sob100", "Sobres y cambios", "Cien sobres", "abiertos", "oro", "sobre", abiertos, 100);
+    const camb = A.S.tcgCambios.filter(c => c.estado === "aceptado" && (c.de === pid || c.para === pid)).length;
+    L1("cam1", "Sobres y cambios", "Primer cambio", "entre los dos", "bronce", "cambio", camb, 1);
+    L1("cam10", "Sobres y cambios", "Diez cambios", "negociando en casa", "plata", "cambio", camb, 10);
+    return out;
+  }
+  function logrosHTML(){
+    const ls = logrosTcg(yo()), hechos = ls.filter(l => l.dado).length, grupos = [...new Set(ls.map(l => l.g))];
+    const icoDe = k => k === "gema" ? GEMA.gema : k === "gremory" ? GEMA.gremory : ICO[k] || ICO.logro;
+    return '<div class="lg-cab"><b>' + hechos + '</b> de ' + ls.length + ' logros · ' + (LOGROS_PREMIAN ? 'cada medalla da sobres: bronce 1, plata 2, oro 3' : 'prueba: aún no dan sobres') + '</div>' +
+      grupos.map(g => '<div class="lg-grupo"><h3>' + g + '</h3><div class="lg-rejilla">' + ls.filter(l => l.g === g).map(l =>
+        '<div class="lg-item n-' + l.nivel + (l.dado ? ' on' : '') + '"><div class="lg-med" style="background-image:url(' + ARTE("medalla-" + l.nivel) + ')"><i>' + icoDe(l.ico) + '</i></div>' +
+        '<b>' + l.label + '</b><small>' + l.sub + '</small>' + (l.dado ? '<em>+' + PREMIO[l.nivel] + (PREMIO[l.nivel] > 1 ? ' sobres' : ' sobre') + '</em>' : '<div class="lg-barra"><i style="width:' + Math.round(l.a / l.z * 100) + '%"></i></div><span>' + l.a + ' / ' + l.z + '</span>') + '</div>').join("") + '</div></div>').join("");
+  }
+
   /* ── sobres: dos al día, tres de bienvenida y uno por cada logro nuevo ── */
   function premia(){
     asegura();
@@ -115,6 +151,7 @@
     gente().forEach(p => {
       for(let i = 1; i <= BIENVENIDA; i++) pon("bienvenida:" + i + ":" + p.id, p.id, "Bienvenida al Set 1");
       logros.filter(l => A.S.tcgBase.logros.indexOf(l.k) < 0).forEach(l => pon("logro:" + l.k + ":" + p.id, p.id, "Logro: " + l.label));
+      if(LOGROS_PREMIAN) logrosTcg(p.id).filter(l => l.dado).forEach(l => { for(let i = 1; i <= PREMIO[l.nivel]; i++) pon("logro-tcg:" + l.k + ":" + p.id + (i > 1 ? ":" + i : ""), p.id, "Logro: " + l.label); });
     });
     return nuevos;
   }
@@ -209,7 +246,8 @@
     raiz.querySelector("#tgTabs").innerHTML =
       '<button data-tab="binder" class="' + (tab === "binder" ? "on" : "") + '">' + ICO.carpeta + 'Binder</button>' +
       '<button data-tab="sobres" class="' + (tab === "sobres" ? "on" : "") + '">' + ICO.sobre + 'Sobres' + (d.total ? '<i>' + d.total + '</i>' : '') + '</button>' +
-      '<button data-tab="cambios" class="' + (tab === "cambios" ? "on" : "") + '">' + ICO.cambio + 'Cambios' + (ent ? '<i>' + ent + '</i>' : '') + '</button>';
+      '<button data-tab="cambios" class="' + (tab === "cambios" ? "on" : "") + '">' + ICO.cambio + 'Cambios' + (ent ? '<i>' + ent + '</i>' : '') + '</button>' +
+      '<button data-tab="logros" class="' + (tab === "logros" ? "on" : "") + '">' + ICO.logro + 'Logros</button>';
     let h = "";
     if(!yo()){
       h = '<div class="tg-aviso">¿De quién es este móvil? Así sé de quién es cada sobre y cada binder.</div><div class="tg-acc">' +
@@ -220,6 +258,7 @@
     else if(faltanImg) h += '<div class="tg-aviso">Aún no están subidas las ilustraciones del Set 1. Súbelas una vez desde Ajustes → Gremory TCG.</div>';
     if(tab === "binder") h += binderHTML();
     else if(tab === "sobres") h += sobresHTML();
+    else if(tab === "logros") h += logrosHTML();
     else h += cambiosHTML();
     cuerpo.innerHTML = h;
     if(tab === "sobres") deslizaCarrusel();
@@ -231,8 +270,8 @@
     if(!e) return '<div class="bd-bol" style="visibility:hidden"></div>';
     if(!e.ok) return '<div class="bd-bol falta" title="' + e.n + '"><div class="tg-dorso"></div><span class="bd-num">' + e.n + '</span></div>';
     const c = col[e.id];
-    return '<div class="bd-bol' + (c ? '' : ' no') + '" data-id="' + e.id + '" title="' + esc(e.n + ' · ' + e.t) + '"><img src="' + e.th + '" alt="" loading="lazy">' +
-      '<span class="bd-num">' + e.n + '</span>' + (c && c.n > 1 ? '<span class="bd-n">×' + c.n + '</span>' : '') + (extra || "") + '</div>';
+    return '<div class="bd-bol' + (c ? '' : ' no') + (c && c.n > 1 ? ' rep' : '') + '" data-id="' + e.id + '" title="' + esc(e.n + ' · ' + e.t) + '"><img src="' + e.th + '" alt="" loading="lazy">' +
+      '<span class="bd-num">' + e.n + '</span>' + (c && c.n > 1 ? '<span class="bd-n">×' + c.n + '</span>' : '') + (c && c.inst.some(esPrimera) ? '<i class="bd-1a">' + SELLO + '</i>' : '') + (extra || "") + '</div>';
   }
   function hoja(p, lado, col){
     if(p < 0 || p >= NP) return '<div class="bd-hoja ' + lado + ' vacia"><div class="bd-cab"><span>&nbsp;</span></div><div class="bd-grid">' + '<div class="bd-bol"></div>'.repeat(PAG) + '</div></div>';
@@ -244,20 +283,24 @@
   }
   const lomo = () => '<div class="bd-lomo">' + '<div class="bd-anilla"></div>'.repeat(3) + '</div>';
   function hojas(p, col){ return movil() ? lomo() + hoja(p, "izq", col) : hoja(p, "izq", col) + lomo() + hoja(p + 1, "der", col); }
+  let filtro = "todas";
   function binderHTML(){
     if(!quien) quien = yo();
     if(!movil() && pag % 2) pag--;
     const col = coleccion(quien), t = tapaDe(quien);
-    const tiene = L.filter(e => e.ok && col[e.id]).length, rep = sobrantes(quien).length;
+    const tiene = L.filter(e => e.ok && col[e.id]).length, rep = sobrantes(quien).length, prim = L.filter(e => e.ok && col[e.id] && col[e.id].inst.some(esPrimera)).length;
     const paso = movil() ? 1 : 2;
     return '<div class="tg-cab" style="--tapa:' + t.tapa + '"><div class="tg-quien">' +
         gente().map(p => '<button data-quien="' + p.id + '" class="' + (p.id === quien ? "on" : "") + '">' + (p.id === yo() ? "Mi binder" : "El de " + esc(p.name)) + '</button>').join("") + '</div>' +
-        '<div class="tg-cuenta"><b>' + tiene + '</b> de ' + L.length + ' cartas · <b>' + rep + '</b> repetidas</div>' +
+        '<div class="tg-cuenta"><b>' + tiene + '</b> de ' + L.length + ' cartas · <b>' + rep + '</b> repetidas' + (prim ? ' · <b>' + prim + '</b> de 1ª edición' : '') + '</div>' +
         (quien === yo() ? '<div class="tg-acab">' + Object.entries(TAPAS).map(([k, a]) => '<button data-tapa="' + k + '" title="' + a.n + '" aria-label="Tapa ' + a.n + '" class="' + (tapaDe(quien) === a ? "on" : "") + '" style="--c:' + a.tapa + '"></button>').join("") + '</div>' : '') + '</div>' +
       '<div class="tg-nav"><button data-ir="-1"' + (pag <= 0 ? " disabled" : "") + '>‹ Anterior</button><b>' + (movil() ? "Página " + (pag + 1) : "Páginas " + (pag + 1) + "–" + Math.min(NP, pag + 2)) + ' de ' + NP + '</b>' +
-        '<button data-ir="1"' + (pag + paso >= NP ? " disabled" : "") + '>Siguiente ›</button>' +
-        '<select id="tgIr" aria-label="Ir a"><option value="">Ir a…</option>' + [["001","Alberto"],["011","Cristina"],["021","Kurama"],["028","Sukuna"],["035","Gyukki"],["042","En grupo"],["049","La casa"],["061","Secreta"]].map(([n, x]) => '<option value="' + n + '">' + x + ' · ' + n + '</option>').join("") + '</select></div>' +
-      '<div class="bd" id="tgBd" style="--tapa:' + t.tapa + ';--hoja:' + t.hoja + ';--tinta:' + t.tinta + '">' + hojas(pag, col) + '</div>';
+        '<button data-ir="1"' + (pag + paso >= NP ? " disabled" : "") + '>Siguiente ›</button></div>' +
+      /* las familias, con lo que llevas de cada una (tocar una te lleva a su página), y el filtro */
+      '<div class="tg-fams">' + GRUPOS.map(([nm, a, z]) => { const n = L.filter(e => e.ok && nDe(e.id) >= a && nDe(e.id) <= z && col[e.id]).length, tot = z - a + 1;
+        return '<button data-grupo="' + a + '" class="' + (n === tot ? "llena" : "") + '"><b>' + nm + '</b><span>' + n + '/' + tot + '</span><i style="width:' + Math.round(n / tot * 100) + '%"></i></button>'; }).join("") + '</div>' +
+      '<div class="tg-filtro">' + [["todas", "Todas"], ["faltan", "Me faltan"], ["repes", "Repetidas"]].map(([k, nm]) => '<button data-filtro="' + k + '" class="' + (filtro === k ? "on" : "") + '">' + nm + '</button>').join("") + '</div>' +
+      '<div class="bd f-' + filtro + '" id="tgBd" style="--tapa:' + t.tapa + ';--hoja:' + t.hoja + ';--tinta:' + t.tinta + '">' + hojas(pag, col) + '</div>';
   }
   function pasa(dir){
     if(girando || tab !== "binder") return;
@@ -302,7 +345,8 @@
     cap.innerHTML = '<button class="tg-x" data-v-acc="cierra" aria-label="Cerrar">' + ICO.x + '</button>' +
       '<button class="tg-flecha izq" data-v-acc="ant" aria-label="Anterior">' + ICO.izq + '</button><button class="tg-flecha der" data-v-acc="sig" aria-label="Siguiente">' + ICO.der + '</button>' +
       '<div class="tg-tit"><b>' + e.n + ' · ' + esc(G.CARTAS[c].n) + '</b><span>' + (n ? (mia ? "Tienes " : nom(quien) + " tiene ") + n + (n > 1 ? " copias" : " copia") : (mia ? "Aún no la tienes" : nom(quien) + " no la tiene")) + '</span></div>' +
-      '<div class="tg-esc' + (n ? '' : ' bloq') + '">' + G.carta(c, v) + (n ? '' : '<div class="tg-candado"><span>' + (mia ? "Te falta" : "No la tiene") + '</span></div>') + '</div>' +
+      '<div class="tg-esc' + (n ? '' : ' bloq') + '">' + G.carta(c, v) + (n ? '' : '<div class="tg-candado"><span>' + (mia ? "Te falta" : "No la tiene") + '</span></div>') +
+        (de(quien).some(x => x.c === c && x.v === v && esPrimera(x)) ? '<i class="tg-1a" title="Primera edición">' + SELLO + '</i>' : '') + '</div>' +
       '<div class="tg-vers">' + G.versiones(c).map(x => '<button data-ver="' + x + '" class="' + (x === v ? "on" : "") + (col.v[x] ? "" : " no") + '">' + G.icono(c, x) + G.nombreVer(c, x) + (col.v[x] ? '<em>×' + col.v[x] + '</em>' : '') + '</button>').join("") + '</div>' +
       '<div class="tg-acc">' +
         (c === "s01-061" && n && G.cartaSecretaDorso ? '<button class="tg-btn sec" data-v-acc="gira">Darle la vuelta</button>' : '') +
@@ -342,7 +386,22 @@
      Las ilustraciones de la escena (sobres, mesa, gatos) llegan del Worker con estos nombres; si faltan,
      se usan las de las cartas y fondos dibujados. */
   /* el set: cada cierto tiempo saldrá uno nuevo con su nombre */
-  const SET = {num: 1, nombre: "Home Sweet Home"};
+  /* primera edición: lo que se saca de los sobres hasta esa fecha lleva el sello (las copias de después, no) */
+  const SET = {num: 1, nombre: "Home Sweet Home", primeraHasta: "2026-12-31"};
+  const esPrimera = x => !!(x && x.t && x.t.slice(0, 10) <= SET.primeraHasta);
+  const enPrimera = () => hoy() <= SET.primeraHasta;
+  const fechaCorta = f => f.slice(8, 10) + "/" + f.slice(5, 7) + "/" + f.slice(0, 4);
+  /* el sello de primera edición (propio: medallón dorado con borde de sello de lacre y «1ª» en granate) */
+  const SELLO = (() => {
+    const n = 18, pts = Array.from({length: n * 2}, (_, i) => { const a = i / (n * 2) * Math.PI * 2 - Math.PI / 2, r = i % 2 ? 21.2 : 23.4; return (24 + Math.cos(a) * r).toFixed(1) + "," + (24 + Math.sin(a) * r).toFixed(1); }).join(" ");
+    return '<svg class="sello1a" viewBox="0 0 48 48" aria-label="Primera edición"><defs><linearGradient id="s1aOro" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff1bf"/><stop offset=".45" stop-color="#e8b64c"/><stop offset="1" stop-color="#8a5a12"/></linearGradient></defs>' +
+      '<polygon points="' + pts + '" fill="url(#s1aOro)" stroke="#6b4210" stroke-width=".8"/><circle cx="24" cy="24" r="16.2" fill="#3a0814" stroke="#ffe7a3" stroke-width="1.1"/>' +
+      '<circle cx="24" cy="24" r="13.6" fill="none" stroke="#e8b64c" stroke-width=".5" stroke-dasharray="1.2 1.4"/>' +
+      '<text x="24" y="29.6" text-anchor="middle" font-family="Instrument Serif, Georgia, serif" font-size="17" fill="#ffe7a3">1ª</text></svg>';
+  })();
+  /* las familias del set (para el binder y los logros) */
+  const GRUPOS = [["Alberto", 1, 10], ["Cristina", 11, 20], ["Kurama", 21, 27], ["Sukuna", 28, 34], ["Gyukki", 35, 41], ["En grupo", 42, 48], ["La casa", 49, 60]];
+  const nDe = id => +String(id).slice(4);
   const SET_TXT = "Set " + SET.num + " · " + SET.nombre;
   const SOBRES = {
     alberto:  {n:"Alberto",  sub:"Sobre de Alberto",  col:"#4f8dff", col2:"#a8d4ff", arte:["s01-006","gre"], img:"sobre-alberto.webp"},
@@ -721,7 +780,7 @@
     pl.innerHTML = cartas.slice(i).map((y, k) => { const ty = tierDe(y), oculta = k === 0 ? (rara && ult) : (i + k === n - 1);
       return '<div class="gv-carta' + (k === 0 ? " arriba" : "") + (oculta ? " oculta" : "") + '" data-tier="' + ty + '" style="--k:' + k + ';--tc:' + TIER[ty][0] + ';z-index:' + (10 - k) + '">' +
         /* boca arriba, sin 3D: solo la cara (el giro y el dorso solo para la rara que sale boca abajo) */
-        (oculta ? '<div class="gx-voltea">' + DORSO : '<div class="gx-voltea plana">') + '<div class="gx-cara">' + G.carta(y.c, y.v) + (y.nueva ? '<span class="gx-nueva">Nueva</span>' : '') + '</div></div></div>'; }).reverse().join("") +
+        (oculta ? '<div class="gx-voltea">' + DORSO : '<div class="gx-voltea plana">') + '<div class="gx-cara">' + G.carta(y.c, y.v) + (y.nueva ? '<span class="gx-nueva">Nueva</span>' : '') + (enPrimera() ? '<i class="gx-1a">' + SELLO + '</i>' : '') + '</div></div></div>'; }).reverse().join("") +
       '<div class="gv-cuenta">' + (i + 1) + ' / ' + n + '</div>';
     const top = pl.querySelector(".gv-carta.arriba");
     pista.classList.remove("fuera");
@@ -797,7 +856,7 @@
     const d = disponibles(yo()).total;
     cap.querySelector("#gxPista").classList.add("fuera");
     cap.querySelector("#gvPila").innerHTML = '<div class="gv-rejilla">' + cartas.map((x, k) => { const t = tierDe(x);
-      return '<div class="gv-mini" data-tier="' + t + '" style="--tc:' + TIER[t][0] + ';--k:' + k + '">' + G.carta(x.c, x.v) + (x.nueva ? '<span class="gx-nueva">Nueva</span>' : '') + '</div>'; }).join("") + '</div>';
+      return '<div class="gv-mini" data-tier="' + t + '" style="--tc:' + TIER[t][0] + ';--k:' + k + '">' + G.carta(x.c, x.v) + (x.nueva ? '<span class="gx-nueva">Nueva</span>' : '') + (enPrimera() ? '<i class="gx-1a">' + SELLO + '</i>' : '') + '</div>'; }).join("") + '</div>';
     cap.querySelector("#gxFinal").innerHTML = '<div class="gx-resumen"><b>' + (nuevas ? (nuevas === 1 ? "+1 carta nueva" : "+" + nuevas + " cartas nuevas") : "Todas repetidas") + '</b>' +
       '<span>' + (nuevas === 5 ? "las cinco, estrenadas" : nuevas ? (5 - nuevas) + (5 - nuevas === 1 ? " repetida para cambiar" : " repetidas para cambiar") : "buenas para cambiar") + '</span>' +
       '<div class="gx-barra"><i style="width:' + Math.round(tengo / total * 100) + '%"></i></div><em>Tu binder: ' + tengo + ' de ' + total + '</em></div>' +
@@ -876,7 +935,7 @@
 
   /* ── clics de la ventana principal ── */
   function clic(e){
-    const b = e.target.closest("[data-elige],[data-acc],[data-tab],[data-yo],[data-quien],[data-tapa],[data-ir],[data-cb],.bd-bol[data-id]"); if(!b) return;
+    const b = e.target.closest("[data-elige],[data-acc],[data-tab],[data-yo],[data-quien],[data-tapa],[data-ir],[data-grupo],[data-filtro],[data-cb],.bd-bol[data-id]"); if(!b) return;
     if(b.dataset.acc === "cierra") return cierra();
     if(b.dataset.elige){   /* el sobre del centro se abre al tocarlo (si quedan); los de los lados se traen al centro */
       if(b.dataset.elige === elegido){ const dd = disponibles(yo()); if(dd.total && nubeBase()) return abreSobre(); return; }
@@ -889,6 +948,8 @@
     if(b.dataset.quien){ quien = b.dataset.quien; return pinta(); }
     if(b.dataset.tapa){ tapas[quien] = b.dataset.tapa; guarda("gremory-tcg-tapas", tapas); return pinta(); }
     if(b.dataset.ir){ return pasa(+b.dataset.ir); }
+    if(b.dataset.grupo){ const k = L.findIndex(x => nDe(x.id) === +b.dataset.grupo), p = Math.floor(k / PAG); pag = movil() ? p : p - (p % 2); return pinta(); }
+    if(b.dataset.filtro){ filtro = b.dataset.filtro; return pinta(); }
     if(b.dataset.cb) return resuelve(b.dataset.id, b.dataset.cb);
     if(b.dataset.id) return abreVisor(b.dataset.id);
   }
