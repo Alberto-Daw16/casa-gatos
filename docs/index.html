@@ -8,7 +8,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>Gremory</title>
-<meta name="build" content="2026-10-25.7">
+<meta name="build" content="2026-10-25.8">
 <!-- El cuadrado de la pantalla de inicio. iOS se guarda el icono por URL y no
      vuelve a pedirlo, así que si se cambia hay que darle un nombre de fichero
      nuevo. El manifest es lo que mira el iPhone moderno; los dos "apple-touch"
@@ -3466,6 +3466,10 @@ function fusiona(local, remoto){
   });
   /* Gremory TCG: la foto de logros del estreno la pone el primero que abre el juego y no cambia */
   if(remoto.tcgBase && (!out.tcgBase || (remoto.tcgBase.f||"") < (out.tcgBase.f||""))) out.tcgBase = remoto.tcgBase;
+  /* y la de los logros del propio TCG, una por persona: manda la más antigua (lo hecho antes de activarlos no da sobres) */
+  if(remoto.tcgBaseTcg){ out.tcgBaseTcg = out.tcgBaseTcg || {};
+    Object.keys(remoto.tcgBaseTcg).forEach(function(pid){ var r = remoto.tcgBaseTcg[pid], l = out.tcgBaseTcg[pid];
+      if(r && (!l || (r.f||"") < (l.f||""))) out.tcgBaseTcg[pid] = r; }); }
   ["expenses","incomes"].forEach(function(col){
     out.recurring[col] = une((out.recurring||{})[col], (remoto.recurring||{})[col]);
   });

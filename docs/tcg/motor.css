@@ -2310,3 +2310,6 @@
 .bd.f-faltan .bd-bol.no img{opacity:.75;filter:grayscale(.85) brightness(1.05)}
 .bd.f-faltan .bd-bol.no{box-shadow:inset 0 0 0 1.5px rgba(201,242,74,.55),0 1px 2px rgba(0,0,0,.25)}
 @media (max-width:460px){.tg-tabs{gap:5px;padding:0 12px 10px}.tg-tabs button{padding:8px 10px;font-size:12.5px;gap:5px}.tg-tabs button>svg{width:14px;height:14px}}
+.tg-mio{font:400 22px/1 "Instrument Serif",Georgia,serif;font-weight:400;padding:6px 4px}
+.gx-pe{position:absolute;left:4%;top:2.5%;z-index:21;padding:5px 9px;border-radius:6px;font:700 10px/1 "Space Mono",monospace;letter-spacing:.14em;text-transform:uppercase;color:#3a0814;background:linear-gradient(140deg,#fff1bf,#e8b64c 55%,#b07a1e);box-shadow:0 0 16px rgba(232,182,76,.7);animation:gxPop .5s .3s cubic-bezier(.3,1.6,.5,1) both}
+.lg-item em.antes{color:var(--dim,#8f94a2)}

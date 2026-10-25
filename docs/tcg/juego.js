@@ -106,7 +106,7 @@
 
   /* ── logros del TCG (de cada uno): bronce da 1 sobre, plata 2 y oro 3 ── */
   const PREMIO = {bronce: 1, plata: 2, oro: 3};
-  const LOGROS_PREMIAN = false;   /* hasta que Alberto dé el visto bueno: se ven, pero aún no dan sobres */
+  const LOGROS_PREMIAN = true;   /* activados el 25/10/2026: lo que cada uno ya tuviera hecho entonces no da sobres (cuentan desde cero) */
   function logrosTcg(pid){
     const col = coleccion(pid), mias = de(pid), out = [];
     const tiene = L.filter(e => e.ok && e.n !== "061" && col[e.id]).length, total = L.filter(e => e.ok && e.n !== "061").length;
@@ -133,11 +133,12 @@
   }
   function logrosHTML(){
     const ls = logrosTcg(yo()), hechos = ls.filter(l => l.dado).length, grupos = [...new Set(ls.map(l => l.g))];
+    const base = (A.S.tcgBaseTcg && A.S.tcgBaseTcg[yo()] || {k: []}).k;
     const icoDe = k => k === "gema" ? GEMA.gema : k === "gremory" ? GEMA.gremory : ICO[k] || ICO.logro;
     return '<div class="lg-cab"><b>' + hechos + '</b> de ' + ls.length + ' logros · ' + (LOGROS_PREMIAN ? 'cada medalla da sobres: bronce 1, plata 2, oro 3' : 'prueba: aún no dan sobres') + '</div>' +
       grupos.map(g => '<div class="lg-grupo"><h3>' + g + '</h3><div class="lg-rejilla">' + ls.filter(l => l.g === g).map(l =>
         '<div class="lg-item n-' + l.nivel + (l.dado ? ' on' : '') + '"><div class="lg-med" style="background-image:url(' + ARTE("medalla-" + l.nivel) + ')"><i>' + icoDe(l.ico) + '</i></div>' +
-        '<b>' + l.label + '</b><small>' + l.sub + '</small>' + (l.dado ? '<em>+' + PREMIO[l.nivel] + (PREMIO[l.nivel] > 1 ? ' sobres' : ' sobre') + '</em>' : '<div class="lg-barra"><i style="width:' + Math.round(l.a / l.z * 100) + '%"></i></div><span>' + l.a + ' / ' + l.z + '</span>') + '</div>').join("") + '</div></div>').join("");
+        '<b>' + l.label + '</b><small>' + l.sub + '</small>' + (l.dado ? (base.indexOf(l.k) >= 0 ? '<em class="antes">ya lo tenías</em>' : '<em>+' + PREMIO[l.nivel] + (PREMIO[l.nivel] > 1 ? ' sobres' : ' sobre') + '</em>') : '<div class="lg-barra"><i style="width:' + Math.round(l.a / l.z * 100) + '%"></i></div><span>' + l.a + ' / ' + l.z + '</span>') + '</div>').join("") + '</div></div>').join("");
   }
 
   /* ── sobres: dos al día, tres de bienvenida y uno por cada logro nuevo ── */
@@ -151,7 +152,12 @@
     gente().forEach(p => {
       for(let i = 1; i <= BIENVENIDA; i++) pon("bienvenida:" + i + ":" + p.id, p.id, "Bienvenida al Set 1");
       logros.filter(l => A.S.tcgBase.logros.indexOf(l.k) < 0).forEach(l => pon("logro:" + l.k + ":" + p.id, p.id, "Logro: " + l.label));
-      if(LOGROS_PREMIAN) logrosTcg(p.id).filter(l => l.dado).forEach(l => { for(let i = 1; i <= PREMIO[l.nivel]; i++) pon("logro-tcg:" + l.k + ":" + p.id + (i > 1 ? ":" + i : ""), p.id, "Logro: " + l.label); });
+      if(LOGROS_PREMIAN){
+        A.S.tcgBaseTcg = A.S.tcgBaseTcg || {};
+        if(!A.S.tcgBaseTcg[p.id]) A.S.tcgBaseTcg[p.id] = {f: ahora(), k: logrosTcg(p.id).filter(l => l.dado).map(l => l.k)};
+      }
+      const baseT = (A.S.tcgBaseTcg && A.S.tcgBaseTcg[p.id] || {k: []}).k;
+      if(LOGROS_PREMIAN) logrosTcg(p.id).filter(l => l.dado && baseT.indexOf(l.k) < 0).forEach(l => { for(let i = 1; i <= PREMIO[l.nivel]; i++) pon("logro-tcg:" + l.k + ":" + p.id + (i > 1 ? ":" + i : ""), p.id, "Logro: " + l.label); });
     });
     return nuevos;
   }
@@ -285,13 +291,12 @@
   function hojas(p, col){ return movil() ? lomo() + hoja(p, "izq", col) : hoja(p, "izq", col) + lomo() + hoja(p + 1, "der", col); }
   let filtro = "todas";
   function binderHTML(){
-    if(!quien) quien = yo();
+    quien = yo();   /* cada uno ve solo su binder (el del otro, no) */
     if(!movil() && pag % 2) pag--;
     const col = coleccion(quien), t = tapaDe(quien);
     const tiene = L.filter(e => e.ok && col[e.id]).length, rep = sobrantes(quien).length, prim = L.filter(e => e.ok && col[e.id] && col[e.id].inst.some(esPrimera)).length;
     const paso = movil() ? 1 : 2;
-    return '<div class="tg-cab" style="--tapa:' + t.tapa + '"><div class="tg-quien">' +
-        gente().map(p => '<button data-quien="' + p.id + '" class="' + (p.id === quien ? "on" : "") + '">' + (p.id === yo() ? "Mi binder" : "El de " + esc(p.name)) + '</button>').join("") + '</div>' +
+    return '<div class="tg-cab" style="--tapa:' + t.tapa + '"><div class="tg-quien"><b class="tg-mio">Mi binder</b></div>' +
         '<div class="tg-cuenta"><b>' + tiene + '</b> de ' + L.length + ' cartas · <b>' + rep + '</b> repetidas' + (prim ? ' · <b>' + prim + '</b> de 1ª edición' : '') + '</div>' +
         (quien === yo() ? '<div class="tg-acab">' + Object.entries(TAPAS).map(([k, a]) => '<button data-tapa="' + k + '" title="' + a.n + '" aria-label="Tapa ' + a.n + '" class="' + (tapaDe(quien) === a ? "on" : "") + '" style="--c:' + a.tapa + '"></button>').join("") + '</div>' : '') + '</div>' +
       '<div class="tg-nav"><button data-ir="-1"' + (pag <= 0 ? " disabled" : "") + '>‹ Anterior</button><b>' + (movil() ? "Página " + (pag + 1) : "Páginas " + (pag + 1) + "–" + Math.min(NP, pag + 2)) + ' de ' + NP + '</b>' +
@@ -386,11 +391,11 @@
      Las ilustraciones de la escena (sobres, mesa, gatos) llegan del Worker con estos nombres; si faltan,
      se usan las de las cartas y fondos dibujados. */
   /* el set: cada cierto tiempo saldrá uno nuevo con su nombre */
-  /* primera edición: lo que se saca de los sobres hasta esa fecha lleva el sello (las copias de después, no) */
-  const SET = {num: 1, nombre: "Home Sweet Home", primeraHasta: "2026-12-31"};
-  const esPrimera = x => !!(x && x.t && x.t.slice(0, 10) <= SET.primeraHasta);
-  const enPrimera = () => hoy() <= SET.primeraHasta;
-  const fechaCorta = f => f.slice(8, 10) + "/" + f.slice(5, 7) + "/" + f.slice(0, 4);
+  /* primera edición: de cada carta hay UNA sola en todo el juego (entre los dos). Cada carta que sale de un sobre
+     tiene un 1 % de ser esa primera edición, mientras nadie la haya sacado aún; es la única forma de conseguirla */
+  const SET = {num: 1, nombre: "Home Sweet Home"};
+  const PRIMERA_P = .01;
+  const esPrimera = x => !!(x && x.pe);
   /* el sello de primera edición (propio: medallón dorado con borde de sello de lacre y «1ª» en granate) */
   const SELLO = (() => {
     const n = 18, pts = Array.from({length: n * 2}, (_, i) => { const a = i / (n * 2) * Math.PI * 2 - Math.PI / 2, r = i % 2 ? 21.2 : 23.4; return (24 + Math.cos(a) * r).toFixed(1) + "," + (24 + Math.sin(a) * r).toFixed(1); }).join(" ");
@@ -677,11 +682,13 @@
     if(d.pre.length){ s = d.pre[0]; s.abierto = true; s.t = ahora(); s.sobre = elegido; }
     else { s = {id: d.libres[0], d: pid, tipo: "dia", motivo: "Sobre del día", f: hoy(), abierto: true, t: ahora(), sobre: elegido}; A.S.tcgSobres.push(s); }
     const tenia = coleccion(pid), vistas = {};
+    const yaPe = {}; vivas().forEach(x => { if(x.pe) yaPe[x.c] = 1; });
     const cartas = genera(s.id).map((x, i) => {   /* los tres sobres traen lo mismo: solo cambia la portada */
       const k = x.c + "|" + x.v, nueva = !(tenia[x.c] && tenia[x.c].v[x.v]) && !vistas[k]; vistas[k] = 1;
-      return Object.assign(x, {id: s.id + ":" + i, nueva, nivel: nivel(x.c, x.v)});
+      const pe = !yaPe[x.c] && rng(s.id + ":pe:" + i)() < PRIMERA_P; if(pe) yaPe[x.c] = 1;
+      return Object.assign(x, {id: s.id + ":" + i, nueva, nivel: nivel(x.c, x.v)}, pe ? {pe: 1} : {});
     });
-    cartas.forEach(x => { if(!inst(x.id)) A.S.tcgCartas.push({id: x.id, c: x.c, v: x.v, d: pid, t: ahora(), o: "sobre"}); });
+    cartas.forEach(x => { if(!inst(x.id)) A.S.tcgCartas.push(Object.assign({id: x.id, c: x.c, v: x.v, d: pid, t: ahora(), o: "sobre"}, x.pe ? {pe: 1} : {})); });
     save();
     escena(cartas, s.sobre || elegido);
   }
@@ -780,7 +787,7 @@
     pl.innerHTML = cartas.slice(i).map((y, k) => { const ty = tierDe(y), oculta = k === 0 ? (rara && ult) : (i + k === n - 1);
       return '<div class="gv-carta' + (k === 0 ? " arriba" : "") + (oculta ? " oculta" : "") + '" data-tier="' + ty + '" style="--k:' + k + ';--tc:' + TIER[ty][0] + ';z-index:' + (10 - k) + '">' +
         /* boca arriba, sin 3D: solo la cara (el giro y el dorso solo para la rara que sale boca abajo) */
-        (oculta ? '<div class="gx-voltea">' + DORSO : '<div class="gx-voltea plana">') + '<div class="gx-cara">' + G.carta(y.c, y.v) + (y.nueva ? '<span class="gx-nueva">Nueva</span>' : '') + (enPrimera() ? '<i class="gx-1a">' + SELLO + '</i>' : '') + '</div></div></div>'; }).reverse().join("") +
+        (oculta ? '<div class="gx-voltea">' + DORSO : '<div class="gx-voltea plana">') + '<div class="gx-cara">' + G.carta(y.c, y.v) + (y.nueva ? '<span class="gx-nueva">Nueva</span>' : '') + (y.pe ? '<i class="gx-1a">' + SELLO + '</i><span class="gx-pe">1ª edición</span>' : '') + '</div></div></div>'; }).reverse().join("") +
       '<div class="gv-cuenta">' + (i + 1) + ' / ' + n + '</div>';
     const top = pl.querySelector(".gv-carta.arriba");
     pista.classList.remove("fuera");
@@ -856,7 +863,7 @@
     const d = disponibles(yo()).total;
     cap.querySelector("#gxPista").classList.add("fuera");
     cap.querySelector("#gvPila").innerHTML = '<div class="gv-rejilla">' + cartas.map((x, k) => { const t = tierDe(x);
-      return '<div class="gv-mini" data-tier="' + t + '" style="--tc:' + TIER[t][0] + ';--k:' + k + '">' + G.carta(x.c, x.v) + (x.nueva ? '<span class="gx-nueva">Nueva</span>' : '') + (enPrimera() ? '<i class="gx-1a">' + SELLO + '</i>' : '') + '</div>'; }).join("") + '</div>';
+      return '<div class="gv-mini" data-tier="' + t + '" style="--tc:' + TIER[t][0] + ';--k:' + k + '">' + G.carta(x.c, x.v) + (x.nueva ? '<span class="gx-nueva">Nueva</span>' : '') + (x.pe ? '<i class="gx-1a">' + SELLO + '</i>' : '') + '</div>'; }).join("") + '</div>';
     cap.querySelector("#gxFinal").innerHTML = '<div class="gx-resumen"><b>' + (nuevas ? (nuevas === 1 ? "+1 carta nueva" : "+" + nuevas + " cartas nuevas") : "Todas repetidas") + '</b>' +
       '<span>' + (nuevas === 5 ? "las cinco, estrenadas" : nuevas ? (5 - nuevas) + (5 - nuevas === 1 ? " repetida para cambiar" : " repetidas para cambiar") : "buenas para cambiar") + '</span>' +
       '<div class="gx-barra"><i style="width:' + Math.round(tengo / total * 100) + '%"></i></div><em>Tu binder: ' + tengo + ' de ' + total + '</em></div>' +
