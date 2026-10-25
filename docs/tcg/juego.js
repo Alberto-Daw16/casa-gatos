@@ -255,8 +255,14 @@
   let guardado = false;
   function guardaTodo(){
     if(guardado) return; guardado = true;
-    const us = L.filter(x => x.ok && x.th).map(x => x.th).concat(Object.keys(SOBRES).map(k => url(SOBRES[k].img)));
-    let i = 0; const sig = () => { if(i >= us.length) return; const u = us[i++]; fetch(u, {mode: "cors"}).catch(() => {}).then(() => setTimeout(sig, 60)); };
+    /* miniaturas, portadas y todas las ilustraciones de las cartas (unos 15 MB, una sola vez): con eso el juego entero
+       funciona en ese móvil aunque el Worker no conteste (los bloqueos del fútbol a Cloudflare de los fines de semana) */
+    const arte = [], mira = o => { for(const k in o){ const v = o[k]; if(typeof v === "string" && v.indexOf("/img/") > 0) arte.push(v); else if(v && typeof v === "object") mira(v); } };
+    try { mira(D1.ART); } catch(e){}
+    const ya = lee("gremory-tcg-guardado", ""), todo = ya !== VER && !(navigator.connection && navigator.connection.saveData);
+    const us = [...new Set(L.filter(x => x.ok && x.th).map(x => x.th).concat(Object.keys(SOBRES).map(k => url(SOBRES[k].img)), todo ? arte : []))];
+    let i = 0, mal = 0; const sig = () => { if(i >= us.length){ if(todo && !mal) guarda("gremory-tcg-guardado", VER); return; } const u = us[i++];
+      fetch(u, {mode: "cors"}).then(r => { if(!r.ok) mal++; }, () => { mal++; }).then(() => setTimeout(sig, 60)); };
     setTimeout(sig, 2500);
   }
   function prepara(){
