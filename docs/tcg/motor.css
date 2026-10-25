@@ -2253,3 +2253,10 @@
 .gv-carta:not(.arriba){--rotate-x:0deg;--rotate-y:0deg;--pointer-x:50%;--pointer-y:50%;--background-x:50%;--background-y:50%;--pointer-from-center:0;--pointer-from-left:.5;--pointer-from-top:.5;--mx:.5;--my:.5;pointer-events:none}
 .gv-carta:not(.arriba) .carta *{transition:none!important}
 .gv-carta{will-change:transform}
+
+/* textos de carta que no caben: se encogen con --fit (lo calcula juego.js por carta) */
+.carta .mb-txt{gap:calc(1.5cqw * var(--fit,1))}
+.carta .mb-txt .mb-hab b,.carta .mb-txt .mb-atq b{font-size:calc(4.2cqw * var(--fit,1))}
+.carta .mb-txt .mb-hab p,.carta .mb-txt .mb-atq p{font-size:calc(2.3cqw * var(--fit,1));margin-top:calc(.7cqw * var(--fit,1))}
+.carta .mb-txt .mb-atq strong{font-size:calc(5.4cqw * var(--fit,1))}
+.carta .mb-txt .mb-hab{padding:calc(1.3cqw * var(--fit,1)) 2cqw calc(1.4cqw * var(--fit,1))}

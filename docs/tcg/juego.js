@@ -11,6 +11,32 @@
   const save = () => A.save(), miId = () => A.miId(), nombreDe = id => A.nombreDe(id), apiNube = (r, m, c) => A.apiNube(r, m, c),
     nubeBase = () => A.nubeBase(), toast = m => A.toast(m), esc = x => A.esc(x), uid = () => A.uid(), logrosTodos = () => A.logrosTodos(), render = () => A.render();
   const G = window.GTCG, D1 = G.D1, L = D1.LISTA, PAG = 9, NP = Math.ceil(L.length / PAG);
+  /* textos que no caben: si la habilidad y el ataque bajan hasta la fila de debilidad/aguante, se encogen un poco.
+     Se mide una vez por carta y versión, en el propio móvil (las letras del sistema cambian de un aparato a otro);
+     como todo va en cqw, vale para cualquier tamaño de carta. */
+  const FIT = {}, cartaMotor = G.carta;
+  function mideFit(html){
+    const d = document.createElement("div");
+    d.style.cssText = "position:fixed;left:-10000px;top:0;width:360px;visibility:hidden;pointer-events:none;contain:layout";
+    d.innerHTML = html; document.body.appendChild(d);
+    const t = d.querySelector(".mb-txt"), st = d.querySelector(".mb-stats");
+    let f = 1;
+    if(t && st && st.getBoundingClientRect().height){
+      for(let i = 0; i < 12; i++){
+        t.style.setProperty("--fit", f);
+        if(t.getBoundingClientRect().bottom <= st.getBoundingClientRect().top - 3) break;
+        f = +(f - .03).toFixed(2);
+      }
+    }
+    d.remove();
+    return f;
+  }
+  G.carta = function(id, v){
+    const html = cartaMotor.apply(this, arguments), k = id + "|" + v;
+    if(html.indexOf('class="mb-txt"') < 0) return html;
+    if(FIT[k] === undefined) FIT[k] = mideFit(html);
+    return FIT[k] < 1 ? html.replace('class="mb-txt"', 'class="mb-txt" style="--fit:' + FIT[k] + '"') : html;
+  };
   const BIENVENIDA = 3, DIARIOS = 2, SECRETA_ON = false;   /* beta: la 061 aún no sale en los sobres */
   const TAPAS = {
     oceano:     {n:"Océano",     tapa:"#1d4f9c", hoja:"#14203a", tinta:"#9fb8e6"},
