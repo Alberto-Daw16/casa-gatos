@@ -2245,3 +2245,11 @@
 .td-logo{width:80%;z-index:2;filter:drop-shadow(0 0 1px rgba(0,0,0,.95)) drop-shadow(0 3px 8px rgba(0,0,0,.85)) drop-shadow(0 0 16px rgba(255,214,130,.35))}
 .td-logo::before{content:"";position:absolute;left:-12%;right:-12%;top:-55%;bottom:-55%;z-index:-1;border-radius:50%;background:radial-gradient(closest-side,rgba(20,3,8,.72),transparent)}
 .gv-carta.oculta .td-circulo{opacity:.8}
+
+/* la pila sin parpadeo (25/10/2026): las cartas boca arriba van planas (sin giro 3D ni caras ocultas superpuestas)
+   y solo la de encima sigue la luz; las de debajo quedan quietas */
+.gv-carta .gx-voltea.plana{transform:none;transform-style:flat;transition:none}
+.gv-carta .gx-voltea.plana>.gx-cara{transform:none;backface-visibility:visible;-webkit-backface-visibility:visible}
+.gv-carta:not(.arriba){--rotate-x:0deg;--rotate-y:0deg;--pointer-x:50%;--pointer-y:50%;--background-x:50%;--background-y:50%;--pointer-from-center:0;--pointer-from-left:.5;--pointer-from-top:.5;--mx:.5;--my:.5;pointer-events:none}
+.gv-carta:not(.arriba) .carta *{transition:none!important}
+.gv-carta{will-change:transform}
