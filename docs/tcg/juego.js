@@ -315,6 +315,9 @@
      brillando del color de su rareza, y cada toque da la vuelta a una. Con sonido (se puede silenciar).
      Las ilustraciones de la escena (sobres, mesa, gatos) llegan del Worker con estos nombres; si faltan,
      se usan las de las cartas y fondos dibujados. */
+  /* el set: cada cierto tiempo saldrá uno nuevo con su nombre */
+  const SET = {num: 1, nombre: "Home Sweet Home"};
+  const SET_TXT = "Set " + SET.num + " · " + SET.nombre;
   const SOBRES = {
     alberto:  {n:"Alberto",  sub:"Sobre de Alberto",  col:"#4f8dff", col2:"#a8d4ff", arte:["s01-006","gre"], img:"sobre-alberto.webp"},
     cristina: {n:"Cristina", sub:"Sobre de Cristina", col:"#ff5fa2", col2:"#ffc2dc", arte:["s01-012","full"], img:"sobre-cristina.webp"},
@@ -364,8 +367,7 @@
       p.listo = {frente, dorso: dorsoSobre(rev, sellado), rasgado: ras || rasgadoSobre(), color: S.col,
         brilloF: brillo ? brilloSobre(brillo, logo) : null, brilloD: revBr, arrugas, interior, destello, propia: !!propia};
       /* la misma portada para el carrusel (solo si es la de Valeria; la provisional sigue en CSS) */
-      if(propia && frente.toBlob) frente.toBlob(b => { if(!b) return; p.listo.url = URL.createObjectURL(b);
-        if(tab === "sobres" && raiz && raiz.classList.contains("on") && !document.getElementById("tgAbre").classList.contains("on")) pinta(); }, "image/webp", .9);
+      if(propia && frente.toBlob) frente.toBlob(b => { if(!b) return; p.listo.url = URL.createObjectURL(b); if(tab === "sobres") ponPortada(k); }, "image/webp", .9);
       return p.listo;
     }).catch(e => { console.warn("texturas del sobre", e); delete LIENZO[k]; return null; });
     return LIENZO[k] = p;
@@ -428,7 +430,7 @@
     g.save(); g.textAlign = "center";
     if(propia){ const v = g.createLinearGradient(0, 1340, 0, 1640); v.addColorStop(0, "rgba(11,6,16,0)"); v.addColorStop(1, "rgba(11,6,16,.6)"); g.fillStyle = v; g.fillRect(0, 1340, TX, 300); }
     g.font = '700 30px "Space Mono", monospace'; g.fillStyle = S.col2; g.shadowColor = "rgba(0,0,0,.7)"; g.shadowBlur = 8;
-    espaciado(g, S.sub.toUpperCase(), 500, 1420, 9);
+    espaciado(g, SET_TXT.toUpperCase(), 500, 1420, 9);
     g.font = '400 176px "Instrument Serif", Georgia, serif'; g.fillStyle = "#fff"; g.shadowColor = S.col; g.shadowBlur = 34; g.fillText(S.n, 500, 1550);
     g.shadowColor = "rgba(0,0,0,.8)"; g.shadowBlur = 10; g.fillText(S.n, 500, 1550);
     g.shadowBlur = 0; g.fillStyle = mezcla(S.col2, S.col2, 0, .6); g.fillRect(410, 1578, 180, 2);
@@ -537,7 +539,7 @@
     return '<div class="gx-sobre ' + (clase || "") + '" data-sobre="' + k + '" style="--c:' + S.col + ';--c2:' + S.col2 + '">' +
       '<div class="gx-gira"><div class="gx-cuerpo"><div class="gx-arte">' + arteDe(k) + '</div><div class="gx-velo"></div><div class="gx-foil"></div><div class="gx-luz"></div>' +
         '<div class="gx-cab"><i class="gx-logo"></i><b>Gremory</b><span>Trading Card Game · Set 1</span></div>' +
-        '<div class="gx-pie"><span>' + S.sub + '</span><b>' + S.n + '</b><em>5 cartas</em></div><div class="gx-filo"></div></div>' +
+        '<div class="gx-pie"><span>' + SET_TXT + '</span><b>' + S.n + '</b><em>5 cartas</em></div><div class="gx-filo"></div></div>' +
       '<div class="gx-tapa" style="clip-path:' + DI_A + '"><i class="gx-raya"></i></div><div class="gx-cola" style="clip-path:' + DI_B + '"></div></div></div>';
   }
 
@@ -551,16 +553,31 @@
     const motivo = d.pre.length ? d.pre[0].motivo : d.dia ? "Sobres del día" : "";
     return '<div class="gx-tienda" style="--c:' + SOBRES[elegido].col + ';--c2:' + SOBRES[elegido].col2 + '"><div class="gx-cielo"></div>' +
       '<div class="gx-cuenta"><b>' + (d.total ? (d.total === 1 ? "1 sobre" : d.total + " sobres") : "Sin sobres") + '</b><span>' + (d.total ? esc(motivo) : "Mañana te esperan dos más") + '</span></div>' +
-      '<div class="gx-carrusel' + (puede ? "" : " apagado") + '" id="gxCarrusel">' + ORDEN.map((k, i) => { const p = i - i0; return '<button class="gx-elige' + (p ? '' : ' on') + '" data-elige="' + k + '" style="transform:translateX(-50%) translateX(' + (p * 64) + '%) scale(' + (p ? .72 : 1) + ') rotate(' + (p * 4) + 'deg);z-index:' + (3 - Math.abs(p)) + '">' + sobreHTML(k, "", true) + '</button>'; }).join("") + '</div>' +
+      '<div class="gx-carrusel' + (puede ? "" : " apagado") + '" id="gxCarrusel">' + ORDEN.map((k, i) => { const p = i - i0; return '<button class="gx-elige' + (p ? '' : ' on') + '" data-elige="' + k + '" style="' + posCarrusel(p) + '">' + sobreHTML(k, "", true) + '</button>'; }).join("") + '</div>' +
       (d.total ? '' : '<img class="gx-vacio" src="' + ARTE("vacio-sin-sobres") + '" alt="">') +
-      '<div class="gx-nombre-sobre">' + SOBRES[elegido].sub + '</div>' +
+      '<div class="gx-nombre-sobre"><small>Set ' + SET.num + '</small>' + SET.nombre + '</div>' +
       (puede ? '<button class="tg-btn gx-abrir" data-acc="abrir">Abrir</button>'
              : d.total ? '<p class="tg-nota" style="text-align:center">Para abrirlos, activa la sincronización en Ajustes.</p>' : '') +
       '<div class="tg-gana"><div><b>Cómo se consiguen</b></div><div>Dos cada día<span>' + (d.dia ? (d.dia === DIARIOS ? "listos" : "te queda " + d.dia) : "abiertos hoy") + '</span></div>' +
         '<div>Tres de bienvenida<span>al estrenar el Set 1</span></div><div>Uno por cada logro nuevo de la casa<span>para los dos</span></div></div>' +
       '<p class="tg-nota" style="max-width:460px;text-align:center">Cada sobre trae 5 cartas y la última siempre es rara. Los tres traen lo mismo: elige la portada que más te guste.</p></div>';
   }
-  function eligeSobre(k){ elegido = k; guarda("gremory-tcg-sobre", k); pinta(); }
+  const posCarrusel = p => "transform:translateX(-50%) translateX(" + (p * 64) + "%) scale(" + (p ? .72 : 1) + ") rotate(" + (p * 4) + "deg);z-index:" + (3 - Math.abs(p));
+  /* elegir sobre mueve el carrusel sin volver a pintar la pestaña (repintar recargaba las portadas y parpadeaba todo) */
+  function eligeSobre(k){
+    elegido = k; guarda("gremory-tcg-sobre", k);
+    const c = cuerpo && cuerpo.querySelector("#gxCarrusel");
+    if(!c) return pinta();
+    const i0 = ORDEN.indexOf(k), S = SOBRES[k], t = cuerpo.querySelector(".gx-tienda");
+    c.querySelectorAll(".gx-elige").forEach(b => { const p = ORDEN.indexOf(b.dataset.elige) - i0; b.classList.toggle("on", !p); b.style.cssText = posCarrusel(p); });
+    if(t){ t.style.setProperty("--c", S.col); t.style.setProperty("--c2", S.col2); }
+    lienzos(k);
+  }
+  /* cuando llega la portada compuesta de un sobre, se cambia solo ese sobre */
+  function ponPortada(k){
+    const b = cuerpo && cuerpo.querySelector('#gxCarrusel .gx-elige[data-elige="' + k + '"]');
+    if(b) b.innerHTML = sobreHTML(k, "", true);
+  }
   function deslizaCarrusel(){
     const c = cuerpo && cuerpo.querySelector("#gxCarrusel"); if(!c || c._ok) return; c._ok = 1;
     let x0 = null;

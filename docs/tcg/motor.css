@@ -2191,3 +2191,5 @@
 .gx-carta:not(.grande) .gx-nueva{padding:3px 10px 3px 4px}
 .gv-mini .gx-nueva{padding:4px 12px 4px 5px}
 @media (prefers-reduced-motion: reduce){.gv-nubes,.gm-anillo-ext,.gm-runas,.gm-anillo-med,.gm-anillo-int,.gv-sp-rayos{animation:none!important}}
+.gx-nombre-sobre small{display:block;margin-bottom:5px;font:700 10px/1 "Space Mono",monospace;letter-spacing:.26em;text-transform:uppercase;color:var(--c2);text-shadow:none;text-align:center}
+.gx-nombre-sobre{text-align:center}
