@@ -206,13 +206,21 @@
   /* ── imágenes del Worker ── */
   const VACIA = "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==";
   function url(n){ const nb = nubeBase(); return nb ? nb.base + "/img/" + encodeURIComponent(n) + "?k=" + encodeURIComponent(nb.k) : VACIA; }
-  let listo = false, faltanImg = false;
+  let listo = false, faltanImg = false, prep = null;
+  /* miniaturas del binder con el diseño manga (25/10): van al Worker con otro nombre (s01-thm-NNN) para no chocar con la caché de 7 días;
+     si aún no están subidas, se siguen usando las de antes */
+  const TH_M = n => /^s01-th-0([0-5]\d|60)\.webp$/.test(n) && n !== "s01-th-000.webp" ? n.replace("s01-th-", "s01-thm-") : n;
   function prepara(){
     if(listo) return Promise.resolve();
-    G.ponImagenes(url); listo = true;
-    const e = L.find(x => x.ok);
-    if(!nubeBase() || !e) { faltanImg = true; return Promise.resolve(); }
-    return fetch(e.th, {method:"GET"}).then(r => { faltanImg = !r.ok; }).catch(() => { faltanImg = true; });
+    if(prep) return prep;
+    const sigue = man => {
+      G.ponImagenes(man ? n => url(TH_M(n)) : url); listo = true;
+      const e = L.find(x => x.ok);
+      if(!nubeBase() || !e) { faltanImg = true; return; }
+      return fetch(e.th, {method:"GET"}).then(r => { faltanImg = !r.ok; }).catch(() => { faltanImg = true; });
+    };
+    prep = (nubeBase() ? fetch(url("s01-thm-060.webp"), {method:"GET"}).then(r => r.ok, () => false) : Promise.resolve(false)).then(sigue);
+    return prep;
   }
 
   /* ── montaje de la interfaz ── */
