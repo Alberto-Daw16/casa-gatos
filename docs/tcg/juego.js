@@ -760,8 +760,9 @@
   const CIELO = {1:"#3b5bdb", 2:"#3b7bdb", 3:"#6d3bdb", 4:"#c98a1a", 5:"#c2187a", sec:"#b0103a"};
   const GATOS = {"kurama":[21,27], "sukuna":[28,34], "gyukki":[35,41]};
   const gatoDe = c => { const n = num(c); for(const q in GATOS) if(n >= GATOS[q][0] && n <= GATOS[q][1]) return q; return null; };
-  function capasDe(id){
+  function capasDe(id, v){
     const a = D1.ART[id] || {};
+    if(a.gre && a.gre.pj){ const g = v === "G2" && a.gre.v2 ? Object.assign({}, a.gre, a.gre.v2) : a.gre; return {pj: g.pj, fondo: v === "G1" ? g.g1 : g.g2}; }
     for(const k of ["gre", "oro", "firma", "full", "esc", "est"]){ const x = a[k]; if(x && x.pj && x.pj !== VACIA) return {pj: x.pj, fondo: k === "gre" ? x.g2 : x.fondo}; }
     if(a.casa && a.casa !== VACIA) return {fondo: a.casa};
     return null;
@@ -872,7 +873,7 @@
   }
   /* 3. la presentación de la rara: el personaje a pantalla completa, su nombre y las estrellas */
   function splash(cap, x, listo){
-    const t = tierDe(x), sp = cap.querySelector("#gvSplash"), cs = capasDe(x.c), nom = (G.CARTAS[x.c] || {}).n || "", [marca, est] = MARCAS[t];
+    const t = tierDe(x), sp = cap.querySelector("#gvSplash"), cs = capasDe(x.c, x.v), nom = (G.CARTAS[x.c] || {}).n || "", [marca, est] = MARCAS[t];
     cap.style.setProperty("--tier", TIER[t][0]); cap.style.setProperty("--cielo", CIELO[t]);
     cap.classList.add("revela"); if(t >= 5 || t === "sec") cap.classList.add("flash");
     SON.rara(t === "sec" ? 5 : t); vibra(t === "sec" ? [60, 120, 60, 120, 200] : t >= 4 ? [20, 50, 40] : 20);
