@@ -8,7 +8,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>Gremory</title>
-<meta name="build" content="2026-10-25.2">
+<meta name="build" content="2026-10-25.3">
 <!-- El cuadrado de la pantalla de inicio. iOS se guarda el icono por URL y no
      vuelve a pedirlo, así que si se cambia hay que darle un nombre de fichero
      nuevo. El manifest es lo que mira el iPhone moderno; los dos "apple-touch"
@@ -3981,7 +3981,23 @@ function tcgCuenta(pid){
 /* El TCG está en beta y oculto hasta retocarlo todo (24/10/2026).
    Para verlo en un dispositivo, abrir la app con #tcg al final de la dirección. */
 var TCG_ON = false;
-var TCG_VER = TCG_ON || /(^|#)tcg$/.test(location.hash);
+/* En un móvil concreto se puede ver antes de tiempo: abriendo la app una vez con #tcg, o tocando 5 veces
+   el número de versión en Ajustes (para la app instalada en la pantalla de inicio, que no deja poner #tcg). */
+var TCG_VER = TCG_ON || /(^|#)tcg$/.test(location.hash) || (function(){ try { return localStorage.getItem("gremory-tcg-ver") === "1"; } catch(e){ return false; } })();
+if(/(^|#)tcg$/.test(location.hash)) try { localStorage.setItem("gremory-tcg-ver", "1"); } catch(e){}
+(function(){
+  var vn = document.getElementById("verNum"), n = 0, t = 0;
+  if(!vn) return;
+  vn.style.cursor = "pointer";
+  vn.addEventListener("click", function(){
+    var ahora = Date.now(); n = ahora - t < 700 ? n + 1 : 1; t = ahora;
+    if(n < 5) return; n = 0;
+    TCG_VER = !TCG_VER;
+    try { localStorage.setItem("gremory-tcg-ver", TCG_VER ? "1" : "0"); } catch(e){}
+    toast(TCG_VER ? "Gremory TCG visible en este móvil" : "Gremory TCG oculto otra vez");
+    tcgPinta();
+  });
+})();
 function tcgPinta(){
   var t = document.getElementById("tcgTira"); if(!t) return;
   var c = document.getElementById("cardTcg"); if(c) c.style.display = TCG_VER ? "" : "none";
