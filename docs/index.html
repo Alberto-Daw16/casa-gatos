@@ -8,7 +8,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>Gremory</title>
-<meta name="build" content="2026-10-25.19">
+<meta name="build" content="2026-10-25.20">
 <!-- El cuadrado de la pantalla de inicio. iOS se guarda el icono por URL y no
      vuelve a pedirlo, así que si se cambia hay que darle un nombre de fichero
      nuevo. El manifest es lo que mira el iPhone moderno; los dos "apple-touch"
@@ -3988,6 +3988,8 @@ function tcgCuenta(pid){
 }
 /* El TCG está en beta y oculto hasta retocarlo todo (24/10/2026).
    Para verlo en un dispositivo, abrir la app con #tcg al final de la dirección. */
+/* el service worker también guarda en el móvil las ilustraciones del TCG (ver sw.js): se registra siempre */
+try { if("serviceWorker" in navigator) window.addEventListener("load", function(){ navigator.serviceWorker.register("sw.js").catch(function(){}); }); } catch(e){}
 (function(){ function mira(){ var d = document.getElementById("tcgSubirBox"); if(d) d.style.display = /(^|#)subir$/.test(location.hash) ? "" : "none"; } window.addEventListener("hashchange", mira); document.addEventListener("DOMContentLoaded", mira); setTimeout(mira, 0); })();   /* la subida de ilustraciones solo sale con #subir al final de la dirección */
 var TCG_ON = true;   /* 25/10/2026: lanzado para los dos */
 /* En un móvil concreto se puede ver antes de tiempo: abriendo la app una vez con #tcg, o tocando 5 veces

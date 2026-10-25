@@ -250,6 +250,15 @@
   /* miniaturas del binder con el diseño manga (25/10): van al Worker con otro nombre (s01-thm-NNN) para no chocar con la caché de 7 días;
      si aún no están subidas, se siguen usando las de antes */
   const TH_M = n => /^s01-th-0([0-5]\d|60)\.webp$/.test(n) && n !== "s01-th-000.webp" ? n.replace("s01-th-", "s01-thm-") : n;
+  /* con conexión, se piden en segundo plano las 61 miniaturas y las portadas: el service worker las guarda en el móvil
+     y el binder se sigue viendo aunque luego el Worker no conteste */
+  let guardado = false;
+  function guardaTodo(){
+    if(guardado) return; guardado = true;
+    const us = L.filter(x => x.ok && x.th).map(x => x.th).concat(Object.keys(SOBRES).map(k => url(SOBRES[k].img)));
+    let i = 0; const sig = () => { if(i >= us.length) return; const u = us[i++]; fetch(u, {mode: "cors"}).catch(() => {}).then(() => setTimeout(sig, 60)); };
+    setTimeout(sig, 2500);
+  }
   function prepara(){
     if(listo) return Promise.resolve();
     if(prep) return prep;
@@ -261,7 +270,7 @@
     const ctl = window.AbortController ? new AbortController() : null;
     let hecho = false;
     const espera = new Promise(ok => setTimeout(() => { if(hecho) return; if(ctl) ctl.abort(); sinRed = true; ok(); }, 5000));
-    prep = Promise.race([fetch(e.th, {method:"GET", signal: ctl ? ctl.signal : undefined}).then(r => { hecho = true; faltanImg = !r.ok; sinRed = false; }).catch(() => { hecho = true; }), espera]);
+    prep = Promise.race([fetch(e.th, {method:"GET", signal: ctl ? ctl.signal : undefined}).then(r => { hecho = true; faltanImg = !r.ok; sinRed = false; if(r.ok) guardaTodo(); }).catch(() => { hecho = true; }), espera]);
     return prep;
   }
 
