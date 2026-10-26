@@ -1,0 +1,12 @@
+import { pg, b, logs, shot } from './harness.mjs';
+await pg.evaluate(() => { const o = window.requestAnimationFrame; window.__raf = 0; window.requestAnimationFrame = f => o(t => { window.__raf++; f(t); }); });
+const mide = async n => { await pg.waitForTimeout(2500); const r0 = await pg.evaluate(() => window.__raf); await pg.waitForTimeout(2000);
+  const r = await pg.evaluate(r0 => { const an = document.getAnimations().filter(a => a.playState === 'running');
+    const inf = an.filter(a => a.effect && a.effect.getTiming().iterations === Infinity);
+    const por = {}; inf.forEach(a => { const t = a.effect.target; const k = (t ? (t.className && t.className.baseVal !== undefined ? t.className.baseVal : t.className) || t.tagName : '?') + ' ' + (a.animationName || ''); por[k] = (por[k]||0)+1; });
+    return {rafPorSeg: ((window.__raf - r0)/2).toFixed(0), anim: an.length, infinitas: inf.length, top: Object.entries(por).sort((a,b)=>b[1]-a[1]).slice(0,12)}; }, r0);
+  console.log('== '+n, JSON.stringify(r)); };
+await pg.click('#navTcg'); await mide('binder');
+await pg.click('[data-tab="sobres"]'); await mide('sobres');
+const el = await pg.$('[data-elige].on'); await el.click(); await mide('sobre-cerrado');
+await b.close();

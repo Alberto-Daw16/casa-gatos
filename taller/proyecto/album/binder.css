@@ -1,0 +1,101 @@
+/* ══ Binder del álbum: dos hojas de 3×3 con anillas, pasar página y cada uno con su color ══ */
+.bd-wrap{width:min(100%,1120px);display:flex;flex-direction:column;gap:14px;align-items:stretch}
+.bd-top{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between}
+.bd-quien{display:flex;gap:6px;background:#121520;border:1px solid var(--line);border-radius:999px;padding:4px}
+.bd-quien button{border:0;background:transparent;color:var(--dim);font:600 13px/1 -apple-system,system-ui,sans-serif;padding:9px 16px;border-radius:999px;cursor:pointer}
+.bd-quien button.on{background:var(--tapa);color:#fff;box-shadow:0 2px 10px rgba(0,0,0,.35)}
+.bd-acab{display:flex;gap:7px;align-items:center}
+.bd-acab span{font:700 9.5px/1 "Space Mono",monospace;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);margin-right:4px}
+.bd-acab button{width:22px;height:22px;border-radius:50%;border:2px solid transparent;cursor:pointer;background:var(--c);box-shadow:inset 0 0 0 1px rgba(255,255,255,.18)}
+.bd-acab button.on{border-color:#fff}
+.bd-nav{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:center}
+.bd-nav button,.bd-nav select{border:1px solid var(--line);background:#141823;color:var(--txt);padding:9px 13px;font:600 12.5px/1 -apple-system,system-ui,sans-serif;border-radius:999px;cursor:pointer}
+.bd-nav button:disabled{opacity:.35;cursor:default}
+.bd-nav b{font:700 11px/1 "Space Mono",monospace;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);min-width:150px;text-align:center}
+.bd-nav label{display:flex;gap:6px;align-items:center;font:600 12px/1 -apple-system,system-ui,sans-serif;color:var(--dim);cursor:pointer}
+
+/* el binder: tapa, dos hojas y el lomo con anillas */
+.bd{position:relative;display:grid;grid-template-columns:1fr 34px 1fr;padding:14px;border-radius:18px;perspective:2400px;
+  background:linear-gradient(160deg,color-mix(in srgb,var(--tapa) 82%,#fff 18%),var(--tapa) 45%,color-mix(in srgb,var(--tapa) 70%,#000 30%));
+  box-shadow:0 30px 60px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,255,255,.25),inset 0 0 0 1px rgba(0,0,0,.25)}
+.bd::before{content:"";position:absolute;inset:6px;border-radius:13px;border:1.5px dashed rgba(255,255,255,.22);pointer-events:none}
+.bd-lomo{position:relative;display:flex;flex-direction:column;justify-content:space-around;align-items:center;
+  background:linear-gradient(90deg,rgba(0,0,0,.35),rgba(255,255,255,.08) 50%,rgba(0,0,0,.35));border-radius:4px;margin:0 2px}
+.bd-anilla{width:44px;height:18px;border:3px solid #cfd3dc;border-radius:50%;box-shadow:0 2px 3px rgba(0,0,0,.5),inset 0 1px 1px rgba(255,255,255,.6);background:transparent;position:relative;z-index:2}
+.bd-hoja{position:relative;background:var(--hoja);border-radius:10px;padding:12px 12px 14px;display:flex;flex-direction:column;gap:9px;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.06),inset 0 10px 30px rgba(0,0,0,.18);min-width:0}
+.bd-hoja.izq{border-top-right-radius:4px;border-bottom-right-radius:4px}
+.bd-hoja.der{border-top-left-radius:4px;border-bottom-left-radius:4px}
+.bd-hoja.vacia .bd-grid{visibility:hidden}
+.bd-cab{display:flex;justify-content:space-between;font:700 10px/1 "Space Mono",monospace;letter-spacing:.16em;text-transform:uppercase;color:var(--tinta)}
+.bd-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}
+.bd-esquina{position:absolute;right:0;bottom:0;width:34px;height:34px;border-bottom-right-radius:10px;cursor:pointer;
+  background:linear-gradient(135deg,transparent 50%,rgba(255,255,255,.55) 50%,rgba(0,0,0,.18) 100%);filter:drop-shadow(-2px -2px 3px rgba(0,0,0,.25));transition:width .2s,height .2s}
+.bd-esquina:hover{width:48px;height:48px}
+.bd-esquina.ant{right:auto;left:0;border-bottom-right-radius:0;border-bottom-left-radius:10px;
+  background:linear-gradient(225deg,transparent 50%,rgba(255,255,255,.55) 50%,rgba(0,0,0,.18) 100%)}
+
+/* cada bolsillo: funda de plástico con brillo */
+.bd-bol{position:relative;aspect-ratio:260/368;border-radius:7px;padding:4px;cursor:pointer;
+  background:linear-gradient(180deg,rgba(255,255,255,.16),rgba(255,255,255,.05));box-shadow:inset 0 0 0 1px rgba(255,255,255,.22),0 1px 2px rgba(0,0,0,.25);
+  transition:transform .18s ease}
+.bd-bol:hover{transform:translateY(-3px)}
+.bd-bol img{width:100%;height:100%;object-fit:cover;border-radius:5px;display:block}
+.bd-bol::after{content:"";position:absolute;inset:0;border-radius:7px;pointer-events:none;
+  background:linear-gradient(115deg,rgba(255,255,255,0) 30%,rgba(255,255,255,.22) 45%,rgba(255,255,255,0) 60%);background-size:250% 100%;background-position:100% 0;transition:background-position .6s}
+.bd-bol:hover::after{background-position:0 0}
+.bd-num{position:absolute;left:8px;bottom:8px;font:700 10px/1 "Space Mono",monospace;color:#fff;background:rgba(10,12,20,.82);padding:4px 6px;border-radius:5px;letter-spacing:.06em}
+.bd-bol.falta{cursor:default}
+.bd-bol.falta:hover{transform:none}
+.bd-bol.falta .bd-dorso{width:100%;height:100%;border-radius:5px;opacity:.28;filter:grayscale(1)}
+.bd-bol.falta .bd-num{background:rgba(10,12,20,.5);color:rgba(255,255,255,.7)}
+.bd-bol.oculta img{filter:grayscale(1) brightness(1.15) contrast(.8);opacity:.45}
+
+/* el reverso de las cartas Gremory */
+.bd-dorso{position:relative;background:radial-gradient(circle at 50% 45%,#1d2a4a,#0b0f1c 70%);overflow:hidden}
+.bd-dorso::before{content:"";position:absolute;inset:6%;border-radius:4%;border:1.5px solid rgba(201,242,74,.45);
+  background:repeating-linear-gradient(45deg,rgba(201,242,74,.05) 0 6px,transparent 6px 12px)}
+.bd-dorso::after{content:"";position:absolute;left:50%;top:50%;width:46%;aspect-ratio:1;transform:translate(-50%,-50%);background:#c9f24a;
+  -webkit-mask:var(--logoG) center/contain no-repeat;mask:var(--logoG) center/contain no-repeat;filter:drop-shadow(0 0 12px rgba(201,242,74,.6))}
+
+/* pasar página: una hoja que gira sobre el lomo */
+.bd-hojaGira{position:absolute;top:14px;bottom:14px;transform-style:preserve-3d;z-index:5;pointer-events:none;transition:transform .75s cubic-bezier(.45,.05,.25,1)}
+.bd-hojaGira>.bd-hoja{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden}
+.bd-hojaGira>.bd-hoja.trasera{transform:rotateY(180deg)}
+.bd-hojaGira::after{content:"";position:absolute;inset:0;pointer-events:none;border-radius:10px;background:linear-gradient(90deg,rgba(0,0,0,.25),transparent 30%);opacity:0;transition:opacity .75s}
+
+/* el visor: la carta en grande, entra boca abajo y se da la vuelta */
+#visor{position:fixed;inset:0;z-index:50;display:none;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:calc(env(safe-area-inset-top) + 18px) 16px calc(env(safe-area-inset-bottom) + 18px);
+  background:rgba(8,6,12,.72);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);overflow:auto}
+#visor.on{display:flex}
+#visor .escena{position:relative}
+#vCerrar{position:fixed;top:calc(env(safe-area-inset-top) + 14px);right:16px;width:40px;height:40px;border-radius:50%;border:0;background:#fff;color:#111;cursor:pointer;display:grid;place-items:center;z-index:51}
+#vPrev,#vSig{position:fixed;top:50%;width:44px;height:44px;margin-top:-22px;border-radius:50%;border:1px solid var(--line);background:#141823;color:var(--txt);cursor:pointer;display:grid;place-items:center;z-index:51}
+#vPrev{left:14px}#vSig{right:14px}
+.vDorso{position:absolute;left:50%;top:6px;width:min(80vw,360px);aspect-ratio:720/1019;transform:translateX(-50%);border-radius:3.7%/2.6%;z-index:3;pointer-events:none;box-shadow:0 20px 50px rgba(0,0,0,.6)}
+#visor.entra .vDorso{animation:vDorso .32s ease-in forwards}
+#visor.entra #sitio{animation:vCara .38s .3s cubic-bezier(.2,.7,.3,1.2) both}
+@keyframes vDorso{0%{transform:translateX(-50%) scale(.82) rotateY(0)}100%{transform:translateX(-50%) scale(.95) rotateY(90deg);opacity:1}}
+@keyframes vCara{0%{transform:scale(.95) rotateY(-90deg)}100%{transform:none}}
+#visor .vDorso{opacity:0}
+#visor.entra .vDorso{opacity:1}
+#visor.secreta{background:radial-gradient(70% 60% at 50% 45%,rgba(96,8,34,.9),rgba(8,2,5,.95))}
+#visor.entra.secreta .vDorso{animation:vLate .86s 2 ease-in-out,vDorso .42s 1.72s ease-in forwards;box-shadow:0 0 60px 14px rgba(255,90,140,.75)}
+#visor.entra.secreta #sitio{animation:vCara .6s 2.08s cubic-bezier(.2,.7,.3,1.2) both}
+@keyframes vLate{0%,100%{transform:translateX(-50%) scale(.82)}14%{transform:translateX(-50%) scale(.88)}28%{transform:translateX(-50%) scale(.82)}42%{transform:translateX(-50%) scale(.86)}70%{transform:translateX(-50%) scale(.82)}}
+#sitio{transition:transform .28s ease-in}
+#sitio.gira{transform:rotateY(90deg)}
+#vGira{border:1px solid rgba(255,200,215,.6);background:rgba(90,8,30,.75);color:#fff;padding:10px 18px;border-radius:999px;font:600 13px/1 -apple-system,system-ui,sans-serif;cursor:pointer}
+#inm{z-index:60}
+.tira{display:none!important}
+
+@media (max-width:760px){
+  .bd{grid-template-columns:1fr;padding:10px}
+  .bd-lomo{position:absolute;left:-4px;top:30px;bottom:30px;width:18px;margin:0;background:none}
+  .bd-anilla{width:22px;height:12px;border-width:2.5px}
+  .bd-hoja.der,.bd-lomo+.bd-hoja.der{display:none}
+  .bd-hoja.izq{border-radius:10px;margin-left:10px}
+  .bd-grid{gap:6px}
+  .bd-num{left:6px;bottom:6px;font-size:9px;padding:3px 5px}
+  #vPrev,#vSig{top:auto;bottom:calc(env(safe-area-inset-bottom) + 14px)}
+}

@@ -1,0 +1,12 @@
+import { pg, b, logs, shot } from './harness.mjs';
+import fs from 'fs';
+const cdp = await pg.context().newCDPSession(pg);
+await pg.click('#navTcg'); await pg.waitForTimeout(2500);
+await pg.click('[data-tab="sobres"]'); await pg.waitForTimeout(5000);
+let n = 0; const t0 = Date.now(); fs.rmSync('shots/cast', {recursive:true, force:true}); fs.mkdirSync('shots/cast');
+cdp.on('Page.screencastFrame', async f => { n++; fs.writeFileSync(`shots/cast/${String(n).padStart(3,'0')}-${Date.now()-t0}.jpg`, Buffer.from(f.data,'base64')); await cdp.send('Page.screencastFrameAck',{sessionId:f.sessionId}).catch(()=>{}); });
+await cdp.send('Page.startScreencast', {format:'jpeg', quality:50, maxWidth:300, everyNthFrame:1});
+await pg.waitForTimeout(300);
+const el = await pg.$('[data-elige].on'); await el.click(); console.log('click', Date.now()-t0);
+await pg.waitForTimeout(8000);
+await cdp.send('Page.stopScreencast'); console.log('frames', n); await b.close();

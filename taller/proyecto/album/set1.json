@@ -1,0 +1,416 @@
+{
+"001": {
+"n": "001",
+"quien": "alberto",
+"tipo": "Estándar",
+"esc": "Lanza la Poké Ball, Absol saltando, en una orilla con el agua salpicando",
+"outfit": "camiseta de manga corta blanca y vaqueros"
+},
+"002": {
+"n": "002",
+"quien": "alberto",
+"tipo": "Grabada",
+"esc": "De noche en la Ciudad de las Artes y las Ciencias de Valencia, junto al agua con Absol; Alberto35–45%alto",
+"outfit": "sudadera con capucha gris y pantalón negro"
+},
+"003": {
+"n": "003",
+"quien": "alberto",
+"tipo": "Escapada",
+"esc": "Alarga la mano hacia cámara, saliendo de una cortina de agua",
+"outfit": "camiseta de manga larga negra"
+},
+"004": {
+"n": "004",
+"quien": "alberto",
+"tipo": "Firmada",
+"esc": "Por encima del hombro, bajo la lluvia, con reflejos azules",
+"outfit": "chaqueta vaquera sobre camiseta blanca"
+},
+"005": {
+"n": "005",
+"quien": "alberto",
+"tipo": "Oro",
+"esc": "Contrapicado sobre una roca, con una ola enorme detrás",
+"outfit": "cazadora bomber azul marino y pantalón negro"
+},
+"006": {
+"n": "006",
+"quien": "alberto",
+"tipo": "Gremory",
+"esc": "Contraluz épico; la obsidiana con agua negra y vetas doradas, la cósmica con un océano de estrellas",
+"outfit": "jersey azul marino y pantalón gris oscuro (el de la prueba)"
+},
+"007": {
+"n": "007",
+"quien": "alberto",
+"tipo": "Estándar",
+"esc": "Programando de noche con el ordenador. En la mesa, como figuritas chibi, sus tres bots: Shiro, Valeria y Aika",
+"outfit": "sudadera cómoda y pantalón de chándal"
+},
+"008": {
+"n": "008",
+"quien": "alberto",
+"tipo": "Estándar",
+"esc": "Comiéndose un chivito",
+"outfit": "camiseta de manga corta verde y vaqueros"
+},
+"009": {
+"n": "009",
+"quien": "alberto",
+"tipo": "Estándar",
+"esc": "Abriendo sobres de cartas en la mesa, con las cartas desplegadas",
+"outfit": "camiseta de manga larga a rayas"
+},
+"010": {
+"n": "010",
+"quien": "alberto",
+"tipo": "Estándar",
+"esc": "En una hamburguesería comiéndose una Big Mac",
+"outfit": "camiseta gris y chaqueta ligera"
+},
+"011": {
+"n": "011",
+"quien": "cristina",
+"tipo": "Estándar",
+"esc": "En el sofá con una manta y Mimikyu acurrucado al lado",
+"outfit": "jersey ancho rosa palo y leggings"
+},
+"012": {
+"n": "012",
+"quien": "cristina",
+"tipo": "Grabada",
+"esc": "Tumbada entre flores y pétalos rosas, vista desde arriba, con luces de hada flotando",
+"outfit": "vestido largo claro"
+},
+"013": {
+"n": "013",
+"quien": "cristina",
+"tipo": "Escapada",
+"esc": "Se asoma apoyada en el borde, sonriendo",
+"outfit": "camiseta de manga corta blanca"
+},
+"014": {
+"n": "014",
+"quien": "cristina",
+"tipo": "Firmada",
+"esc": "Busto de tres cuartos, blusa crema y jardín con pétalos; arte continuo hasta abajo",
+"outfit": "blusa de color crema"
+},
+"015": {
+"n": "015",
+"quien": "cristina",
+"tipo": "Oro",
+"esc": "Sesión de moda de cuerpo entero",
+"outfit": "conjunto arreglado de salir"
+},
+"016": {
+"n": "016",
+"quien": "cristina",
+"tipo": "Gremory",
+"esc": "Contrapicado épico: en la obsidiana, rosas negras con vetas doradas; en la cósmica, una nebulosa rosa",
+"outfit": "vestido largo de noche"
+},
+"017": {
+"n": "017",
+"quien": "cristina",
+"tipo": "Estándar",
+"esc": "En Madrid, comiéndose un bocata de calamares, con la Plaza Mayor de fondo",
+"outfit": "abrigo camel y bufanda"
+},
+"018": {
+"n": "018",
+"quien": "cristina",
+"tipo": "Estándar",
+"esc": "En una tienda Kiwoko, eligiendo juguetes y comida para los gatos, con la cesta llena",
+"outfit": "sudadera y vaqueros"
+},
+"019": {
+"n": "019",
+"quien": "cristina",
+"tipo": "Estándar",
+"esc": "Paseando por la Gran Vía de Madrid de noche, con las luces de los carteles",
+"outfit": "chaqueta de cuero y vaqueros"
+},
+"020": {
+"n": "020",
+"quien": "cristina",
+"tipo": "Estándar",
+"esc": "Tumbada en el suelo jugando con los tres gatos con una caña de plumas",
+"outfit": "camiseta de manga corta rosa y pantalón de estar por casa"
+},
+"021": {
+"n": "021",
+"quien": "kurama",
+"tipo": "Estándar",
+"esc": "Salta a por algo",
+"outfit": ""
+},
+"022": {
+"n": "022",
+"quien": "kurama",
+"tipo": "Grabada",
+"esc": "Dormido hecho una bolita, completamente enroscado",
+"outfit": ""
+},
+"023": {
+"n": "023",
+"quien": "kurama",
+"tipo": "Escapada",
+"esc": "Asoma con las patas por el borde",
+"outfit": ""
+},
+"024": {
+"n": "024",
+"quien": "kurama",
+"tipo": "Firmada",
+"esc": "Primer plano de los ojos",
+"outfit": ""
+},
+"025": {
+"n": "025",
+"quien": "kurama",
+"tipo": "Oro",
+"esc": "Sobre una roca con llamas",
+"outfit": ""
+},
+"026": {
+"n": "026",
+"quien": "kurama",
+"tipo": "Gremory",
+"esc": "Silueta en llamas",
+"outfit": ""
+},
+"027": {
+"n": "027",
+"quien": "kurama",
+"tipo": "Estándar",
+"esc": "Completamente tirado, despatarrado como duerme él: cero elegancia, puro gato naranja",
+"outfit": ""
+},
+"028": {
+"n": "028",
+"quien": "sukuna",
+"tipo": "Estándar",
+"esc": "Durmiendo raro, en una postura imposible",
+"outfit": ""
+},
+"029": {
+"n": "029",
+"quien": "sukuna",
+"tipo": "Grabada",
+"esc": "Debajo del ordenador, iluminado por la luz de la pantalla en la penumbra",
+"outfit": ""
+},
+"030": {
+"n": "030",
+"quien": "sukuna",
+"tipo": "Escapada",
+"esc": "De pie sobre las patas traseras intentando llegar a la encimera: el borde de arriba del cuadro hace de encimera y por encima solo asoman las patas delanteras y las orejas con pinceles",
+"outfit": ""
+},
+"031": {
+"n": "031",
+"quien": "sukuna",
+"tipo": "Firmada",
+"esc": "Mirando hacia arriba, a cámara, mientras maúlla",
+"outfit": ""
+},
+"032": {
+"n": "032",
+"quien": "sukuna",
+"tipo": "Oro",
+"esc": "Con una sartén en la cabeza, como si fuera una corona: pose de rey muy serio",
+"outfit": ""
+},
+"033": {
+"n": "033",
+"quien": "sukuna",
+"tipo": "Gremory",
+"esc": "Durmiendo panza arriba (en la cósmica, flotando dormido entre las estrellas; en la obsidiana, sobre un trono de sombra)",
+"outfit": ""
+},
+"034": {
+"n": "034",
+"quien": "sukuna",
+"tipo": "Estándar",
+"esc": "Close-up tumbado entre sábanas, cabeza apoyada y pata delantera hacia cámara (foto nueva)",
+"outfit": ""
+},
+"035": {
+"n": "035",
+"quien": "gyukki",
+"tipo": "Estándar",
+"esc": "Mira por encima del hombro",
+"outfit": ""
+},
+"036": {
+"n": "036",
+"quien": "gyukki",
+"tipo": "Grabada",
+"esc": "Dormida junto a la ventana, bajo un cielo de noche violeta",
+"outfit": ""
+},
+"037": {
+"n": "037",
+"quien": "gyukki",
+"tipo": "Escapada",
+"esc": "Salta hacia cámara",
+"outfit": ""
+},
+"038": {
+"n": "038",
+"quien": "gyukki",
+"tipo": "Firmada",
+"esc": "Panza arriba vista desde arriba",
+"outfit": ""
+},
+"039": {
+"n": "039",
+"quien": "gyukki",
+"tipo": "Oro",
+"esc": "Zarpazo de cristal",
+"outfit": ""
+},
+"040": {
+"n": "040",
+"quien": "gyukki",
+"tipo": "Gremory",
+"esc": "Contrapicado entre cristales",
+"outfit": ""
+},
+"041": {
+"n": "041",
+"quien": "gyukki",
+"tipo": "Estándar",
+"esc": "Comiendo de su comedero, totalmente concentrada (con el bebedero al lado)",
+"outfit": ""
+},
+"042": {
+"n": "042",
+"quien": "cristina + kurama",
+"tipo": "Estándar",
+"esc": "Cristina con Kurama",
+"outfit": "de diario, distinto de sus otras cartas"
+},
+"043": {
+"n": "043",
+"quien": "cristina + gyukki",
+"tipo": "Estándar",
+"esc": "Cristina con Gyukki",
+"outfit": "de diario, distinto de sus otras cartas"
+},
+"044": {
+"n": "044",
+"quien": "kurama + gyukki",
+"tipo": "Estándar",
+"esc": "Dormidos juntos hechos una bola",
+"outfit": ""
+},
+"045": {
+"n": "045",
+"quien": "kurama + sukuna + gyukki",
+"tipo": "Estándar",
+"esc": "Los tres sentados en fila, como en una foto de clase: Sukuna enorme, Kurama y Gyukki a su lado",
+"outfit": ""
+},
+"046": {
+"n": "046",
+"quien": "los cinco",
+"tipo": "Estándar",
+"esc": "Foto de familia en el sofá, con los tres gatos encima",
+"outfit": ""
+},
+"047": {
+"n": "047",
+"quien": "kurama + sukuna",
+"tipo": "Estándar",
+"esc": "Kurama arriba en la encimera, tan tranquilo, y Sukuna abajo de pie intentando llegar sin conseguirlo",
+"outfit": ""
+},
+"048": {
+"n": "048",
+"quien": "alberto + sukuna",
+"tipo": "Estándar",
+"esc": "Alberto con Sukuna en brazos: que se vea lo enorme que es un Maine Coon al lado de una persona",
+"outfit": ""
+},
+"049": {
+"n": "049",
+"casa": true,
+"que": "El arenero",
+"esc": "El arenero de los gatos, limpio y reluciente como si fuera un altar, con un par de huellas en la arena"
+},
+"050": {
+"n": "050",
+"casa": true,
+"que": "La malta",
+"esc": "El tubo de malta de los gatos, con una gota en la punta, presentado como un objeto mágico"
+},
+"051": {
+"n": "051",
+"casa": true,
+"que": "El cepillo",
+"esc": "El cepillo de los gatos, lleno de pelo naranja, crema y de Maine Coon"
+},
+"052": {
+"n": "052",
+"casa": true,
+"que": "El sofá",
+"esc": "El sofá de casa, con mantas revueltas, cojines y las marcas de los gatos"
+},
+"053": {
+"n": "053",
+"casa": true,
+"que": "Manises",
+"esc": "Manises como sitio: sus calles con la cerámica típica y un avión pasando por encima, que el aeropuerto está al lado"
+},
+"054": {
+"n": "054",
+"casa": true,
+"que": "La sartén",
+"esc": "La corona de Sukuna, sobre un cojín como si fuera una joya"
+},
+"055": {
+"n": "055",
+"casa": true,
+"que": "El rascador",
+"esc": "Altísimo, como un trono, con pelos de Maine Coon por todas partes"
+},
+"056": {
+"n": "056",
+"casa": true,
+"que": "El comedero",
+"esc": "Con su bebedero al lado, iluminado como un santuario"
+},
+"057": {
+"n": "057",
+"casa": true,
+"que": "La encimera",
+"esc": "Territorio prohibido: una pata **naranja** asomando por el borde, la de Kurama, que es el que de verdad salta a la encimera"
+},
+"058": {
+"n": "058",
+"casa": true,
+"que": "El escritorio",
+"esc": "El ordenador encendido de noche, con las figuritas de los bots"
+},
+"059": {
+"n": "059",
+"casa": true,
+"que": "La caja de sobres",
+"esc": "Una caja de sobres de cartas abierta, con cartas brillando"
+},
+"060": {
+"n": "060",
+"casa": true,
+"que": "Madrid",
+"esc": "Madrid como sitio: la Gran Vía o la Puerta del Sol con su ambiente"
+},
+"061": {
+"n": "061",
+"quien": "alberto + cristina",
+"tipo": "Secreta",
+"esc": "Love of My Life, sobre su foto juntos"
+}
+}

@@ -1,0 +1,1103 @@
+/* Gremory TCG · el juego dentro de la app: binder de cada uno, sobres y cambios entre vosotros.
+   Usa lo de index.html a través de window.GAPP: S, save, miId, nombreDe, apiNube, nubeBase, toast, esc, logrosTodos.
+   Datos (se sincronizan con lo demás):
+     A.S.tcgCartas  [{id, c:"s01-001", v:"R", d:persona, t, o:"sobre"|"cambio"}]   cada copia de una carta
+     A.S.tcgSobres  [{id, d, tipo:"dia"|"premio", motivo, f, abierto, t}]            sobres ganados y abiertos
+     A.S.tcgCambios [{id, de, para, doy, pido, estado, t, f}]                         cambios propuestos
+     A.S.tcgBase    {f, logros:[...]}  logros que ya teníais al estrenar el juego (no dan sobre) */
+(function(){
+  /* lo de la app (index.html va dentro de una función: lo comparte por window.GAPP) */
+  const A = window.GAPP;
+  const save = () => A.save(), miId = () => A.miId(), nombreDe = id => A.nombreDe(id), apiNube = (r, m, c) => A.apiNube(r, m, c),
+    nubeBase = () => A.nubeBase(), toast = m => A.toast(m), esc = x => A.esc(x), uid = () => A.uid(), logrosTodos = () => A.logrosTodos(), render = () => A.render();
+  const G = window.GTCG, D1 = G.D1, L = D1.LISTA, PAG = 9, NP = Math.ceil(L.length / PAG);
+  /* textos que no caben: si la habilidad y el ataque bajan hasta la fila de debilidad/aguante, se encogen un poco.
+     Se mide una vez por carta y versión, en el propio móvil (las letras del sistema cambian de un aparato a otro);
+     como todo va en cqw, vale para cualquier tamaño de carta. */
+  const FIT = {}, cartaMotor = G.carta;
+  function mideFit(html){
+    const d = document.createElement("div");
+    d.style.cssText = "position:fixed;left:-10000px;top:0;width:360px;visibility:hidden;pointer-events:none;contain:layout";
+    d.innerHTML = html; document.body.appendChild(d);
+    const t = d.querySelector(".mb-txt"), st = d.querySelector(".mb-stats");
+    let f = 1;
+    if(t && st && st.getBoundingClientRect().height){
+      for(let i = 0; i < 12; i++){
+        t.style.setProperty("--fit", f);
+        if(t.getBoundingClientRect().bottom <= st.getBoundingClientRect().top - 3) break;
+        f = +(f - .03).toFixed(2);
+      }
+    }
+    d.remove();
+    return f;
+  }
+  G.carta = function(id, v){
+    const html = cartaMotor.apply(this, arguments), k = id + "|" + v;
+    if(html.indexOf('class="mb-txt"') < 0) return html;
+    if(FIT[k] === undefined) FIT[k] = mideFit(html);
+    return FIT[k] < 1 ? html.replace('class="mb-txt"', 'class="mb-txt" style="--fit:' + FIT[k] + '"') : html;
+  };
+  const BIENVENIDA = 3, DIARIOS = 2, SECRETA_ON = false;   /* la 061 nunca sale al azar en los sobres */
+  /* la 061 «Love of My Life»: le llega a Cristina (solo a ella) en un sobre especial cuando completa las 60 del set,
+     en cualquier versión y sin necesitar ninguna 1ª edición (decisión de Alberto, 25/10/2026). No se cambia. */
+  const SEC_ID = "s01-061", SEC_V = "SR";
+  const esCris = p => /^cris/i.test(String(p && p.name || "").trim());
+  const setCompleto = pid => { const col = coleccion(pid); return L.filter(e => e.ok && e.n !== "061").every(e => col[e.id]); };
+  const tieneSec = pid => de(pid).some(x => x.c === SEC_ID);
+  /* la dedicatoria no está en el repo: es un archivo privado del Worker (s01-061-dedi.json, se sube como las imágenes) */
+  let DEDI = null, dediP = null;
+  const cargaDedi = () => DEDI ? Promise.resolve(DEDI) : dediP || (dediP = fetch(url("s01-061-dedi.json")).then(r => r.ok ? r.json() : null).then(j => { DEDI = j && Array.isArray(j.texto) ? j : null; dediP = null; return DEDI; }).catch(() => { dediP = null; return null; }));
+  /* la vista inmersiva de la 061 (tcg/inmersiva.js, la del álbum): capas, pétalos y las polaroids, todo privado en el Worker */
+  let inmP = null;
+  const cargaInm = () => window.GTCG_INM ? Promise.resolve(window.GTCG_INM) : inmP || (inmP = new Promise((ok, ko) => {
+    const sc = document.createElement("script"); sc.src = "tcg/inmersiva.js" + (VER ? "?v=" + encodeURIComponent(VER) : ""); sc.onload = () => ok(window.GTCG_INM); sc.onerror = () => { inmP = null; ko(); }; document.head.appendChild(sc); }));
+  function entraSec(){
+    Promise.all([cargaInm(), cargaDedi()]).then(([I, D]) => {
+      if(!I || !I.webgl2()) return toast("Este móvil no puede abrir la vista inmersiva");
+      if(!I.hay(SEC_ID)) I.pon(SEC_ID, {dos: true, capas: true, w: 1600, h: 2400, petalos: url("s01-061-inm-petalos.webp"),
+        fondo: url("s01-061-inm-fondo.webp"), fondo_d: url("s01-061-inm-fondo-d.webp"), pj: url("s01-061-inm-pj.webp"), pj_d: url("s01-061-inm-pj-d.webp"),
+        recuerdos: (D && D.recuerdos || []).map(r => ({src: url(r.f), pie: esc(r.pie), w: r.w, h: r.h}))});
+      const z = document.querySelector("#tgVisor .tg-esc"), k = z && z.querySelector(".carta:not(.sec-dorso)");
+      if(!k) return toast("Dale la vuelta a la carta para entrar");
+      I.entra(SEC_ID, SEC_V, k, z);
+    }).catch(() => toast("No he podido abrir la vista inmersiva. ¿Hay conexión?"));
+  }
+  const dorsoSec = () => { const h = G.cartaSecretaDorso(); if(!DEDI) return h;
+    return h.replace('<div class="sec-dedi"></div>', '<div class="sec-dedi">' + DEDI.texto.map(t => '<p>' + esc(t) + '</p>').join("") + '</div>').replace(/<div class="sec-para">Para [^<]*<\/div>/, '<div class="sec-para">Para ' + esc(DEDI.para || "Cristina") + '</div>'); };
+  const TAPAS = {
+    oceano:     {n:"Océano",     tapa:"#1d4f9c", hoja:"#14203a", tinta:"#9fb8e6"},
+    rosa:       {n:"Rosa",       tapa:"#c4537e", hoja:"#28141e", tinta:"#f0a9c4"},
+    medianoche: {n:"Medianoche", tapa:"#2a2e45", hoja:"#11131c", tinta:"#8f94a2"},
+    perla:      {n:"Perla",      tapa:"#cfc9de", hoja:"#e9e6f0", tinta:"#6b6880"},
+    lima:       {n:"Gremory",    tapa:"#55701a", hoja:"#141a0b", tinta:"#c9f24a"},
+    granate:    {n:"Granate",    tapa:"#7a1f2b", hoja:"#1c0f12", tinta:"#e7a3ad"}
+  };
+  const lee = (k, d) => { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch(e){ return d; } };
+  const guarda = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch(e){} };
+  const ahora = () => new Date().toISOString();
+  const hoy = () => { const d = new Date(); return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); };
+  /* iconos (de Valeria, RUN-ASSETS-TCG.md §5.1 y §4.4): trazo 1,75, currentColor */
+  const ICO = {
+    x: '<svg width="18" height="18" aria-hidden="true" viewBox="0 0 24 24"><path d="M5 5 L19 19 M19 5 L5 19" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    izq: '<svg width="18" height="18" aria-hidden="true" viewBox="0 0 24 24"><path d="M15 4 L7 12 L15 20" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    der: '<svg width="18" height="18" aria-hidden="true" viewBox="0 0 24 24"><path d="M9 4 L17 12 L9 20" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    cambio: '<svg width="18" height="18" aria-hidden="true" viewBox="0 0 24 24"><path d="M8 3 L15 3 L15 14 L8 14 Z M12 10 L19 10 L19 21 L12 21 M4 13 Q1 6 5 4 L6 7 M20 11 Q23 18 20 21 L18 18" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    sonido: '<svg width="18" height="18" aria-hidden="true" viewBox="0 0 24 24"><path d="M3 9 L7 9 L12 5 L12 19 L7 15 L3 15 Z M16 8 Q21 12 16 16 M18 5 Q25 12 18 19" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    silencio: '<svg width="18" height="18" aria-hidden="true" viewBox="0 0 24 24"><path d="M3 9 L7 9 L12 5 L12 19 L7 15 L3 15 Z M16 9 L21 15 M21 9 L16 15" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    sobre: '<svg width="18" height="18" aria-hidden="true" viewBox="0 0 24 24"><path d="M5 4 L7 6 L9 4 L11 6 L13 4 L15 6 L17 4 L19 5 L19 20 L5 20 Z M5 8 L19 8 M8 17 L16 17" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    carpeta: '<svg width="18" height="18" aria-hidden="true" viewBox="0 0 24 24"><path d="M3 5 Q8 3 12 6 Q16 3 21 5 L21 20 Q16 18 12 21 Q8 18 3 20 Z M12 6 L12 21 M6 8 L9 8 L9 15 L6 15 Z M15 8 L18 8 L18 15 L15 15 Z" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/><g fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><path d="M10.5 8 L13.5 8 M10.5 12 L13.5 12 M10.5 16 L13.5 16"/></g></svg>',
+    repetida: '<svg width="18" height="18" aria-hidden="true" viewBox="0 0 24 24"><path d="M8 7 L20 7 L20 21 L8 21 Z M16 7 L16 3 L4 3 L4 17 L8 17" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    reloj: '<svg width="18" height="18" aria-hidden="true" viewBox="0 0 24 24"><path d="M5 3 L19 3 M5 21 L19 21 M7 3 L7 7 Q7 10 12 12 Q17 14 17 17 L17 21 M17 3 L17 7 Q17 10 12 12 Q7 14 7 17 L7 21 M9 17 L15 17" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    candado: '<svg width="18" height="18" aria-hidden="true" viewBox="0 0 24 24"><path d="M7 10 L7 7 Q7 2 12 2 Q17 2 17 7 L17 10 M5 10 L19 10 L19 21 L5 21 Z M12 14 L12 17" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    logro: '<svg width="18" height="18" aria-hidden="true" viewBox="0 0 24 24"><path d="M8 15 L6 22 L12 19 L18 22 L16 15 M12 3 C5 3 4 14 12 16 C20 14 19 3 12 3 Z" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    saltar: '<svg width="18" height="18" aria-hidden="true" viewBox="0 0 24 24"><path d="M4 6 L10 12 L4 18 M11 6 L17 12 L11 18 M20 5 L20 19" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    filtro: '<svg width="18" height="18" aria-hidden="true" viewBox="0 0 24 24"><path d="M3 4 L21 4 L14 12 L14 20 L10 18 L10 12 Z" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    info: '<svg width="18" height="18" aria-hidden="true" viewBox="0 0 24 24"><path d="M12 10 L12 17 M12 7 L12 7.1" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.75"/></svg>'
+  };
+  const GEMA = {
+    gema: '<svg width="24" height="24" aria-hidden="true" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="evenodd" d="M12 2 L21 9 L12 22 L3 9 Z M11 5 L6 9 L11 18 Z M13 5 L13 9 L18 9 Z"/></svg>',
+    gremory: '<svg width="24" height="24" aria-hidden="true" viewBox="0 0 24 24"><path d="M12 4 L17 10 L12 21 L7 10 Z M7 9 L2 5 L3 15 L7 13 Z M17 9 L22 5 L21 15 L17 13 Z" fill="currentColor"/></svg>',
+    secreta: '<svg width="24" height="24" aria-hidden="true" viewBox="0 0 24 24"><path d="M12 6 C6 -1 0 7 5 12 L12 21 L19 12 C24 7 18 -1 12 6 Z M12 9 C9 9 9 12 11 13 L10 16 L14 16 L13 13 C15 12 15 9 12 9 Z" fill="currentColor" fill-rule="evenodd"/></svg>'
+  };
+
+  /* ── datos ── */
+  function asegura(){
+    A.S.tcgCartas = A.S.tcgCartas || []; A.S.tcgSobres = A.S.tcgSobres || []; A.S.tcgCambios = A.S.tcgCambios || [];
+  }
+  const yo = () => miId();
+  const gente = () => (A.S.people || []).slice(0, 2);
+  const otro = () => { const g = gente().filter(p => p.id !== yo()); return g[0] ? g[0].id : ""; };
+  const nom = pid => (typeof nombreDe === "function" ? nombreDe(pid) : pid) || "?";
+  const borr = () => A.S.borrados || {};
+  /* empezar de cero (25/10/2026, lo pidió Alberto para su cuenta): lo de antes del corte de cada uno no cuenta
+     (cartas, sobres, cambios y logros). Va por regla y no borrando uno a uno, así da igual qué móvil sincronice antes. */
+  const RESETS = [{quien: /^alberto/i, t: "2026-10-25T20:08:00.000Z"}];
+  const corteDe = pid => (A.S.tcgReset || {})[pid] || "";
+  const gen = pid => { const c = corteDe(pid); return c ? ":r" + c.slice(0, 16).replace(/\D/g, "") : ""; };
+  function aplicaResets(){
+    let hubo = false; A.S.tcgReset = A.S.tcgReset || {};
+    RESETS.forEach(r => { const p = gente().find(p => r.quien.test(String(p.name || "").trim())); if(p && corteDe(p.id) < r.t){ A.S.tcgReset[p.id] = r.t; hubo = true; } });
+    return hubo;
+  }
+  const antes = (t, pid) => !!corteDe(pid) && (t || "") < corteDe(pid);
+  const vivas = () => A.S.tcgCartas.filter(x => !borr()[x.id] && !antes(x.t, x.d));
+  const cambVivos = () => A.S.tcgCambios.filter(c => !borr()[c.id] && !antes(c.t, c.de) && !antes(c.t, c.para));
+  const de = pid => vivas().filter(x => x.d === pid);
+  const inst = id => A.S.tcgCartas.find(x => x.id === id);
+  const entrada = c => L.find(e => e.id === c) || {};
+  function coleccion(pid){
+    const m = {};
+    de(pid).forEach(x => { const c = m[x.c] || (m[x.c] = {n:0, v:{}, inst:[]}); c.n++; c.v[x.v] = (c.v[x.v] || 0) + 1; c.inst.push(x); });
+    return m;
+  }
+  function reservadas(){
+    const r = {}; cambVivos().filter(c => c.estado === "pendiente").forEach(c => { r[c.doy] = 1; r[c.pido] = 1; }); return r;
+  }
+  /* de cada carta y versión puedes dar todas las copias menos una */
+  function sobrantes(pid){
+    const g = {}, res = reservadas();
+    de(pid).forEach(x => { if(x.c !== SEC_ID) (g[x.c + "|" + x.v] = g[x.c + "|" + x.v] || []).push(x); });
+    const out = [];
+    Object.values(g).forEach(a => { a.sort((p, q) => (p.pe ? -1 : q.pe ? 1 : p.t > q.t ? 1 : -1)); a.slice(1).forEach(x => { if(!res[x.id]) out.push(x); }); });
+    return out.sort((a, b) => a.c > b.c ? 1 : a.c < b.c ? -1 : 0);
+  }
+
+  /* ── logros del TCG (de cada uno): bronce da 1 sobre, plata 2 y oro 3 ── */
+  const PREMIO = {bronce: 1, plata: 2, oro: 3};
+  const LOGROS_PREMIAN = true;   /* activados el 25/10/2026: lo que cada uno ya tuviera hecho entonces no da sobres (cuentan desde cero) */
+  function logrosTcg(pid){
+    const col = coleccion(pid), mias = de(pid), out = [];
+    const tiene = L.filter(e => e.ok && e.n !== "061" && col[e.id]).length, total = L.filter(e => e.ok && e.n !== "061").length;
+    const L1 = (k, g, label, sub, nivel, ico, a, z) => out.push({k, g, label, sub, nivel, ico, dado: a >= z, a: Math.min(a, z), z});
+    L1("col10", "Colección", "Diez distintas", "las primeras del binder", "bronce", "carpeta", tiene, 10);
+    L1("col30", "Colección", "Medio binder", "30 cartas distintas", "plata", "carpeta", tiene, 30);
+    L1("col60", "Colección", "Set completo", "las " + total + " de " + SET.nombre, "oro", "carpeta", tiene, total);
+    GRUPOS.forEach(([nm, a, z]) => L1("fam" + a, "Familias", nm === "En grupo" || nm === "La casa" ? (nm === "En grupo" ? "Todos juntos" : "Toda la casa") : "Todo " + nm, (nm === "En grupo" ? "las " + (z - a + 1) + " de grupo" : nm === "La casa" ? "las " + (z - a + 1) + " de la casa" : "las " + (z - a + 1) + " de " + nm),
+      "plata", "repetida", L.filter(e => e.ok && nDe(e.id) >= a && nDe(e.id) <= z && col[e.id]).length, z - a + 1));
+    const tv = v => mias.some(x => v.indexOf(x.v) >= 0) ? 1 : 0;
+    L1("grab", "Rarezas", "Primera Grabada", "una carta grabada", "bronce", "gema", tv(["SR"]), 1);
+    L1("esc", "Rarezas", "Primera Escapada", "el personaje se sale", "bronce", "gema", tv(["OFR"]), 1);
+    L1("firma", "Rarezas", "Primera Firmada", "con firma", "bronce", "gema", tv(["SP"]), 1);
+    L1("oro", "Rarezas", "Primera Oro", "una de las doradas", "plata", "gema", tv(["HR"]), 1);
+    L1("gre", "Rarezas", "Primera Gremory", "la más rara del sobre", "oro", "gremory", tv(["G1", "G2"]), 1);
+    const abiertos = A.S.tcgSobres.filter(x => x.d === pid && x.abierto && !borr()[x.id] && !antes(x.t, pid)).length;
+    L1("sob10", "Sobres y cambios", "Diez sobres", "abiertos", "bronce", "sobre", abiertos, 10);
+    L1("sob50", "Sobres y cambios", "Cincuenta sobres", "abiertos", "plata", "sobre", abiertos, 50);
+    L1("sob100", "Sobres y cambios", "Cien sobres", "abiertos", "oro", "sobre", abiertos, 100);
+    const camb = cambVivos().filter(c => c.estado === "aceptado" && (c.de === pid || c.para === pid)).length;
+    L1("cam1", "Sobres y cambios", "Primer cambio", "entre los dos", "bronce", "cambio", camb, 1);
+    L1("cam10", "Sobres y cambios", "Diez cambios", "negociando en casa", "plata", "cambio", camb, 10);
+    return out;
+  }
+  function logrosHTML(){
+    const ls = logrosTcg(yo()), hechos = ls.filter(l => l.dado).length, grupos = [...new Set(ls.map(l => l.g))];
+    const base = baseTcg(yo());
+    const icoDe = k => k === "gema" ? GEMA.gema : k === "gremory" ? GEMA.gremory : ICO[k] || ICO.logro;
+    return '<div class="lg-cab"><b>' + hechos + '</b> de ' + ls.length + ' logros · ' + (LOGROS_PREMIAN ? 'cada medalla da sobres: bronce 1, plata 2, oro 3' : 'prueba: aún no dan sobres') + '</div>' +
+      grupos.map(g => '<div class="lg-grupo"><h3>' + g + '</h3><div class="lg-rejilla">' + ls.filter(l => l.g === g).map(l =>
+        '<div class="lg-item n-' + l.nivel + (l.dado ? ' on' : '') + '"><div class="lg-med" style="background-image:url(' + ARTE("medalla-" + l.nivel) + ')"><i>' + (LG[l.k] || icoDe(l.ico)) + '</i></div>' +
+        '<b>' + l.label + '</b><small>' + l.sub + '</small>' + (l.dado ? (base.indexOf(l.k) >= 0 ? '<em class="antes">ya lo tenías</em>' : '<em>+' + PREMIO[l.nivel] + (PREMIO[l.nivel] > 1 ? ' sobres' : ' sobre') + '</em>') : '<div class="lg-barra"><i style="width:' + Math.round(l.a / l.z * 100) + '%"></i></div><span>' + l.a + ' / ' + l.z + '</span>') + '</div>').join("") + '</div></div>').join("");
+  }
+
+  /* ── sobres: dos al día, tres de bienvenida y uno por cada logro nuevo ── */
+  const baseTcg = pid => { const b = A.S.tcgBaseTcg && A.S.tcgBaseTcg[pid]; return !b || antes(b.f, pid) ? [] : b.k; };
+  function premia(){
+    asegura();
+    const logros = typeof logrosTodos === "function" ? logrosTodos().filter(l => l.dado) : [];
+    if(!A.S.tcgBase) A.S.tcgBase = {f: hoy(), logros: logros.map(l => l.k)};
+    const hay = {}; A.S.tcgSobres.forEach(s => hay[s.id] = 1);
+    let nuevos = 0;
+    const pon = (id, d, motivo) => { if(hay[id] || borr()[id]) return; A.S.tcgSobres.push({id, d, tipo:"premio", motivo, f: hoy(), abierto:false, t: ahora()}); hay[id] = 1; nuevos++; };
+    gente().forEach(p => {
+      for(let i = 1; i <= BIENVENIDA; i++) pon("bienvenida:" + i + ":" + p.id + gen(p.id), p.id, "Bienvenida al Set 1");
+      logros.filter(l => A.S.tcgBase.logros.indexOf(l.k) < 0).forEach(l => pon("logro:" + l.k + ":" + p.id, p.id, "Logro: " + l.label));
+      if(LOGROS_PREMIAN){
+        A.S.tcgBaseTcg = A.S.tcgBaseTcg || {};
+        if(!A.S.tcgBaseTcg[p.id]) A.S.tcgBaseTcg[p.id] = {f: ahora(), k: logrosTcg(p.id).filter(l => l.dado).map(l => l.k)};
+      }
+      const baseT = baseTcg(p.id);
+      if(LOGROS_PREMIAN) logrosTcg(p.id).filter(l => l.dado && baseT.indexOf(l.k) < 0).forEach(l => { for(let i = 1; i <= PREMIO[l.nivel]; i++) pon("logro-tcg:" + l.k + ":" + p.id + gen(p.id) + (i > 1 ? ":" + i : ""), p.id, "Logro: " + l.label); });
+      if(esCris(p) && !tieneSec(p.id) && setCompleto(p.id)){ pon("secreta:" + p.id, p.id, "Love of My Life"); const s = A.S.tcgSobres.find(x => x.id === "secreta:" + p.id); if(s) s.tipo = "secreta"; }
+    });
+    return nuevos;
+  }
+  function disponibles(pid){
+    asegura();
+    const ids = Array.from({length: DIARIOS}, (_, i) => "dia:" + hoy() + ":" + pid + gen(pid) + (i ? ":" + (i + 1) : ""));
+    const libres = ids.filter(id => !A.S.tcgSobres.some(s => s.id === id)), dia = libres.length;
+    const pre = A.S.tcgSobres.filter(s => s.d === pid && !s.abierto && !borr()[s.id] && (!antes(s.t, pid) || (gen(pid) && s.id.indexOf(gen(pid)) >= 0))).sort((a, b) => (/^secreta:/.test(b.id) ? 1 : 0) - (/^secreta:/.test(a.id) ? 1 : 0));
+    return {dia, libres, pre, total: dia + pre.length};
+  }
+  /* el contenido sale de una semilla (el id del sobre): los dos móviles sacan lo mismo */
+  function rng(sem){
+    let h = 1779033703 ^ sem.length;
+    for(let i = 0; i < sem.length; i++){ h = Math.imul(h ^ sem.charCodeAt(i), 3432918353); h = h << 13 | h >>> 19; }
+    let a = h >>> 0;
+    return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
+  }
+  const POOL = {};
+  L.filter(e => e.ok).forEach(e => { const t = e.n === "061" ? "Secreta" : D1.SETT[e.id]; (POOL[t] = POOL[t] || []).push(e.id); });
+  const hayPool = t => POOL[t] && POOL[t].length;
+  const elige = (r, a) => a[Math.floor(r() * a.length)];
+  /* 5 cartas: tres normales (Holo o Casa), una Reverse o Double Holo, y la rara */
+  const RARA = [["Grabada",42,"SR"],["Escapada",25,"OFR"],["Firmada",14,"SP"],["Oro",9,"HR"],["Estándar",4.5,"RR"],["Gremory",3.5,"G1"],["Gremory",2,"G2"],["Secreta",.5,"SR"]].filter(x => SECRETA_ON || x[0] !== "Secreta");
+  /* tres sobres: el de cada uno trae más cartas suyas (sin quitar ninguna del resto) */
+  const num = id => +String(id).slice(4);
+  const DE = {
+    alberto: n => (n >= 1 && n <= 10) || n === 48,
+    cristina: n => (n >= 11 && n <= 20) || n === 42 || n === 43,
+    gatos: n => n >= 21 && n <= 47 && n !== 46
+  };
+  function elige2(r, a, tipo){
+    const suyas = tipo && DE[tipo] ? a.filter(id => DE[tipo](num(id))) : [];
+    return suyas.length && r() < .45 ? elige(r, suyas) : elige(r, a);
+  }
+  function genera(id, tipo){
+    const r = rng(id + (tipo ? ":" + tipo : "")), out = [];
+    for(let i = 0; i < 3; i++) out.push(r() < .7 && hayPool("Estándar") ? {c: elige2(r, POOL["Estándar"], tipo), v:"R"} : hayPool("Casa") ? {c: elige(r, POOL["Casa"]), v:"CASA"} : {c: elige2(r, POOL["Estándar"], tipo), v:"R"});
+    out.push({c: elige2(r, POOL["Estándar"], tipo), v: r() < .85 ? "RH" : "RR"});
+    const x = r() * 100; let acc = 0, rara = null;
+    for(const [t, p, v] of RARA){ acc += p; if(x < acc){ if(hayPool(t)) rara = {c: elige2(r, POOL[t], tipo), v}; break; } }
+    out.push(rara || {c: elige2(r, POOL["Grabada"] || POOL["Estándar"], tipo), v: hayPool("Grabada") ? "SR" : "RR"});
+    return out;
+  }
+  const nivel = (c, v) => c === "s01-061" || v === "G1" || v === "G2" ? 5 : v === "SP" || v === "HR" ? 4 : v === "SR" || v === "OFR" || v === "RR" ? 3 : v === "RH" ? 2 : 1;
+
+  /* ── imágenes del Worker ── */
+  const VACIA = "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==";
+  function url(n){ const nb = nubeBase(); return nb ? nb.base + "/img/" + encodeURIComponent(n) + "?k=" + encodeURIComponent(nb.k) : VACIA; }
+  let listo = false, faltanImg = false, prep = null, sinRed = false;
+  /* miniaturas del binder con el diseño manga (25/10): van al Worker con otro nombre (s01-thm-NNN) para no chocar con la caché de 7 días;
+     si aún no están subidas, se siguen usando las de antes */
+  const TH_M = n => /^s01-th-0([0-5]\d|60)\.webp$/.test(n) && n !== "s01-th-000.webp" ? n.replace("s01-th-", "s01-thm-") : n;
+  /* con conexión, se piden en segundo plano las 61 miniaturas y las portadas: el service worker las guarda en el móvil
+     y el binder se sigue viendo aunque luego el Worker no conteste */
+  let guardado = false;
+  function guardaTodo(){
+    if(guardado) return; guardado = true;
+    /* miniaturas, portadas y todas las ilustraciones de las cartas (unos 15 MB, una sola vez): con eso el juego entero
+       funciona en ese móvil aunque el Worker no conteste (los bloqueos del fútbol a Cloudflare de los fines de semana) */
+    const arte = [], mira = o => { for(const k in o){ const v = o[k]; if(typeof v === "string" && v.indexOf("/img/") > 0) arte.push(v); else if(v && typeof v === "object") mira(v); } };
+    try { mira(D1.ART); } catch(e){}
+    const ya = lee("gremory-tcg-guardado", ""), todo = ya !== VER && !(navigator.connection && navigator.connection.saveData);
+    const us = [...new Set(L.filter(x => x.ok && x.th).map(x => x.th).concat(Object.keys(SOBRES).map(k => url(SOBRES[k].img)), todo ? arte : []))];
+    let i = 0, mal = 0; const sig = () => { if(i >= us.length){ if(todo && !mal) guarda("gremory-tcg-guardado", VER); return; } const u = us[i++];
+      fetch(u, {mode: "cors"}).then(r => { if(!r.ok) mal++; }, () => { mal++; }).then(() => setTimeout(sig, 60)); };
+    setTimeout(sig, 2500);
+  }
+  function prepara(){
+    if(listo) return Promise.resolve();
+    if(prep) return prep;
+    /* las miniaturas nuevas ya están subidas (25/10): se usan siempre. La comprobación de que llegan las imágenes
+       no puede dejar el binder colgado: si el Worker no contesta en 5 s (los bloqueos del fútbol a Cloudflare), se abre igual */
+    G.ponImagenes(n => url(TH_M(n))); listo = true;
+    const e = L.find(x => x.ok);
+    if(!nubeBase() || !e) { faltanImg = true; return Promise.resolve(); }
+    const ctl = window.AbortController ? new AbortController() : null;
+    let hecho = false;
+    const espera = new Promise(ok => setTimeout(() => { if(hecho) return; if(ctl) ctl.abort(); sinRed = true; ok(); }, 5000));
+    prep = Promise.race([fetch(e.th, {method:"GET", signal: ctl ? ctl.signal : undefined}).then(r => { hecho = true; faltanImg = !r.ok; sinRed = false; if(r.ok) guardaTodo(); }).catch(() => { hecho = true; }), espera]);
+    return prep;
+  }
+
+  /* ── montaje de la interfaz ── */
+  let raiz, cuerpo, tab = "binder", quien = "", pag = 0, girando = false;
+  const tapas = Object.assign({}, lee("gremory-tcg-tapas", {}));
+  const tapaDe = pid => TAPAS[tapas[pid]] || (gente()[1] && gente()[1].id === pid ? TAPAS.rosa : TAPAS.oceano);
+  const movil = () => matchMedia("(max-width:760px)").matches;
+  function monta(){
+    if(raiz) return;
+    raiz = document.createElement("div"); raiz.id = "tcg";
+    raiz.innerHTML = '<div class="tg-top"><h2>Gremory · Set 1</h2><button class="tg-x" data-acc="cierra" aria-label="Cerrar">' + ICO.x + '</button></div>' +
+      '<div class="tg-tabs" id="tgTabs"></div><div class="tg-cuerpo" id="tgCuerpo"></div>';
+    document.body.appendChild(raiz);
+    cuerpo = raiz.querySelector("#tgCuerpo");
+    ["tgVisor", "tgAbre", "tgProp"].forEach(id => { const c = document.createElement("div"); c.className = "tg-capa"; c.id = id; document.body.appendChild(c); });
+    raiz.addEventListener("click", clic);
+    document.getElementById("tgVisor").addEventListener("click", clicVisor);
+    document.getElementById("tgProp").addEventListener("click", clicProp);
+    let x0 = null, arr = false;
+    cuerpo.addEventListener("pointerdown", e => { x0 = e.target.closest(".bd") ? e.clientX : null; });
+    cuerpo.addEventListener("pointerup", e => { if(x0 == null) return; const dx = e.clientX - x0; x0 = null; if(Math.abs(dx) > 60){ arr = true; setTimeout(() => arr = false, 50); pasa(dx < 0 ? 1 : -1); } });
+    cuerpo.addEventListener("click", e => { if(arr) e.stopPropagation(); }, true);
+    addEventListener("keydown", e => {
+      if(!raiz.classList.contains("on")) return;
+      const v = document.getElementById("tgVisor");
+      if(e.key === "Escape"){ if(v.classList.contains("on")) cierraVisor(); else if(!document.getElementById("tgAbre").classList.contains("on")) cierra(); }
+      else if(v.classList.contains("on") && (e.key === "ArrowLeft" || e.key === "ArrowRight")) otraVisor(e.key === "ArrowLeft" ? -1 : 1);
+      else if(tab === "binder" && (e.key === "ArrowLeft" || e.key === "ArrowRight")) pasa(e.key === "ArrowLeft" ? -1 : 1);
+    });
+    let era = movil(); addEventListener("resize", () => { if(movil() !== era){ era = movil(); if(tab === "binder") pinta(); } });
+  }
+
+  function pinta(){
+    asegura();
+    const d = yo() ? disponibles(yo()) : {total:0};
+    const ent = cambVivos().filter(c => c.estado === "pendiente" && c.para === yo()).length;
+    raiz.querySelector("#tgTabs").innerHTML =
+      '<button data-tab="binder" class="' + (tab === "binder" ? "on" : "") + '">' + ICO.carpeta + 'Binder</button>' +
+      '<button data-tab="sobres" class="' + (tab === "sobres" ? "on" : "") + '">' + ICO.sobre + 'Sobres' + (d.total ? '<i>' + d.total + '</i>' : '') + '</button>' +
+      '<button data-tab="cambios" class="' + (tab === "cambios" ? "on" : "") + '">' + ICO.cambio + 'Cambios' + (ent ? '<i>' + ent + '</i>' : '') + '</button>' +
+      '<button data-tab="logros" class="' + (tab === "logros" ? "on" : "") + '">' + ICO.logro + 'Logros</button>';
+    let h = "";
+    if(!yo()){
+      h = '<div class="tg-aviso">¿De quién es este móvil? Así sé de quién es cada sobre y cada binder.</div><div class="tg-acc">' +
+        gente().map(p => '<button class="tg-btn sec" data-yo="' + p.id + '">' + esc(p.name) + '</button>').join("") + '</div>';
+      cuerpo.innerHTML = h; return;
+    }
+    if(!nubeBase()) h += '<div class="tg-vacio"><img src="' + ARTE("vacio-sin-conexion") + '" alt=""><p>Para ver las cartas y jugar entre los dos hace falta la sincronización (Ajustes → Sincronizar).</p></div>';
+    else if(sinRed) h += '<div class="tg-aviso">No llego al servidor de las ilustraciones. Suele ser por los bloqueos del fútbol a Cloudflare: prueba con datos móviles o con una VPN.</div>';
+    else if(faltanImg) h += '<div class="tg-aviso">Aún no están subidas las ilustraciones del Set 1.</div>';
+    if(tab === "binder") h += binderHTML();
+    else if(tab === "sobres") h += sobresHTML();
+    else if(tab === "logros") h += logrosHTML();
+    else h += cambiosHTML();
+    cuerpo.innerHTML = h;
+    if(tab === "sobres") deslizaCarrusel();
+  }
+
+  /* ── binder ── */
+  function bolsillo(i, col, extra){
+    const e = L[i];
+    if(!e) return '<div class="bd-bol" style="visibility:hidden"></div>';
+    if(!e.ok) return '<div class="bd-bol falta" title="' + e.n + '"><div class="tg-dorso"></div><span class="bd-num">' + e.n + '</span></div>';
+    const c = col[e.id];
+    if(e.id === SEC_ID && !c) return '<div class="bd-bol falta secreta" title="???"><div class="tg-dorso"></div><span class="bd-num">???</span></div>';   /* la secreta no se enseña hasta tenerla */
+    if(!c) return '<div class="bd-bol falta oculta" title="' + e.n + ' · ?"><div class="tg-dorso"></div><b class="bd-q">?</b><span class="bd-num">' + e.n + '</span></div>';   /* las que faltan no se ven hasta tenerlas */
+    return '<div class="bd-bol' + (c ? '' : ' no') + (c && c.n > 1 ? ' rep' : '') + '" data-id="' + e.id + '" title="' + esc(e.n + ' · ' + e.t) + '"><img src="' + e.th + '" alt="" loading="lazy">' +
+      '<span class="bd-num">' + e.n + '</span>' + (c && c.n > 1 ? '<span class="bd-n">×' + c.n + '</span>' : '') + (c && c.inst.some(esPrimera) ? '<i class="bd-1a">' + SELLO + '</i>' : '') + (extra || "") + '</div>';
+  }
+  function hoja(p, lado, col){
+    if(p < 0 || p >= NP) return '<div class="bd-hoja ' + lado + ' vacia"><div class="bd-cab"><span>&nbsp;</span></div><div class="bd-grid">' + '<div class="bd-bol"></div>'.repeat(PAG) + '</div></div>';
+    const a = L[p * PAG], z = L[Math.min(L.length, (p + 1) * PAG) - 1];
+    let g = ""; for(let k = 0; k < PAG; k++) g += bolsillo(p * PAG + k, col);
+    return '<div class="bd-hoja ' + lado + '"><div class="bd-cab"><span>Página ' + (p + 1) + '</span><span>' + a.n + ' – ' + z.n + '</span></div><div class="bd-grid">' + g + '</div>' +
+      ((lado === "der" || movil()) && p < NP - 1 ? '<div class="bd-esquina" data-ir="1"></div>' : '') +
+      (lado === "izq" && !movil() && p > 0 ? '<div class="bd-esquina ant" data-ir="-1"></div>' : '') + '</div>';
+  }
+  const lomo = () => '<div class="bd-lomo">' + '<div class="bd-anilla"></div>'.repeat(3) + '</div>';
+  function hojas(p, col){ return movil() ? lomo() + hoja(p, "izq", col) : hoja(p, "izq", col) + lomo() + hoja(p + 1, "der", col); }
+  let filtro = "todas";
+  function binderHTML(){
+    quien = yo();   /* cada uno ve solo su binder (el del otro, no) */
+    if(!movil() && pag % 2) pag--;
+    const col = coleccion(quien), t = tapaDe(quien);
+    const tiene = L.filter(e => e.ok && col[e.id]).length, rep = sobrantes(quien).length, prim = L.filter(e => e.ok && col[e.id] && col[e.id].inst.some(esPrimera)).length;
+    const paso = movil() ? 1 : 2;
+    return '<div class="tg-cab" style="--tapa:' + t.tapa + '"><div class="tg-quien"><b class="tg-mio">Mi binder</b></div>' +
+        '<div class="tg-cuenta"><b>' + tiene + '</b> de ' + L.length + ' cartas · <b>' + rep + '</b> repetidas' + (prim ? ' · <b>' + prim + '</b> de 1ª edición' : '') + '</div>' +
+        (quien === yo() ? '<div class="tg-acab">' + Object.entries(TAPAS).map(([k, a]) => '<button data-tapa="' + k + '" title="' + a.n + '" aria-label="Tapa ' + a.n + '" class="' + (tapaDe(quien) === a ? "on" : "") + '" style="--c:' + a.tapa + '"></button>').join("") + '</div>' : '') + '</div>' +
+      '<div class="tg-nav"><button data-ir="-1"' + (pag <= 0 ? " disabled" : "") + '>‹ Anterior</button><b>' + (movil() ? "Página " + (pag + 1) : "Páginas " + (pag + 1) + "–" + Math.min(NP, pag + 2)) + ' de ' + NP + '</b>' +
+        '<button data-ir="1"' + (pag + paso >= NP ? " disabled" : "") + '>Siguiente ›</button></div>' +
+      /* las familias, con lo que llevas de cada una (tocar una te lleva a su página), y el filtro */
+      '<div class="tg-fams">' + GRUPOS.map(([nm, a, z]) => { const n = L.filter(e => e.ok && nDe(e.id) >= a && nDe(e.id) <= z && col[e.id]).length, tot = z - a + 1;
+        return '<button data-grupo="' + a + '" class="' + (n === tot ? "llena" : "") + '"><b>' + nm + '</b><span>' + n + '/' + tot + '</span><i style="width:' + Math.round(n / tot * 100) + '%"></i></button>'; }).join("") + '</div>' +
+      '<div class="tg-filtro">' + [["todas", "Todas"], ["faltan", "Me faltan"], ["repes", "Repetidas"]].map(([k, nm]) => '<button data-filtro="' + k + '" class="' + (filtro === k ? "on" : "") + '">' + nm + '</button>').join("") + '</div>' +
+      '<div class="bd f-' + filtro + '" id="tgBd" style="--tapa:' + t.tapa + ';--hoja:' + t.hoja + ';--tinta:' + t.tinta + '">' + hojas(pag, col) + '</div>';
+  }
+  function pasa(dir){
+    if(girando || tab !== "binder") return;
+    const paso = movil() ? 1 : 2, nueva = pag + dir * paso;
+    if(nueva < 0 || nueva >= NP) return;
+    const bd = document.getElementById("tgBd");
+    if(!bd || matchMedia("(prefers-reduced-motion: reduce)").matches){ pag = nueva; pinta(); return; }
+    girando = true; SON.pasa();
+    const col = coleccion(quien), hs = bd.querySelectorAll(".bd-hoja"), rb = bd.getBoundingClientRect();
+    const ref = movil() ? hs[0] : (dir > 0 ? hs[1] : hs[0]), r = ref.getBoundingClientRect();
+    if(movil()){
+      /* en el móvil la hoja se desliza dentro del binder (girarla en 3D la sacaba por la izquierda, fuera de la pantalla) */
+      bd.innerHTML = lomo() + hoja(dir > 0 ? nueva : pag, "izq", col);
+      const g = document.createElement("div"); g.className = "bd-hojaDesliza";
+      Object.assign(g.style, {left: (r.left - rb.left) + "px", top: (r.top - rb.top) + "px", width: r.width + "px", height: r.height + "px"});
+      g.innerHTML = hoja(dir > 0 ? pag : nueva, "izq", col);
+      if(dir < 0) g.style.transform = "translateX(-110%) rotate(-2deg)";
+      bd.appendChild(g); g.getBoundingClientRect();
+      g.style.transform = dir > 0 ? "translateX(-110%) rotate(-2deg)" : "translateX(0) rotate(0)";
+      const fin = () => { if(!girando) return; pag = nueva; girando = false; pinta(); };
+      g.addEventListener("transitionend", fin, {once:true}); setTimeout(fin, 700);
+      return;
+    }
+    let delante, detras;
+    if(movil()){ delante = hoja(dir > 0 ? pag : nueva, "izq", col); detras = hoja(-1, "izq", col); }
+    else if(dir > 0){ delante = hoja(pag + 1, "der", col); detras = hoja(nueva, "izq", col); }
+    else { delante = hoja(pag, "izq", col); detras = hoja(nueva + 1, "der", col); }
+    if(movil()) bd.innerHTML = lomo() + hoja(dir > 0 ? nueva : pag, "izq", col);
+    else bd.innerHTML = dir > 0 ? hoja(pag, "izq", col) + lomo() + hoja(nueva + 1, "der", col) : hoja(nueva, "izq", col) + lomo() + hoja(pag + 1, "der", col);
+    const g = document.createElement("div"); g.className = "bd-hojaGira";
+    Object.assign(g.style, {left: (r.left - rb.left) + "px", top: (r.top - rb.top) + "px", width: r.width + "px", height: r.height + "px",
+      transformOrigin: !movil() && dir < 0 ? "right center" : "left center"});
+    g.innerHTML = delante.replace('class="bd-hoja', 'class="bd-hoja delantera') + detras.replace('class="bd-hoja', 'class="bd-hoja trasera');
+    if(movil() && dir < 0) g.style.transform = "rotateY(-180deg)";
+    bd.appendChild(g); g.getBoundingClientRect();
+    g.style.transform = movil() ? (dir > 0 ? "rotateY(-180deg)" : "rotateY(0deg)") : (dir > 0 ? "rotateY(-180deg)" : "rotateY(180deg)");
+    const fin = () => { if(!girando) return; pag = nueva; girando = false; pinta(); };
+    g.addEventListener("transitionend", fin, {once:true}); setTimeout(fin, 1000);
+  }
+
+  /* ── visor ── */
+  let vCarta = null, vVer = null;
+  function abreVisor(c, v){
+    const vs = G.versiones(c), col = coleccion(quien)[c] || {v:{}};
+    vCarta = c; vVer = v || vs.find(x => col.v[x]) || vs[0];
+    pintaVisor();
+    const cap = document.getElementById("tgVisor"); cap.classList.add("on");
+    G.luz.on(cap.querySelector(".tg-esc"));
+  }
+  function pintaVisor(){
+    const cap = document.getElementById("tgVisor"), c = vCarta, v = vVer, e = entrada(c);
+    const col = coleccion(quien)[c] || {v:{}}, mia = quien === yo(), n = col.v[v] || 0;
+    const sob = mia ? sobrantes(yo()).filter(x => x.c === c && x.v === v) : [];
+    const res = reservadas(), suya = !mia ? de(quien).filter(x => x.c === c && x.v === v && !res[x.id]) : [];
+    cap.innerHTML = '<button class="tg-x" data-v-acc="cierra" aria-label="Cerrar">' + ICO.x + '</button>' +
+      '<button class="tg-flecha izq" data-v-acc="ant" aria-label="Anterior">' + ICO.izq + '</button><button class="tg-flecha der" data-v-acc="sig" aria-label="Siguiente">' + ICO.der + '</button>' +
+      '<div class="tg-tit"><b>' + e.n + ' · ' + esc(G.CARTAS[c].n) + '</b><span>' + (n ? (mia ? "Tienes " : nom(quien) + " tiene ") + n + (n > 1 ? " copias" : " copia") : (mia ? "Aún no la tienes" : nom(quien) + " no la tiene")) + '</span></div>' +
+      '<div class="tg-esc' + (n ? '' : ' bloq') + '">' + G.carta(c, v) + (n ? '' : '<div class="tg-candado"><span>' + (mia ? "Te falta" : "No la tiene") + '</span></div>') +
+        (de(quien).some(x => x.c === c && x.v === v && esPrimera(x)) ? '<i class="tg-1a" title="Primera edición">' + SELLO + '</i>' : '') + '</div>' +
+      '<div class="tg-vers">' + G.versiones(c).map(x => '<button data-ver="' + x + '" class="' + (x === v ? "on" : "") + (col.v[x] ? "" : " no") + '">' + G.icono(c, x) + G.nombreVer(c, x) + (col.v[x] ? '<em>×' + col.v[x] + '</em>' : '') + '</button>').join("") + '</div>' +
+      '<div class="tg-acc">' +
+        (c === "s01-061" && n && G.cartaSecretaDorso ? '<button class="tg-btn sec" data-v-acc="gira">Darle la vuelta</button><button class="tg-btn sec" data-v-acc="entra">' + GEMA.secreta + ' Entrar</button>' : '') +
+        (sob.length && otro() ? '<button class="tg-btn sec" data-v-acc="ofrece" data-inst="' + sob[0].id + '">' + ICO.cambio + ' Ofrecérsela a ' + esc(nom(otro())) + '</button>' : '') +
+        (suya.length ? '<button class="tg-btn sec" data-v-acc="pide" data-inst="' + suya[0].id + '">' + ICO.cambio + ' Pedírsela a ' + esc(nom(quien)) + '</button>' : '') + '</div>';
+  }
+  function otraVisor(d){
+    const ok = L.filter(e => e.ok), i = ok.findIndex(e => e.id === vCarta), j = ok[(i + d + ok.length) % ok.length];
+    const k = L.indexOf(j), p = Math.floor(k / PAG); pag = movil() ? p : p - (p % 2);
+    abreVisor(j.id); if(tab === "binder") pinta();
+  }
+  function cierraVisor(){ document.getElementById("tgVisor").classList.remove("on"); G.luz.off(); }
+  function clicVisor(e){
+    if(e.target.id === "tgVisor") return cierraVisor();
+    const b = e.target.closest("[data-v-acc],[data-ver]"); if(!b) return;
+    if(b.dataset.ver){ vVer = b.dataset.ver; pintaVisor(); G.luz.on(document.querySelector("#tgVisor .tg-esc")); return; }
+    const a = b.dataset.vAcc;
+    if(a === "entra") return entraSec();
+    if(a === "gira"){
+      const z = document.querySelector("#tgVisor .tg-esc"); z.classList.add("gira");
+      setTimeout(() => { const atras = b.dataset.atras !== "1"; const k = z.querySelector(".carta");
+        if(k) k.outerHTML = atras ? dorsoSec() : G.carta(vCarta, vVer);
+        if(atras && !DEDI) cargaDedi().then(() => { const q = z.querySelector(".sec-dorso"); if(q && DEDI) q.outerHTML = dorsoSec(); });
+        b.dataset.atras = atras ? "1" : ""; b.textContent = atras ? "Ver la cara" : "Darle la vuelta"; z.classList.remove("gira"); }, 280);
+      return;
+    }
+    if(a === "cierra") cierraVisor();
+    else if(a === "ant") otraVisor(-1);
+    else if(a === "sig") otraVisor(1);
+    else if(a === "ofrece"){ cierraVisor(); propuesta({doy: b.dataset.inst}); }
+    else if(a === "pide"){ cierraVisor(); propuesta({pido: b.dataset.inst}); }
+  }
+
+  /* ── sobres ── */
+  /* ══ SOBRES (24/10/2026) ══
+     Tres sobres a elegir (Alberto, Cristina, los gatos). La apertura pasa en la mesa de casa:
+     se corta el sobre deslizando, se enciende el círculo mágico, las cartas salen en abanico boca abajo
+     brillando del color de su rareza, y cada toque da la vuelta a una. Con sonido (se puede silenciar).
+     Las ilustraciones de la escena (sobres, mesa, gatos) llegan del Worker con estos nombres; si faltan,
+     se usan las de las cartas y fondos dibujados. */
+  /* el set: cada cierto tiempo saldrá uno nuevo con su nombre */
+  /* primera edición: de cada carta hay UNA sola en todo el juego (entre los dos). Cada carta que sale de un sobre
+     tiene un 1 % de ser esa primera edición, mientras nadie la haya sacado aún; es la única forma de conseguirla */
+  const SET = {num: 1, nombre: "Home Sweet Home"};
+  const PRIMERA_P = .01;
+  const esPrimera = x => !!(x && x.pe);
+  /* el sello de primera edición: de Valeria (lacre dorado, centro granate, «1ª» en trazados y tres huellas) */
+  const SELLO = "<svg class=\"sello1a\" viewBox=\"0 0 48 48\" role=\"img\" aria-label=\"Primera edición\"><path d=\"M24.0000 2.8800 L27.0661 4.6413 L30.5264 3.9137 L32.6712 6.9818 L36.4140 6.9136 L37.9300 10.0700 L41.0864 11.5860 L41.1964 15.2380 L44.0863 17.4736 L43.2599 20.9495 L45.1200 24.0000 L43.3587 27.0661 L44.0863 30.5264 L41.0182 32.6712 L41.0864 36.4140 L37.9300 37.9300 L36.4140 41.0864 L32.7620 41.1964 L30.5264 44.0863 L27.0505 43.2599 L24.0000 45.1200 L20.9339 43.3587 L17.4736 44.0863 L15.3288 41.0182 L11.5860 41.0864 L10.0700 37.9300 L6.9136 36.4140 L6.8036 32.7620 L3.9137 30.5264 L4.7401 27.0505 L2.8800 24.0000 L4.6413 20.9339 L3.9137 17.4736 L6.9818 15.3288 L6.9136 11.5860 L10.0700 10.0700 L11.5860 6.9136 L15.2380 6.8036 L17.4736 3.9137 L20.9495 4.7401Z\" fill=\"#E8B64C\"/><path d=\"M7 15 Q14 4 24 5 Q34 5 40 14\" fill=\"none\" stroke=\"#FFE7A3\" stroke-width=\"1.5\" stroke-linecap=\"round\"/><circle cx=\"24\" cy=\"24\" r=\"16.2\" fill=\"#3A0814\" stroke=\"#FFE7A3\" stroke-width=\"1.3\"/><path d=\"M17 17 L23 14 H25 V33 H29 V36 H17 V33 H21 V19 L17 21Z\" fill=\"#FFE7A3\"/><path d=\"M30 18 C26 18 26 25 30 25 Q32 25 32.5 24 V25 H35 V18 H32.5 V19 Q32 18 30 18Z M30.7 20 Q32.5 20 32.5 21.5 Q32.5 23 30.7 23 Q29 23 29 21.5 Q29 20 30.7 20Z\" fill=\"#FFE7A3\" fill-rule=\"evenodd\"/><path d=\"M28 27 H35\" stroke=\"#FFE7A3\" stroke-width=\"1.5\" stroke-linecap=\"round\"/><circle cx=\"21\" cy=\"10.5\" r=\"1\" fill=\"#E8B64C\"/><circle cx=\"24\" cy=\"9.8\" r=\"1\" fill=\"#E8B64C\"/><circle cx=\"27\" cy=\"10.5\" r=\"1\" fill=\"#E8B64C\"/></svg>";
+  /* los iconos de los 20 logros: de Valeria, trazo 1,75 y currentColor */
+  const LG = {
+    cam1: "<svg viewBox=\"0 0 24 24\"><g fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"3\" y=\"8\" width=\"7\" height=\"10\" rx=\"1\"/><rect x=\"14\" y=\"6\" width=\"7\" height=\"10\" rx=\"1\"/><path d=\"M5 5 Q10 1 15 4 M13 3 L15 4 L13 6 M19 19 Q14 23 9 20 M11 18 L9 20 L11 21\" /></g></svg>",
+    cam10: "<svg viewBox=\"0 0 24 24\"><g fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M3 19 L7 15 M21 19 L17 15 M5 14 Q4 11 7 10 Q9 10 12 13 Q15 10 17 10 Q20 11 19 14 Q16 19 12 15 Q8 19 5 14Z\" /><circle cx=\"4\" cy=\"9\" r=\"1.1\" fill=\"currentColor\" stroke=\"none\"/><circle cx=\"6\" cy=\"6\" r=\"1.1\" fill=\"currentColor\" stroke=\"none\"/><circle cx=\"9\" cy=\"7\" r=\"1.1\" fill=\"currentColor\" stroke=\"none\"/><circle cx=\"20\" cy=\"9\" r=\"1.1\" fill=\"currentColor\" stroke=\"none\"/><circle cx=\"18\" cy=\"6\" r=\"1.1\" fill=\"currentColor\" stroke=\"none\"/><circle cx=\"15\" cy=\"7\" r=\"1.1\" fill=\"currentColor\" stroke=\"none\"/></g></svg>",
+    col10: "<svg viewBox=\"0 0 24 24\"><g fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"5\" y=\"5\" width=\"13\" height=\"16\" rx=\"1\"/><path d=\"M18 2 Q18 5 21 5 Q18 5 18 8 Q18 5 15 5 Q18 5 18 2Z\" fill=\"currentColor\" stroke=\"none\"/></g></svg>",
+    col30: "<svg viewBox=\"0 0 24 24\"><g fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M3 5 Q7.5 3 12 5 Q16.5 3 21 5 V20 Q16.5 18 12 20 Q7.5 18 3 20Z M12 5 V20\" /><rect fill=\"currentColor\" x=\"5.5\" y=\"7\" width=\"4\" height=\"4\" rx=\"0.5\"/><rect fill=\"currentColor\" x=\"5.5\" y=\"13\" width=\"4\" height=\"4\" rx=\"0.5\"/><rect x=\"14.5\" y=\"7\" width=\"4\" height=\"4\" rx=\"0.5\"/><rect x=\"14.5\" y=\"13\" width=\"4\" height=\"4\" rx=\"0.5\"/></g></svg>",
+    col60: "<svg viewBox=\"0 0 24 24\"><g fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"5\" y=\"9\" width=\"14\" height=\"12\" rx=\"1\"/><path d=\"M8 9 V21 M8 7 L7 3.5 L10 5 L12 3 L14 5 L17 3.5 L16 7Z\" /></g></svg>",
+    esc: "<svg viewBox=\"0 0 24 24\"><g fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M8 5 H4 V21 H19 V13 M8 15 Q9 10 13 10 H17 L21 7 M13 10 L11 17 M16 13 L19 17\" /><circle cx=\"15\" cy=\"6\" r=\"2\"/></g></svg>",
+    fam1: "<svg viewBox=\"0 0 24 24\"><g fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M12 3 C10 7 5 10 5 14 A7 7 0 0 0 19 14 C19 10 14 7 12 3Z M8 14 Q8 17 11 18\" /></g></svg>",
+    fam11: "<svg viewBox=\"0 0 24 24\"><g fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M8 10 Q3 4 3 10 Q3 14 8 14 M16 10 Q21 4 21 10 Q21 14 16 14 M12 16 V21 M12 20 Q8 20 7 17\" /><path d=\"M12 7 C9 3 7 7 9 10 C5 12 8 16 11 14 C13 18 17 15 15 12 C19 10 16 6 14 8 C15 4 11 3 12 7Z\" /><circle cx=\"12\" cy=\"11\" r=\"1.2\" fill=\"currentColor\" stroke=\"none\"/></g></svg>",
+    fam21: "<svg viewBox=\"0 0 24 24\"><g fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M5 13 L4 8 L9 10 Q12 9 15 10 L20 8 L19 13 Q21 20 12 21 Q3 20 5 13Z\" /><path d=\"M8 15 H9 M15 15 H16 M11 18 L12 19 L13 18\" /><path d=\"M10 7 C7 5 11 4 12 3 Q12 5 14 5 Q16 7 14 8\" /></g></svg>",
+    fam28: "<svg viewBox=\"0 0 24 24\"><g fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M5 13 L3 8 L8 10 Q12 9 16 10 L21 8 L19 13 Q21 20 12 21 Q3 20 5 13Z M3 8 V5 M21 8 V5 M7 15 H9 M15 15 H17 M11 18 L12 19 L13 18\" /><path d=\"M14 3 C11 2 9 4 10 6 C11 8 14 8 15 6 C12 7 11 4 14 3Z\" fill=\"currentColor\" stroke=\"none\"/></g></svg>",
+    fam35: "<svg viewBox=\"0 0 24 24\"><g fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M5 13 L4 6 L9 9 M15 9 L20 6 L19 13 Q21 20 12 21 Q3 20 5 13 M8 15 H9 M15 15 H16 M11 18 L12 19 L13 18 M12 3 L15 7 L12 11 L9 7Z\" /></g></svg>",
+    fam42: "<svg viewBox=\"0 0 24 24\"><g fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M12 21 C9 18 3 14 3 8 C3 3 9 2 12 7 C15 2 21 3 21 8 C21 14 15 18 12 21Z\" /><path d=\"M8.5 16 Q8.5 13 12 12 Q15.5 13 15.5 16 Q15.5 18 12 17 Q8.5 18 8.5 16Z\" fill=\"currentColor\" stroke=\"none\"/><circle cx=\"8\" cy=\"11\" r=\"1.25\" fill=\"currentColor\" stroke=\"none\"/><circle cx=\"10.5\" cy=\"9\" r=\"1.25\" fill=\"currentColor\" stroke=\"none\"/><circle cx=\"13.5\" cy=\"9\" r=\"1.25\" fill=\"currentColor\" stroke=\"none\"/><circle cx=\"16\" cy=\"11\" r=\"1.25\" fill=\"currentColor\" stroke=\"none\"/></g></svg>",
+    fam49: "<svg viewBox=\"0 0 24 24\"><g fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M3 11 L12 3 L21 11 M5 10 V21 H19 V10\" /><rect x=\"9\" y=\"12\" width=\"6\" height=\"6\" rx=\"0.4\"/><path d=\"M12 12 V18 M9 15 H15\" /></g></svg>",
+    firma: "<svg viewBox=\"0 0 24 24\"><g fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M5 16 L11 5 Q15 2 20 3 Q20 9 16 12 L5 16Z M5 16 L16 6 M3 20 Q7 17 10 19 T16 19 Q18 17 21 18\" /></g></svg>",
+    grab: "<svg viewBox=\"0 0 24 24\"><g fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"5\" y=\"3\" width=\"14\" height=\"18\" rx=\"1\"/><path d=\"M8 10 L12 6 M8 15 L16 7 M10 18 L16 12\" /></g></svg>",
+    gre: "<svg viewBox=\"0 0 24 24\"><g fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M12 4 L16 10 L12 21 L8 10Z M8 10 H16 M12 4 V10 M8 10 L3 6 V15 Q5 12 8 15 M16 10 L21 6 V15 Q19 12 16 15\" /></g></svg>",
+    oro: "<svg viewBox=\"0 0 24 24\"><g fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"5\" y=\"3\" width=\"14\" height=\"18\" rx=\"1\"/><path d=\"M8 15 L7 10 L10 12 L12 8 L14 12 L17 10 L16 15Z M9 18 H15\" /></g></svg>",
+    sob10: "<svg viewBox=\"0 0 24 24\"><g fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M6 3 L8 5 L10 3 L12 5 L14 3 L16 5 L18 3 V21 H6Z M6 8 H18 M9 17 H15\" /></g></svg>",
+    sob100: "<svg viewBox=\"0 0 24 24\"><g fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M3 17 V9 L5 10 L7 8 M5 19 V12 L7 13 L9 11 M9 21 V9 L11 10 L13 9 L15 10 L17 9 V21Z M17 12 H21 V21 H9 M10 14 H16\" /><path d=\"M18 2 Q18 5 21 5 Q18 5 18 8 Q18 5 15 5 Q18 5 18 2Z\" fill=\"currentColor\" stroke=\"none\"/></g></svg>",
+    sob50: "<svg viewBox=\"0 0 24 24\"><g fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M7 19 L3 8 L5 7 L7 8 M17 19 L21 8 L19 7 L17 8\" /><path d=\"M8 4 L10 6 L12 4 L14 6 L16 4 V21 H8Z M8 9 H16 M11 17 H13\" /></g></svg>"
+  };
+  /* las familias del set (para el binder y los logros) */
+  const GRUPOS = [["Alberto", 1, 10], ["Cristina", 11, 20], ["Kurama", 21, 27], ["Sukuna", 28, 34], ["Gyukki", 35, 41], ["En grupo", 42, 48], ["La casa", 49, 60]];
+  const nDe = id => +String(id).slice(4);
+  const SET_TXT = "Set " + SET.num + " · " + SET.nombre;
+  const SOBRES = {
+    alberto:  {n:"Alberto",  sub:"Sobre de Alberto",  col:"#4f8dff", col2:"#a8d4ff", arte:["s01-006","gre"], img:"sobre-alberto.webp"},
+    cristina: {n:"Cristina", sub:"Sobre de Cristina", col:"#ff5fa2", col2:"#ffc2dc", arte:["s01-012","full"], img:"sobre-cristina.webp"},
+    gatos:    {n:"Los gatos", sub:"Sobre de los gatos", col:"#ff8a3d", col2:"#c9a8ff", arte:["s01-045","est"], img:"sobre-gatos.webp"}
+  };
+  /* el arte de Valeria sin personas va en el repo (docs/tcg/arte); las portadas con caras, privadas en el Worker */
+  const VER = (document.querySelector("meta[name=build]") || {}).content || "";
+  const ARTE = n => "tcg/arte/" + n + ".webp" + (VER ? "?v=" + encodeURIComponent(VER) : "");
+  const TIER = {1:["#b9c2d4","Común"], 2:["#7cc7ff","Holo"], 3:["#8f7bff","Rara"], 4:["#ffcf5a","Muy rara"], 5:["#ff5fd2","Gremory"], sec:["#ff4f7d","Secreta"]};
+  const tierDe = x => x.c === "s01-061" ? "sec" : x.nivel;
+  const reduce = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const extra = {};    /* qué ilustraciones de la escena hay en el Worker */
+  function miraExtra(){
+    if(extra.listo) return extra.listo;
+    if(!nubeBase()) return Promise.resolve();
+    const prueba = (k, n) => new Promise(ok => { const i = new Image(); const tm = setTimeout(ok, 5000); i.onload = () => { clearTimeout(tm); extra[k] = url(n); ok(); }; i.onerror = () => { clearTimeout(tm); ok(); }; i.src = url(n); });
+    /* las portadas de Valeria y sus máscaras de brillo (subidas al Worker desde subir-app-tcg) */
+    const ps = Object.keys(SOBRES).map(k => prueba("sobre-" + k, SOBRES[k].img));
+    Object.keys(SOBRES).forEach(k => ps.push(prueba("brillo-" + k, "sobre-" + k + "-brillo.webp")));
+    return extra.listo = Promise.all(ps);
+  }
+
+  /* ── el sobre en 3D (tcg/sobre3d.js, con three.js) ──
+     Se carga al ver la pestaña de sobres y prepara las texturas del sobre elegido. Si no hay WebGL, el usuario
+     prefiere menos movimiento o aún no está listo al abrir, se usa el sobre en CSS de siempre.
+     Texturas de 1000×1700 con el corte en y=250 (RUN-ASSETS-TCG.md). Mientras no lleguen las de Valeria,
+     se dibujan aquí con la ilustración de una carta, el nombre y un dorso granate y oro. */
+  let S3 = null, S3carga = null;
+  const LIENZO = {}, TX = 1000, TY = 1700;
+  function carga3d(){
+    if(S3carga) return S3carga;
+    if(reduce()) return S3carga = Promise.resolve(null);
+    S3carga = import("./sobre3d.js?v=" + encodeURIComponent(VER)).then(m => (S3 = m.webgl() ? m : null)).catch(e => { console.warn("sobre 3D", e); return null; });
+    return S3carga;
+  }
+  const imagen = src => new Promise(ok => { if(!src || src === VACIA) return ok(null); const i = new Image(); i.crossOrigin = "anonymous"; i.onload = () => ok(i); i.onerror = () => ok(null); i.src = src; });
+  const fuentes = () => document.fonts && document.fonts.load ? Promise.all(['400 160px "Instrument Serif"', '700 30px "Space Mono"'].map(f => document.fonts.load(f).catch(() => null))) : Promise.resolve();
+  function lienzos(k){
+    if(LIENZO[k]) return LIENZO[k];
+    const p = Promise.resolve(miraExtra()).then(() => {
+      const S = SOBRES[k], [id, cl] = S.arte, a = (D1.ART[id] || {})[cl] || {}, propia = extra["sobre-" + k];
+      return Promise.all([imagen(propia), propia ? null : imagen(cl === "gre" ? a.g2 : a.fondo), propia ? null : imagen(a.pj), imagen(propia && extra["brillo-" + k]),
+        imagen(ARTE("sobre-reverso")), imagen(ARTE("sobre-reverso-brillo")), imagen(ARTE("sobre-rasgado")), imagen(ARTE("logotipo-gremory")), imagen(ARTE("sobre-sellado")),
+        imagen(ARTE("sobre-arrugas")), imagen(ARTE("sobre-interior")), imagen(ARTE("destello")), fuentes()]);
+    }).then(([propia, fondo, pj, brillo, rev, revBr, ras, logo, sellado, arrugas, interior, destello]) => {
+      const S = SOBRES[k], frente = frenteSobre(S, propia, fondo, pj, logo, sellado);
+      p.listo = {frente, dorso: dorsoSobre(rev, sellado), rasgado: ras || rasgadoSobre(), color: S.col,
+        brilloF: brillo ? brilloSobre(brillo, logo) : null, brilloD: revBr, arrugas, interior, destello, propia: !!propia};
+      /* la misma portada para el carrusel (solo si es la de Valeria; la provisional sigue en CSS) */
+      if(propia && frente.toBlob) frente.toBlob(b => { if(!b) return; p.listo.url = URL.createObjectURL(b); if(tab === "sobres") ponPortada(k); }, "image/webp", .9);
+      return p.listo;
+    }).catch(e => { console.warn("texturas del sobre", e); delete LIENZO[k]; return null; });
+    return LIENZO[k] = p;
+  }
+  function precarga3d(){ carga3d(); if(nubeBase()) lienzos(elegido).then(() => ORDEN.forEach(k => lienzos(k))); }
+  function lienzo(){ const c = document.createElement("canvas"); c.width = TX; c.height = TY; return [c, c.getContext("2d")]; }
+  function cubre(g, img, pos){
+    const s = Math.max(TX / img.width, TY / img.height), w = img.width * s, h = img.height * s;
+    g.drawImage(img, (TX - w) / 2, (TY - h) * pos, w, h);
+  }
+  const rgb = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16));
+  const mezcla = (a, b, t, al) => { const x = rgb(a), y = rgb(b); return "rgba(" + x.map((v, i) => Math.round(v + (y[i] - v) * t)).join(",") + "," + (al == null ? 1 : al) + ")"; };
+  function espaciado(g, txt, x, y, sep){
+    if("letterSpacing" in g){ g.letterSpacing = sep + "px"; g.fillText(txt, x + sep / 2, y); g.letterSpacing = "0px"; return; }
+    g.fillText(txt.split("").join("\u200A"), x, y);
+  }
+  /* los sellados de arriba y abajo (estrías), la línea de corte perforada y el dentado */
+  function remata(g, c1, c2, perfora, sellado){
+    if(sellado){   /* las estrías de Valeria encima de la ilustración, arriba y (giradas) abajo */
+      g.drawImage(sellado, 0, 0, TX, 56);
+      g.save(); g.translate(0, TY); g.scale(1, -1); g.drawImage(sellado, 0, 0, TX, 56); g.restore();
+    }
+    else [[0, 56, false], [TY - 56, 56, true]].forEach(([y, h, abajo]) => {
+      const gr = g.createLinearGradient(0, y, 0, y + h); gr.addColorStop(abajo ? 1 : 0, c2); gr.addColorStop(abajo ? 0 : 1, c1);
+      g.fillStyle = gr; g.fillRect(0, y, TX, h);
+      for(let i = 0; i < TX; i += 8){ g.fillStyle = i % 16 ? "rgba(0,0,0,.22)" : "rgba(255,255,255,.3)"; g.fillRect(i, y, 3, h); }
+    });
+    if(perfora){
+      g.save(); g.setLineDash([16, 11]); g.lineWidth = 3;
+      g.strokeStyle = "rgba(0,0,0,.35)"; g.beginPath(); g.moveTo(0, 252); g.lineTo(TX, 252); g.stroke();
+      g.strokeStyle = "rgba(255,255,255,.7)"; g.beginPath(); g.moveTo(0, 249); g.lineTo(TX, 249); g.stroke(); g.restore();
+    }
+    g.save(); g.globalCompositeOperation = "destination-out"; g.fillStyle = "#000"; g.beginPath();
+    const n = 30, a = 30, w = TX / n;
+    for(let i = 0; i < n; i++){ const x = i * w; g.moveTo(x, 0); g.lineTo(x + w / 2, a); g.lineTo(x + w, 0); g.moveTo(x, TY); g.lineTo(x + w / 2, TY - a); g.lineTo(x + w, TY); }
+    g.fill(); g.restore();
+  }
+  function frenteSobre(S, propia, fondo, pj, logo, sellado){
+    const [c, g] = lienzo();
+    g.fillStyle = "#0b0610"; g.fillRect(0, 0, TX, TY);
+    if(propia) g.drawImage(propia, 0, 0, TX, TY);
+    else {
+      if(fondo) cubre(g, fondo, .24);
+      if(pj) cubre(g, pj, .24);
+      const v = g.createLinearGradient(0, 0, 0, TY);
+      v.addColorStop(0, "rgba(12,4,12,.9)"); v.addColorStop(.2, "rgba(12,4,12,.35)"); v.addColorStop(.34, "rgba(12,4,12,0)"); v.addColorStop(.58, "rgba(12,4,12,0)");
+      v.addColorStop(.78, mezcla(S.col, S.col, 0, .55)); v.addColorStop(.9, mezcla(S.col, "#0b0610", .6)); v.addColorStop(1, "#0b0610");
+      g.fillStyle = v; g.fillRect(0, 0, TX, TY);
+    }
+    /* logotipo: el de Valeria si está; si no, el nombre en dorado */
+    if(logo){ g.save(); g.shadowColor = "rgba(0,0,0,.55)"; g.shadowBlur = 22; g.shadowOffsetY = 6; g.drawImage(logo, 500 - 380, 410 - 110, 760, 220); g.restore(); }
+    else {
+      g.save(); g.textAlign = "center"; g.font = '400 200px "Instrument Serif", Georgia, serif';
+      const d = g.createLinearGradient(0, 330, 0, 460); d.addColorStop(0, "#fff8de"); d.addColorStop(.6, "#f3cb6c"); d.addColorStop(1, "#b07a1e");
+      g.shadowColor = "rgba(0,0,0,.8)"; g.shadowBlur = 18; g.shadowOffsetY = 5; g.fillStyle = d; g.fillText("Gremory", 500, 450);
+      g.shadowBlur = 8; g.shadowOffsetY = 2; g.font = '700 26px "Space Mono", monospace'; g.fillStyle = "rgba(255,236,200,.9)";
+      espaciado(g, "TRADING CARD GAME · SET 1", 500, 505, 7); g.restore();
+    }
+    /* abajo, el nombre del set (el de cada sobre ya no va: los tres traen lo mismo) */
+    g.save(); g.textAlign = "center";
+    if(propia){ const v = g.createLinearGradient(0, 1360, 0, 1640); v.addColorStop(0, "rgba(11,6,16,0)"); v.addColorStop(1, "rgba(11,6,16,.55)"); g.fillStyle = v; g.fillRect(0, 1360, TX, 280); }
+    g.font = '700 28px "Space Mono", monospace'; g.fillStyle = S.col2; g.shadowColor = "rgba(0,0,0,.7)"; g.shadowBlur = 8;
+    espaciado(g, "SET " + SET.num, 500, 1452, 10);
+    g.font = '400 128px "Instrument Serif", Georgia, serif'; g.fillStyle = "#fff"; g.shadowColor = S.col; g.shadowBlur = 30; g.fillText(SET.nombre, 500, 1565);
+    g.shadowColor = "rgba(0,0,0,.8)"; g.shadowBlur = 10; g.fillText(SET.nombre, 500, 1565);
+    g.restore();
+    remata(g, S.col, S.col2, true, propia ? sellado : null);
+    return c;
+  }
+  /* la máscara de brillo de la portada, con el logotipo también metalizado */
+  function brilloSobre(mascara, logo){
+    const [c, g] = lienzo();
+    g.drawImage(mascara, 0, 0, TX, TY);
+    if(logo){
+      const t = document.createElement("canvas"); t.width = 760; t.height = 220; const x = t.getContext("2d");
+      x.drawImage(logo, 0, 0, 760, 220); x.globalCompositeOperation = "source-in"; x.fillStyle = "#fff"; x.fillRect(0, 0, 760, 220);
+      g.drawImage(t, 500 - 380, 410 - 110);
+    }
+    return c;
+  }
+  function dorsoSobre(propio, sellado){
+    const [c, g] = lienzo();
+    if(propio) g.drawImage(propio, 0, 0, TX, TY);
+    else {
+      const r = g.createRadialGradient(500, 820, 40, 500, 850, 1100); r.addColorStop(0, "#8c1832"); r.addColorStop(.45, "#6b0f24"); r.addColorStop(1, "#2c0610");
+      g.fillStyle = r; g.fillRect(0, 0, TX, TY);
+      g.strokeStyle = "rgba(232,182,76,.15)"; g.lineWidth = 2;   /* trama de rombos */
+      for(let i = -TY; i < TX + TY; i += 64){ g.beginPath(); g.moveTo(i, 0); g.lineTo(i + TY, TY); g.stroke(); g.beginPath(); g.moveTo(i, 0); g.lineTo(i - TY, TY); g.stroke(); }
+      const s = g.createLinearGradient(465, 0, 535, 0); s.addColorStop(0, "rgba(0,0,0,.28)"); s.addColorStop(.15, "rgba(255,255,255,.1)"); s.addColorStop(.85, "rgba(255,255,255,.06)"); s.addColorStop(1, "rgba(0,0,0,.3)");
+      g.fillStyle = s; g.fillRect(465, 0, 70, TY);   /* la costura del cierre */
+      g.fillStyle = "rgba(255,231,163,.18)"; for(let y = 70; y < TY - 70; y += 22) g.fillRect(498, y, 4, 11);
+      g.save(); g.translate(500, 850);
+      g.strokeStyle = "#e8b64c"; g.lineWidth = 7; g.beginPath(); g.arc(0, 0, 168, 0, 7); g.stroke();
+      g.lineWidth = 2; g.strokeStyle = "rgba(255,231,163,.6)"; g.beginPath(); g.arc(0, 0, 150, 0, 7); g.stroke();
+      for(let i = 0; i < 24; i++){ const a = i / 24 * Math.PI * 2; g.beginPath(); g.moveTo(Math.cos(a) * 176, Math.sin(a) * 176); g.lineTo(Math.cos(a) * (i % 2 ? 184 : 192), Math.sin(a) * (i % 2 ? 184 : 192)); g.stroke(); }
+      const d = g.createLinearGradient(0, -130, 0, 130); d.addColorStop(0, "#ffe7a3"); d.addColorStop(.55, "#e8b64c"); d.addColorStop(1, "#9a6a1a");
+      g.textAlign = "center"; g.textBaseline = "middle"; g.font = '400 300px "Instrument Serif", Georgia, serif';
+      g.shadowColor = "rgba(0,0,0,.6)"; g.shadowBlur = 16; g.fillStyle = d; g.fillText("G", 0, 18); g.restore();
+    }
+    remata(g, "#6b0f24", "#a8243f", !propio, propio ? sellado : null);
+    return c;
+  }
+  /* el borde rasgado (1000×64): arriba transparente; abajo la capa plateada de dentro, con fibras */
+  function rasgadoSobre(){
+    const c = document.createElement("canvas"); c.width = TX; c.height = 64; const g = c.getContext("2d");
+    let sem = 7; const r = () => (sem = (sem * 16807) % 2147483647) / 2147483647;
+    const pts = []; let y = 32;
+    for(let x = 0; x <= TX; x += 6){ y += (r() - .5) * 9 + (32 - y) * .12; if(r() < .05) y += (r() < .5 ? -1 : 1) * 12; y = Math.max(14, Math.min(50, y)); pts.push([x, y]); }
+    pts[pts.length - 1][1] = pts[0][1];
+    g.beginPath(); g.moveTo(0, 64); pts.forEach(([x, y]) => g.lineTo(x, y)); g.lineTo(TX, 64); g.closePath();
+    const gr = g.createLinearGradient(0, 14, 0, 64); gr.addColorStop(0, "#f4f6fa"); gr.addColorStop(.5, "#e9ecf2"); gr.addColorStop(1, "#b8c0cc");
+    g.fillStyle = gr; g.fill();
+    g.strokeStyle = "rgba(255,255,255,.95)"; g.lineWidth = 2; g.beginPath(); pts.forEach(([x, y], i) => i ? g.lineTo(x, y) : g.moveTo(x, y)); g.stroke();
+    g.strokeStyle = "rgba(255,255,255,.8)"; g.lineWidth = 1;
+    pts.forEach(([x, y]) => { if(r() < .55){ g.beginPath(); g.moveTo(x + r() * 4, y + 1); g.lineTo(x + (r() - .5) * 5, y - 2 - r() * 6); g.stroke(); } });
+    return c;
+  }
+
+  /* ── sonido: todo sintetizado, sin archivos ── */
+  let actx = null, mudo = lee("gremory-tcg-mudo", false);
+  function ac(){ if(mudo) return null; try { actx = actx || new (window.AudioContext || window.webkitAudioContext)(); if(actx.state === "suspended") actx.resume(); return actx; } catch(e){ return null; } }
+  function ruido(c, dur){ const b = c.createBuffer(1, Math.ceil(c.sampleRate * dur), c.sampleRate), d = b.getChannelData(0); for(let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1; const s = c.createBufferSource(); s.buffer = b; return s; }
+  function env(c, g, t0, a, peak, dec){ g.gain.setValueAtTime(0.0001, t0); g.gain.exponentialRampToValueAtTime(peak, t0 + a); g.gain.exponentialRampToValueAtTime(0.0001, t0 + a + dec); }
+  const SON = {
+    corta(){ const c = ac(); if(!c) return; const t = c.currentTime, n = ruido(c, .5), f = c.createBiquadFilter(), g = c.createGain();
+      f.type = "bandpass"; f.Q.value = 1.4; f.frequency.setValueAtTime(900, t); f.frequency.exponentialRampToValueAtTime(4200, t + .32);
+      env(c, g, t, .01, .5, .4); n.connect(f).connect(g).connect(c.destination); n.start(t); n.stop(t + .5); },
+    sube(){ const c = ac(); if(!c) return; const t = c.currentTime, n = ruido(c, .9), f = c.createBiquadFilter(), g = c.createGain();
+      f.type = "lowpass"; f.frequency.setValueAtTime(300, t); f.frequency.exponentialRampToValueAtTime(2600, t + .7);
+      env(c, g, t, .25, .22, .6); n.connect(f).connect(g).connect(c.destination); n.start(t); n.stop(t + .9);
+      [261.6, 392, 523.3].forEach((hz, k) => { const o = c.createOscillator(), og = c.createGain(); o.type = "triangle"; o.frequency.value = hz; env(c, og, t + .15 + k * .07, .02, .08, .9); o.connect(og).connect(c.destination); o.start(t + .15 + k * .07); o.stop(t + 1.3); }); },
+    reparte(k){ const c = ac(); if(!c) return; const t = c.currentTime + k * .07, n = ruido(c, .12), f = c.createBiquadFilter(), g = c.createGain();
+      f.type = "highpass"; f.frequency.value = 2500; env(c, g, t, .005, .25, .09); n.connect(f).connect(g).connect(c.destination); n.start(t); n.stop(t + .12); },
+    /* pasar página del binder: papel que se dobla (barrido de ruido de agudo a grave) y un golpecito al caer */
+    pasa(){ const c = ac(); if(!c) return; const t = c.currentTime, n = ruido(c, .42), f = c.createBiquadFilter(), g = c.createGain();
+      f.type = "bandpass"; f.Q.value = .9; f.frequency.setValueAtTime(3800, t); f.frequency.exponentialRampToValueAtTime(700, t + .34);
+      env(c, g, t, .04, .16, .34); n.connect(f).connect(g).connect(c.destination); n.start(t); n.stop(t + .42);
+      const k = ruido(c, .08), kf = c.createBiquadFilter(), kg = c.createGain(); kf.type = "lowpass"; kf.frequency.value = 600;
+      env(c, kg, t + .3, .005, .18, .07); k.connect(kf).connect(kg).connect(c.destination); k.start(t + .3); k.stop(t + .38); },
+    /* cambiar de sobre en el carrusel: un roce corto */
+    roce(){ const c = ac(); if(!c) return; const t = c.currentTime, n = ruido(c, .14), f = c.createBiquadFilter(), g = c.createGain();
+      f.type = "highpass"; f.frequency.setValueAtTime(1200, t); env(c, g, t, .02, .09, .11); n.connect(f).connect(g).connect(c.destination); n.start(t); n.stop(t + .14); },
+    gira(){ const c = ac(); if(!c) return; const t = c.currentTime, n = ruido(c, .16), f = c.createBiquadFilter(), g = c.createGain();
+      f.type = "bandpass"; f.frequency.setValueAtTime(1800, t); f.frequency.exponentialRampToValueAtTime(5200, t + .12); env(c, g, t, .01, .35, .13); n.connect(f).connect(g).connect(c.destination); n.start(t); n.stop(t + .16); },
+    rara(t0){ const c = ac(); if(!c) return; const t = c.currentTime + .05, notas = t0 >= 5 ? [523.3, 659.3, 784, 1046.5, 1318.5, 1568] : t0 >= 4 ? [659.3, 784, 1046.5, 1318.5] : [784, 987.8, 1174.7];
+      if(t0 >= 5){ const o = c.createOscillator(), og = c.createGain(); o.type = "sine"; o.frequency.setValueAtTime(110, t); o.frequency.exponentialRampToValueAtTime(40, t + 1.2); env(c, og, t, .02, .6, 1.4); o.connect(og).connect(c.destination); o.start(t); o.stop(t + 1.6); }
+      notas.forEach((hz, k) => { const o = c.createOscillator(), og = c.createGain(); o.type = "sine"; o.frequency.value = hz; env(c, og, t + k * .085, .01, .16, 1.1); o.connect(og).connect(c.destination); o.start(t + k * .085); o.stop(t + k * .085 + 1.3); }); },
+    cruje(){ const c = ac(); if(!c) return; const t = c.currentTime, n = ruido(c, .07), f = c.createBiquadFilter(), g = c.createGain();
+      f.type = "highpass"; f.frequency.value = 3000 + Math.random() * 2500; env(c, g, t, .003, .12, .05); n.connect(f).connect(g).connect(c.destination); n.start(t); n.stop(t + .07); },
+    miau(){ const c = ac(); if(!c) return; const t = c.currentTime, o = c.createOscillator(), g = c.createGain(), f = c.createBiquadFilter();
+      o.type = "sawtooth"; f.type = "bandpass"; f.frequency.value = 1100; f.Q.value = 3;
+      o.frequency.setValueAtTime(420, t); o.frequency.linearRampToValueAtTime(760, t + .12); o.frequency.linearRampToValueAtTime(520, t + .38);
+      env(c, g, t, .04, .18, .4); o.connect(f).connect(g).connect(c.destination); o.start(t); o.stop(t + .5); }
+  };
+  const vibra = p => { if(navigator.vibrate) try { navigator.vibrate(p); } catch(e){} };
+
+  /* ── el círculo mágico de Valeria (escena/circulo-magico.svg): cinco anillos que giran cada uno a su ritmo ── */
+  const CIRCULO = '<svg class="gx-circulo gm" aria-hidden="true" viewBox="0 0 1000 1000"><g fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><g class="gm-anillo-ext"><circle cx="500" cy="500" r="490" /><circle cx="500" cy="500" r="470" /><path d="M975.00 500.00 L986.00 500.00" /><path d="M972.40 549.65 L983.34 550.80" /><path d="M964.62 598.76 L975.38 601.05" /><path d="M951.75 646.78 L962.21 650.18" /><path d="M933.93 693.20 L943.98 697.67" /><path d="M911.36 737.50 L920.89 743.00" /><path d="M884.28 779.20 L893.18 785.66" /><path d="M852.99 817.84 L861.17 825.20" /><path d="M817.84 852.99 L825.20 861.17" /><path d="M779.20 884.28 L785.66 893.18" /><path d="M737.50 911.36 L743.00 920.89" /><path d="M693.20 933.93 L697.67 943.98" /><path d="M646.78 951.75 L650.18 962.21" /><path d="M598.76 964.62 L601.05 975.38" /><path d="M549.65 972.40 L550.80 983.34" /><path d="M500.00 975.00 L500.00 986.00" /><path d="M450.35 972.40 L449.20 983.34" /><path d="M401.24 964.62 L398.95 975.38" /><path d="M353.22 951.75 L349.82 962.21" /><path d="M306.80 933.93 L302.33 943.98" /><path d="M262.50 911.36 L257.00 920.89" /><path d="M220.80 884.28 L214.34 893.18" /><path d="M182.16 852.99 L174.80 861.17" /><path d="M147.01 817.84 L138.83 825.20" /><path d="M115.72 779.20 L106.82 785.66" /><path d="M88.64 737.50 L79.11 743.00" /><path d="M66.07 693.20 L56.02 697.67" /><path d="M48.25 646.78 L37.79 650.18" /><path d="M35.38 598.76 L24.62 601.05" /><path d="M27.60 549.65 L16.66 550.80" /><path d="M25.00 500.00 L14.00 500.00" /><path d="M27.60 450.35 L16.66 449.20" /><path d="M35.38 401.24 L24.62 398.95" /><path d="M48.25 353.22 L37.79 349.82" /><path d="M66.07 306.80 L56.02 302.33" /><path d="M88.64 262.50 L79.11 257.00" /><path d="M115.72 220.80 L106.82 214.34" /><path d="M147.01 182.16 L138.83 174.80" /><path d="M182.16 147.01 L174.80 138.83" /><path d="M220.80 115.72 L214.34 106.82" /><path d="M262.50 88.64 L257.00 79.11" /><path d="M306.80 66.07 L302.33 56.02" /><path d="M353.22 48.25 L349.82 37.79" /><path d="M401.24 35.38 L398.95 24.62" /><path d="M450.35 27.60 L449.20 16.66" /><path d="M500.00 25.00 L500.00 14.00" /><path d="M549.65 27.60 L550.80 16.66" /><path d="M598.76 35.38 L601.05 24.62" /><path d="M646.78 48.25 L650.18 37.79" /><path d="M693.20 66.07 L697.67 56.02" /><path d="M737.50 88.64 L743.00 79.11" /><path d="M779.20 115.72 L785.66 106.82" /><path d="M817.84 147.01 L825.20 138.83" /><path d="M852.99 182.16 L861.17 174.80" /><path d="M884.28 220.80 L893.18 214.34" /><path d="M911.36 262.50 L920.89 257.00" /><path d="M933.93 306.80 L943.98 302.33" /><path d="M951.75 353.22 L962.21 349.82" /><path d="M964.62 401.24 L975.38 398.95" /><path d="M972.40 450.35 L983.34 449.20" /></g><g class="gm-runas"><g transform="translate(500 500) rotate(0) translate(0 -435)"><path d="M-13 -5 L-5 -15 L12 -6 L5 13 L-10 8 Z M-5 -15 L-3 -2 L5 13 M12 -6 L6 -1"/><circle cx="-4" cy="3" r="3"/><circle cx="15" cy="13" r="2"/></g><g transform="translate(500 500) rotate(10) translate(0 -435)"><path d="M-13 -5 L-5 -15 L12 -6 L5 13 L-10 8 Z M-5 -15 L-4 -2 L5 13 M12 -6 L7 -1"/><circle cx="-4" cy="3" r="3"/><circle cx="15" cy="13" r="2"/></g><g transform="translate(500 500) rotate(20) translate(0 -435)"><path d="M-13 -5 L-5 -15 L12 -6 L5 13 L-10 8 Z M-5 -15 L-5 -2 L5 13 M12 -6 L8 -1"/><circle cx="-4" cy="3" r="3"/><circle cx="15" cy="13" r="2"/></g><g transform="translate(500 500) rotate(30) translate(0 -435)"><path d="M-13 -5 L-5 -15 L12 -6 L5 13 L-10 8 Z M-5 -15 L-3 -2 L5 13 M12 -6 L9 -1"/><circle cx="-4" cy="3" r="3"/><circle cx="15" cy="13" r="2"/></g><g transform="translate(500 500) rotate(40) translate(0 -435)"><path d="M-13 -5 L-5 -15 L12 -6 L5 13 L-10 8 Z M-5 -15 L-4 -2 L5 13 M12 -6 L6 -1"/><circle cx="-4" cy="3" r="3"/><circle cx="15" cy="13" r="2"/></g><g transform="translate(500 500) rotate(50) translate(0 -435)"><path d="M-13 -5 L-5 -15 L12 -6 L5 13 L-10 8 Z M-5 -15 L-5 -2 L5 13 M12 -6 L7 -1"/><circle cx="-4" cy="3" r="3"/><circle cx="15" cy="13" r="2"/></g><g transform="translate(500 500) rotate(60) translate(0 -435)"><path d="M-13 -5 L-5 -15 L12 -6 L5 13 L-10 8 Z M-5 -15 L-3 -2 L5 13 M12 -6 L8 -1"/><circle cx="-4" cy="3" r="3"/><circle cx="15" cy="13" r="2"/></g><g transform="translate(500 500) rotate(70) translate(0 -435)"><path d="M-13 -5 L-5 -15 L12 -6 L5 13 L-10 8 Z M-5 -15 L-4 -2 L5 13 M12 -6 L9 -1"/><circle cx="-4" cy="3" r="3"/><circle cx="15" cy="13" r="2"/></g><g transform="translate(500 500) rotate(80) translate(0 -435)"><path d="M-13 -5 L-5 -15 L12 -6 L5 13 L-10 8 Z M-5 -15 L-5 -2 L5 13 M12 -6 L6 -1"/><circle cx="-4" cy="3" r="3"/><circle cx="15" cy="13" r="2"/></g><g transform="translate(500 500) rotate(90) translate(0 -435)"><path d="M-13 -5 L-5 -15 L12 -6 L5 13 L-10 8 Z M-5 -15 L-3 -2 L5 13 M12 -6 L7 -1"/><circle cx="-4" cy="3" r="3"/><circle cx="15" cy="13" r="2"/></g><g transform="translate(500 500) rotate(100) translate(0 -435)"><path d="M-13 -5 L-5 -15 L12 -6 L5 13 L-10 8 Z M-5 -15 L-4 -2 L5 13 M12 -6 L8 -1"/><circle cx="-4" cy="3" r="3"/><circle cx="15" cy="13" r="2"/></g><g transform="translate(500 500) rotate(110) translate(0 -435)"><path d="M-13 -5 L-5 -15 L12 -6 L5 13 L-10 8 Z M-5 -15 L-5 -2 L5 13 M12 -6 L9 -1"/><circle cx="-4" cy="3" r="3"/><circle cx="15" cy="13" r="2"/></g><g transform="translate(500 500) rotate(120) translate(0 -435)"><path d="M-13 -5 L-5 -15 L12 -6 L5 13 L-10 8 Z M-5 -15 L-3 -2 L5 13 M12 -6 L6 -1"/><circle cx="-4" cy="3" r="3"/><circle cx="15" cy="13" r="2"/></g><g transform="translate(500 500) rotate(130) translate(0 -435)"><path d="M-13 -5 L-5 -15 L12 -6 L5 13 L-10 8 Z M-5 -15 L-4 -2 L5 13 M12 -6 L7 -1"/><circle cx="-4" cy="3" r="3"/><circle cx="15" cy="13" r="2"/></g><g transform="translate(500 500) rotate(140) translate(0 -435)"><path d="M-13 -5 L-5 -15 L12 -6 L5 13 L-10 8 Z M-5 -15 L-5 -2 L5 13 M12 -6 L8 -1"/><circle cx="-4" cy="3" r="3"/><circle cx="15" cy="13" r="2"/></g><g transform="translate(500 500) rotate(150) translate(0 -435)"><path d="M-13 -5 L-5 -15 L12 -6 L5 13 L-10 8 Z M-5 -15 L-3 -2 L5 13 M12 -6 L9 -1"/><circle cx="-4" cy="3" r="3"/><circle cx="15" cy="13" r="2"/></g><g transform="translate(500 500) rotate(160) translate(0 -435)"><path d="M-13 -5 L-5 -15 L12 -6 L5 13 L-10 8 Z M-5 -15 L-4 -2 L5 13 M12 -6 L6 -1"/><circle cx="-4" cy="3" r="3"/><circle cx="15" cy="13" r="2"/></g><g transform="translate(500 500) rotate(170) translate(0 -435)"><path d="M-13 -5 L-5 -15 L12 -6 L5 13 L-10 8 Z M-5 -15 L-5 -2 L5 13 M12 -6 L7 -1"/><circle cx="-4" cy="3" r="3"/><circle cx="15" cy="13" r="2"/></g><g transform="translate(500 500) rotate(180) translate(0 -435)"><path d="M-13 -5 L-5 -15 L12 -6 L5 13 L-10 8 Z M-5 -15 L-3 -2 L5 13 M12 -6 L8 -1"/><circle cx="-4" cy="3" r="3"/><circle cx="15" cy="13" r="2"/></g><g transform="translate(500 500) rotate(190) translate(0 -435)"><path d="M-13 -5 L-5 -15 L12 -6 L5 13 L-10 8 Z M-5 -15 L-4 -2 L5 13 M12 -6 L9 -1"/><circle cx="-4" cy="3" r="3"/><circle cx="15" cy="13" r="2"/></g><g transform="translate(500 500) rotate(200) translate(0 -435)"><path d="M-13 -5 L-5 -15 L12 -6 L5 13 L-10 8 Z M-5 -15 L-5 -2 L5 13 M12 -6 L6 -1"/><circle cx="-4" cy="3" r="3"/><circle cx="15" cy="13" r="2"/></g><g transform="translate(500 500) rotate(210) translate(0 -435)"><path d="M-13 -5 L-5 -15 L12 -6 L5 13 L-10 8 Z M-5 -15 L-3 -2 L5 13 M12 -6 L7 -1"/><circle cx="-4" cy="3" r="3"/><circle cx="15" cy="13" r="2"/></g><g transform="translate(500 500) rotate(220) translate(0 -435)"><path d="M-13 -5 L-5 -15 L12 -6 L5 13 L-10 8 Z M-5 -15 L-4 -2 L5 13 M12 -6 L8 -1"/><circle cx="-4" cy="3" r="3"/><circle cx="15" cy="13" r="2"/></g><g transform="translate(500 500) rotate(230) translate(0 -435)"><path d="M-13 -5 L-5 -15 L12 -6 L5 13 L-10 8 Z M-5 -15 L-5 -2 L5 13 M12 -6 L9 -1"/><circle cx="-4" cy="3" r="3"/><circle cx="15" cy="13" r="2"/></g><g transform="translate(500 500) rotate(240) translate(0 -435)"><path d="M-13 -5 L-5 -15 L12 -6 L5 13 L-10 8 Z M-5 -15 L-3 -2 L5 13 M12 -6 L6 -1"/><circle cx="-4" cy="3" r="3"/><circle cx="15" cy="13" r="2"/></g><g transform="translate(500 500) rotate(250) translate(0 -435)"><path d="M-13 -5 L-5 -15 L12 -6 L5 13 L-10 8 Z M-5 -15 L-4 -2 L5 13 M12 -6 L7 -1"/><circle cx="-4" cy="3" r="3"/><circle cx="15" cy="13" r="2"/></g><g transform="translate(500 500) rotate(260) translate(0 -435)"><path d="M-13 -5 L-5 -15 L12 -6 L5 13 L-10 8 Z M-5 -15 L-5 -2 L5 13 M12 -6 L8 -1"/><circle cx="-4" cy="3" r="3"/><circle cx="15" cy="13" r="2"/></g><g transform="translate(500 500) rotate(270) translate(0 -435)"><path d="M-13 -5 L-5 -15 L12 -6 L5 13 L-10 8 Z M-5 -15 L-3 -2 L5 13 M12 -6 L9 -1"/><circle cx="-4" cy="3" r="3"/><circle cx="15" cy="13" r="2"/></g><g transform="translate(500 500) rotate(280) translate(0 -435)"><path d="M-13 -5 L-5 -15 L12 -6 L5 13 L-10 8 Z M-5 -15 L-4 -2 L5 13 M12 -6 L6 -1"/><circle cx="-4" cy="3" r="3"/><circle cx="15" cy="13" r="2"/></g><g transform="translate(500 500) rotate(290) translate(0 -435)"><path d="M-13 -5 L-5 -15 L12 -6 L5 13 L-10 8 Z M-5 -15 L-5 -2 L5 13 M12 -6 L7 -1"/><circle cx="-4" cy="3" r="3"/><circle cx="15" cy="13" r="2"/></g><g transform="translate(500 500) rotate(300) translate(0 -435)"><path d="M-13 -5 L-5 -15 L12 -6 L5 13 L-10 8 Z M-5 -15 L-3 -2 L5 13 M12 -6 L8 -1"/><circle cx="-4" cy="3" r="3"/><circle cx="15" cy="13" r="2"/></g><g transform="translate(500 500) rotate(310) translate(0 -435)"><path d="M-13 -5 L-5 -15 L12 -6 L5 13 L-10 8 Z M-5 -15 L-4 -2 L5 13 M12 -6 L9 -1"/><circle cx="-4" cy="3" r="3"/><circle cx="15" cy="13" r="2"/></g><g transform="translate(500 500) rotate(320) translate(0 -435)"><path d="M-13 -5 L-5 -15 L12 -6 L5 13 L-10 8 Z M-5 -15 L-5 -2 L5 13 M12 -6 L6 -1"/><circle cx="-4" cy="3" r="3"/><circle cx="15" cy="13" r="2"/></g><g transform="translate(500 500) rotate(330) translate(0 -435)"><path d="M-13 -5 L-5 -15 L12 -6 L5 13 L-10 8 Z M-5 -15 L-3 -2 L5 13 M12 -6 L7 -1"/><circle cx="-4" cy="3" r="3"/><circle cx="15" cy="13" r="2"/></g><g transform="translate(500 500) rotate(340) translate(0 -435)"><path d="M-13 -5 L-5 -15 L12 -6 L5 13 L-10 8 Z M-5 -15 L-4 -2 L5 13 M12 -6 L8 -1"/><circle cx="-4" cy="3" r="3"/><circle cx="15" cy="13" r="2"/></g><g transform="translate(500 500) rotate(350) translate(0 -435)"><path d="M-13 -5 L-5 -15 L12 -6 L5 13 L-10 8 Z M-5 -15 L-5 -2 L5 13 M12 -6 L9 -1"/><circle cx="-4" cy="3" r="3"/><circle cx="15" cy="13" r="2"/></g></g><g class="gm-anillo-med"><circle cx="500" cy="500" r="390" /><path d="M500.000 120.000 L664.876 842.368 L202.904 263.074 L870.473 584.558 L129.527 584.558 L797.096 263.074 L335.124 842.368 Z" /></g><g class="gm-anillo-int"><circle cx="500" cy="500" r="230" /><circle cx="500" cy="500" r="215" /><g transform="translate(500 500) rotate(0) translate(0 -222)"><path d="M-23 0 Q0 -28 23 0 Q0 28 -23 0 Z M0 -9 L0 9" /></g><g transform="translate(500 500) rotate(120) translate(0 -222)"><path d="M-23 0 Q0 -28 23 0 Q0 28 -23 0 Z M0 -9 L0 9" /></g><g transform="translate(500 500) rotate(240) translate(0 -222)"><path d="M-23 0 Q0 -28 23 0 Q0 28 -23 0 Z M0 -9 L0 9" /></g></g><g class="gm-estrella"><path d="M572.580 385.400 L522.920 370.120 L456.070 370.120 L417.870 408.320 L417.870 585.950 L456.070 629.880 L536.290 629.880 L580.220 595.500 L580.220 515.280 L511.460 515.280 L500.000 538.200 L542.020 538.200 L542.020 585.950 L522.920 603.140 L471.350 603.140 L456.070 582.130 L456.070 415.960 L477.080 396.860 L526.740 396.860 L557.300 425.510 L572.580 446.520 Z" /></g></g></svg>';
+  function circuloSVG(){ return CIRCULO; }
+  /* el dorso de las cartas en la apertura: el de Valeria con el círculo mágico girando en el hueco, el logotipo
+     encima, el oro que brilla al inclinar y unas chispas en las esquinas */
+  const DORSO = '<div class="tg-dorso v2"><i class="td-circulo">' + CIRCULO + '</i><i class="td-logo"></i><i class="td-brillo"></i>' +
+    '<i class="td-chispa" style="--x:12%;--y:9%;--d:0s"></i><i class="td-chispa" style="--x:88%;--y:9%;--d:.9s"></i><i class="td-chispa" style="--x:12%;--y:91%;--d:1.7s"></i><i class="td-chispa" style="--x:88%;--y:91%;--d:2.4s"></i></div>';
+
+
+  /* ── un sobre ── */
+  const dientes = (n, h, arriba) => "polygon(" + (arriba
+    ? Array.from({length: n * 2 + 1}, (_, i) => (i / (n * 2) * 100).toFixed(2) + "% " + (i % 2 ? 0 : h) + "%").join(",") + ",100% 100%,0 100%"
+    : "0 0,100% 0," + Array.from({length: n * 2 + 1}, (_, i) => (100 - i / (n * 2) * 100).toFixed(2) + "% " + (i % 2 ? 100 : 100 - h) + "%").join(",")) + ")";
+  const DI_A = dientes(34, 30, true), DI_B = dientes(34, 30, false);
+  function arteDe(k){
+    if(extra["sobre-" + k]) return '<img class="gx-solo" src="' + extra["sobre-" + k] + '" alt="">';
+    const [id, cl] = SOBRES[k].arte, a = (D1.ART[id] || {})[cl] || {}, fondo = cl === "gre" ? a.g2 : a.fondo;
+    return a.pj && a.pj !== VACIA ? '<img src="' + fondo + '" alt=""><img src="' + a.pj + '" alt="">' : '';
+  }
+  function sobreHTML(k, clase, lista){
+    const S = SOBRES[k], L = lista && LIENZO[k] && LIENZO[k].listo;
+    if(L && L.url) return '<div class="gx-sobre lista ' + (clase || "") + '" data-sobre="' + k + '" style="--c:' + S.col + ';--c2:' + S.col2 + '">' +
+      '<div class="gx-gira"><img class="gx-portada" src="' + L.url + '" alt=""><div class="gx-brillo"></div></div></div>';
+    return '<div class="gx-sobre ' + (clase || "") + '" data-sobre="' + k + '" style="--c:' + S.col + ';--c2:' + S.col2 + '">' +
+      '<div class="gx-gira"><div class="gx-cuerpo"><div class="gx-arte">' + arteDe(k) + '</div><div class="gx-velo"></div><div class="gx-foil"></div><div class="gx-luz"></div>' +
+        '<div class="gx-cab"><i class="gx-logo"></i><b>Gremory</b><span>Trading Card Game · Set 1</span></div>' +
+        '<div class="gx-pie"><span>Set ' + SET.num + '</span><b>' + SET.nombre + '</b></div><div class="gx-filo"></div></div>' +
+      '<div class="gx-tapa" style="clip-path:' + DI_A + '"><i class="gx-raya"></i></div><div class="gx-cola" style="clip-path:' + DI_B + '"></div></div></div>';
+  }
+
+  /* ── la pestaña de sobres: los tres para elegir ── */
+  /* ── la pestaña de sobres: carrusel con los tres (como en Pocket): se desliza o se toca para elegir ── */
+  let elegido = lee("gremory-tcg-sobre", "gatos");
+  const ORDEN = ["alberto", "gatos", "cristina"];
+  function sobresHTML(){
+    miraExtra(); precarga3d();
+    const d = disponibles(yo()), nb = !!nubeBase(), puede = d.total && nb, i0 = ORDEN.indexOf(elegido);
+    return '<div class="gx-tienda" style="--c:' + SOBRES[elegido].col + ';--c2:' + SOBRES[elegido].col2 + '"><div class="gx-cielo"></div>' +
+      '<div class="gx-set"><small>Set ' + SET.num + '</small><b>' + SET.nombre + '</b></div>' +
+      '<div class="gx-carrusel' + (puede ? " puede" : " apagado") + '" id="gxCarrusel">' + ORDEN.map((k, i) => { const p = i - i0; return '<button class="gx-elige' + (p ? '' : ' on') + '" data-elige="' + k + '" aria-label="' + (puede ? "Abrir sobre" : "Sobre") + '" style="' + posCarrusel(p) + '">' + sobreHTML(k, "", true) + '</button>'; }).join("") + '</div>' +
+      (d.total ? '' : '<img class="gx-vacio" src="' + ARTE("vacio-sin-sobres") + '" alt="">') +
+      '<div class="gx-contador' + (d.total ? '' : ' cero') + (d.pre.some(x => /^secreta:/.test(x.id)) ? ' especial' : '') + '">' + (d.total ? ICO.sobre + '<b>' + d.total + '</b>' + (d.pre.some(x => /^secreta:/.test(x.id)) ? '<span class="gx-esp">' + GEMA.secreta + ' Hay un sobre especial para ti</span>' : '') : ICO.reloj + '<span>Mañana, dos más</span>') + '</div>' +
+      (d.total && !nb ? '<p class="tg-nota" style="text-align:center">Para abrirlos, activa la sincronización en Ajustes.</p>' : '') + '</div>';
+  }
+
+  const posCarrusel = p => "transform:translateX(-50%) translateX(" + (p * 64) + "%) scale(" + (p ? .72 : 1) + ") rotate(" + (p * 4) + "deg);z-index:" + (3 - Math.abs(p));
+  /* elegir sobre mueve el carrusel sin volver a pintar la pestaña (repintar recargaba las portadas y parpadeaba todo) */
+  function eligeSobre(k){
+    if(k !== elegido) SON.roce();
+    elegido = k; guarda("gremory-tcg-sobre", k);
+    const c = cuerpo && cuerpo.querySelector("#gxCarrusel");
+    if(!c) return pinta();
+    const i0 = ORDEN.indexOf(k), S = SOBRES[k], t = cuerpo.querySelector(".gx-tienda");
+    c.querySelectorAll(".gx-elige").forEach(b => { const p = ORDEN.indexOf(b.dataset.elige) - i0; b.classList.toggle("on", !p); b.style.cssText = posCarrusel(p); });
+    if(t){ t.style.setProperty("--c", S.col); t.style.setProperty("--c2", S.col2); }
+    lienzos(k);
+  }
+  /* cuando llega la portada compuesta de un sobre, se cambia solo ese sobre */
+  function ponPortada(k){
+    const b = cuerpo && cuerpo.querySelector('#gxCarrusel .gx-elige[data-elige="' + k + '"]');
+    if(b) b.innerHTML = sobreHTML(k, "", true);
+  }
+  function deslizaCarrusel(){
+    const c = cuerpo && cuerpo.querySelector("#gxCarrusel"); if(!c || c._ok) return; c._ok = 1;
+    let x0 = null;
+    c.addEventListener("pointerdown", e => { x0 = e.clientX; });
+    c.addEventListener("pointerup", e => { if(x0 == null) return; const dx = e.clientX - x0; x0 = null;
+      if(Math.abs(dx) > 40){ const i = ORDEN.indexOf(elegido) + (dx < 0 ? 1 : -1); if(i >= 0 && i < ORDEN.length){ c._swipe = 1; setTimeout(() => c._swipe = 0, 60); eligeSobre(ORDEN[i]); } } });
+    c.addEventListener("click", e => { if(c._swipe){ e.stopPropagation(); e.preventDefault(); } }, true);
+  }
+
+  function abreSobre(){
+    const pid = yo(), d = disponibles(pid);
+    if(!d.total || !nubeBase()) return;
+    let s;
+    if(d.pre.length){ s = d.pre[0]; s.abierto = true; s.t = ahora(); s.sobre = elegido; }
+    else { s = {id: d.libres[0], d: pid, tipo: "dia", motivo: "Sobre del día", f: hoy(), abierto: true, t: ahora(), sobre: elegido}; A.S.tcgSobres.push(s); }
+    const tenia = coleccion(pid), vistas = {};
+    const yaPe = {}; vivas().forEach(x => { if(x.pe) yaPe[x.c] = 1; });
+    const especial = /^secreta:/.test(s.id);
+    const cartas = (especial ? [{c: SEC_ID, v: SEC_V}] : genera(s.id)).map((x, i) => {   /* los tres sobres traen lo mismo: solo cambia la portada */
+      const k = x.c + "|" + x.v, nueva = !(tenia[x.c] && tenia[x.c].v[x.v]) && !vistas[k]; vistas[k] = 1;
+      const pe = !especial && !yaPe[x.c] && rng(s.id + ":pe:" + i)() < PRIMERA_P; if(pe) yaPe[x.c] = 1;
+      return Object.assign(x, {id: s.id + ":" + i, nueva, nivel: nivel(x.c, x.v)}, pe ? {pe: 1} : {});
+    });
+    cartas.forEach(x => { if(!inst(x.id)) A.S.tcgCartas.push(Object.assign({id: x.id, c: x.c, v: x.v, d: pid, t: ahora(), o: especial ? "secreta" : "sobre"}, x.pe ? {pe: 1} : {})); });
+    premia(); save();
+    escena(cartas, s.sobre || elegido);
+  }
+
+  /* ══ la apertura (tercera versión: Pocket + gachas) ══
+     cielo de noche con estrellas → el sobre en grande → se corta deslizando → estalla la luz y cruza una estrella fugaz
+     del color de la mejor carta (azul normal, morada rara, dorada muy rara, rosa Gremory) → las cartas en pila: se pasan
+     deslizando, como en Pocket → la rara, la última, boca abajo brillando: al tocarla, presentación a pantalla completa
+     con el personaje, su nombre y las estrellas (como un gacha) → resumen con las cinco */
+  /* marcas de rareza en el revelado: de 1 a 4 gemas, la de Gremory sola o la secreta sola */
+  const MARCAS = {1: ["gema", 1], 2: ["gema", 2], 3: ["gema", 3], 4: ["gema", 4], 5: ["gremory", 1], sec: ["secreta", 1]};
+  const SPLASH = {1: "holo", 2: "holo", 3: "rara", 4: "muyrara", 5: "gremory", sec: "secreta"};
+  const CIELO = {1:"#3b5bdb", 2:"#3b7bdb", 3:"#6d3bdb", 4:"#c98a1a", 5:"#c2187a", sec:"#b0103a"};
+  const GATOS = {"kurama":[21,27], "sukuna":[28,34], "gyukki":[35,41]};
+  const gatoDe = c => { const n = num(c); for(const q in GATOS) if(n >= GATOS[q][0] && n <= GATOS[q][1]) return q; return null; };
+  function capasDe(id, v){
+    const a = D1.ART[id] || {};
+    if(a.gre && a.gre.pj){ const g = v === "G2" && a.gre.v2 ? Object.assign({}, a.gre, a.gre.v2) : a.gre; return {pj: g.pj, fondo: v === "G1" ? g.g1 : g.g2}; }
+    for(const k of ["gre", "oro", "firma", "full", "esc", "est"]){ const x = a[k]; if(x && x.pj && x.pj !== VACIA) return {pj: x.pj, fondo: k === "gre" ? x.g2 : x.fondo}; }
+    if(a.casa && a.casa !== VACIA) return {fondo: a.casa};
+    return null;
+  }
+  function escena(cartas, k){
+    const cap = document.getElementById("tgAbre"), S = SOBRES[k];
+    if(cap._s3){ cap._s3.destruye(); cap._s3 = null; }
+    const mejor = cartas.reduce((m, x) => { const t = tierDe(x); return t === "sec" || (m !== "sec" && t > m) ? t : m; }, 1);
+    cap.className = "tg-capa on gv"; cap.style.cssText = "--c:" + S.col + ";--c2:" + S.col2 + ";--tier:" + TIER[mejor][0] + ";--cielo:#2b3a8f";
+    cap.dataset.sobre = k;
+    cap.innerHTML = '<div class="gv-cielo"></div><div class="gv-estrellas"></div><div class="gv-estrellas dos"></div><div class="gv-nubes"></div><div class="gv-tejados"></div><div class="gv-bruma"></div>' +
+      '<div class="gv-rayos"></div><div class="gv-magia">' + circuloSVG() + '</div>' +
+      '<button class="gx-mudo" data-mudo aria-label="Sonido">' + icoSon() + '</button>' +
+      '<div class="gv-centro">' + sobreHTML(k, "vivo entra") + '<div class="gv-guia"><i></i></div></div>' +
+      '<div class="gv-pila" id="gvPila"></div><div class="gv-splash" id="gvSplash"></div>' +
+      '<div class="gx-pista" id="gxPista">Desliza por la línea de arriba para abrirlo</div><div class="gx-final" id="gxFinal"></div>';
+    cap.querySelector("[data-mudo]").onclick = e => { e.stopPropagation(); mudo = !mudo; guarda("gremory-tcg-mudo", mudo); e.currentTarget.innerHTML = icoSon(); };
+    G.luz.on(cap);
+    if(!pon3d(cap, cartas, mejor, k)) corte(cap, cartas, mejor);
+  }
+  /* el sobre en 3D en lugar del de CSS (que se queda oculto debajo, para medir dónde salen las chispas) */
+  const punto = (x, y) => ({getBoundingClientRect: () => ({left: x - 1, top: y - 1, width: 2, height: 2})});
+  function pon3d(cap, cartas, mejor, k){
+    const L = LIENZO[k] && LIENZO[k].listo;
+    if(!S3 || !L) return false;
+    try {
+      cap._s3 = S3.crea(cap, {frente: L.frente, dorso: L.dorso, rasgado: L.rasgado, color: L.color, tier: TIER[mejor][0],
+        brilloF: L.brilloF, brilloD: L.brilloD, arrugas: L.arrugas, interior: L.interior, destello: L.destello,
+        alRasgar: (p, x, y) => { SON.cruje(); chispas(cap, punto(x, y), "#fff", 3, 60, .5); },
+        alAbrir: () => abierto(cap, cartas, mejor)});
+    } catch(e){ console.warn("sobre 3D", e); cap._s3 = null; return false; }
+    const c = cap.querySelector(".gv-centro"); c.style.visibility = "hidden";
+    const g = c.querySelector(".gv-guia"); if(g) g.remove();
+    cap.querySelector("#gxPista").textContent = "Desliza por la línea de arriba para abrirlo";
+    return true;
+  }
+  /* lo que pasa al abrirse, sea el sobre en 3D o el de CSS */
+  function abierto(cap, cartas, mejor){
+    const sob = cap.querySelector(".gx-sobre");
+    SON.corta(); vibra(25);
+    const gu = cap.querySelector(".gv-centro .gv-guia"); if(gu) gu.remove();
+    cap.querySelector("#gxPista").classList.add("fuera");
+    setTimeout(() => { cap.classList.add("estalla"); SON.sube(); chispas(cap, sob, "#fff", 40, 240, .1); particulas(cap, sob, cap.dataset.sobre, 22); }, 200);
+    setTimeout(() => estrella(cap, cartas, mejor), 900);
+  }
+  function icoSon(){ return mudo ? ICO.silencio : ICO.sonido; }
+
+  function corte(cap, cartas, mejor){
+    const sob = cap.querySelector(".gx-sobre"), raya = sob.querySelector(".gx-raya");
+    let x0 = null, ini = 0, p = 0, hecho = false, max = 0, movido = false;
+    const pon = v => { p = Math.max(p, Math.min(1, v)); raya.style.setProperty("--p", p.toFixed(3)); sob.classList.toggle("tenso", p > 0 && p < 1); };
+    const fin = () => {
+      if(hecho) return; hecho = true; pon(1);
+      sob.classList.add("cortado"); abierto(cap, cartas, mejor);
+    };
+    const auto = () => { const t0 = performance.now(), v0 = p; const paso = t => { const k = Math.min(1, (t - t0) / 420); pon(v0 + (1 - v0) * k); if(k < 1) requestAnimationFrame(paso); else fin(); }; requestAnimationFrame(paso); };
+    setTimeout(() => sob.classList.remove("entra"), 900);
+    sob.addEventListener("pointerdown", e => { if(hecho) return; const r = sob.getBoundingClientRect(); x0 = e.clientX; ini = (e.clientX - r.left) / r.width; movido = false; try { sob.setPointerCapture(e.pointerId); } catch(_){} });
+    sob.addEventListener("pointermove", e => { if(x0 == null || hecho) return; const r = sob.getBoundingClientRect(), x = (e.clientX - r.left) / r.width;
+      if(Math.abs(e.clientX - x0) > 6) movido = true; max = Math.max(max, Math.abs(x - ini)); pon(max / .75); if(p >= 1) fin(); });
+    sob.addEventListener("pointerup", () => { if(x0 == null) return; x0 = null; if(hecho) return; if(!movido || p > .4) auto(); });
+  }
+  /* la estrella fugaz: su color avisa de lo mejor que trae el sobre (como el deseo de Genshin) */
+  function estrella(cap, cartas, mejor){
+    cap.style.setProperty("--cielo", CIELO[mejor]);
+    cap.classList.add("noche", "t" + mejor);
+    const e = document.createElement("div"); e.className = "gv-fugaz" + (mejor >= 4 || mejor === "sec" ? " grande" : "");
+    cap.appendChild(e);
+    if(mejor >= 3 || mejor === "sec") setTimeout(() => SON.rara(mejor === "sec" ? 5 : mejor), 250);
+    setTimeout(() => { cap.querySelector(".gx-sobre").classList.add("vacia"); if(cap._s3){ const s3 = cap._s3; cap._s3 = null; s3.vacia(); } }, 300);
+    setTimeout(() => { e.remove(); pila(cap, cartas, 0); }, 1500);
+  }
+  /* 2. la pila: boca arriba, la de encima se pasa deslizando (o tocando); la rara, la última, sale boca abajo */
+  function pila(cap, cartas, i){
+    const pl = cap.querySelector("#gvPila"), n = cartas.length, pista = cap.querySelector("#gxPista");
+    if(i >= n) return final(cap, cartas);
+    const x = cartas[i], t = tierDe(x), rara = t >= 3 || t === "sec", ult = i === n - 1;
+    cap.classList.add("pilando"); pl.className = "gv-pila" + (i === 0 ? " entra" : "");
+    pl.innerHTML = cartas.slice(i).map((y, k) => { const ty = tierDe(y), oculta = k === 0 ? (rara && ult) : (i + k === n - 1);
+      return '<div class="gv-carta' + (k === 0 ? " arriba" : "") + (oculta ? " oculta" : "") + '" data-tier="' + ty + '" style="--k:' + k + ';--tc:' + TIER[ty][0] + ';z-index:' + (10 - k) + '">' +
+        /* boca arriba, sin 3D: solo la cara (el giro y el dorso solo para la rara que sale boca abajo) */
+        (oculta ? '<div class="gx-voltea">' + DORSO : '<div class="gx-voltea plana">') + '<div class="gx-cara">' + G.carta(y.c, y.v) + (y.nueva ? '<span class="gx-nueva">Nueva</span>' : '') + (y.pe ? '<i class="gx-1a">' + SELLO + '</i><span class="gx-pe">1ª edición</span>' : '') + '</div></div></div>'; }).reverse().join("") +
+      '<div class="gv-cuenta">' + (i + 1) + ' / ' + n + '</div>';
+    const top = pl.querySelector(".gv-carta.arriba");
+    pista.classList.remove("fuera");
+    pista.textContent = rara && ult ? "La última brilla… tócala" : i === 0 ? "Desliza para pasar a la siguiente" : (ult ? "La última" : "Desliza para pasar");
+    if(!(rara && ult)){ if(x.nueva) SON.reparte(0); const q = gatoDe(x.c); if(q && i > 0) {} }
+    G.luz.on(top);
+    let x0 = null, y0 = null, dx = 0, dy = 0, fuera = false;
+    const tira = (vx, vy) => {
+      if(fuera) return; fuera = true; SON.gira();
+      top.style.transition = "transform .38s ease-in, opacity .38s"; top.style.transform = "translate(" + (vx * 120) + "vw," + (vy * 60) + "vh) rotate(" + (vx * 28) + "deg)"; top.style.opacity = 0;
+      setTimeout(() => pila(cap, cartas, i + 1), 260);
+    };
+    const revela = () => { if(fuera) return; fuera = true; splash(cap, x, () => { top.classList.remove("oculta"); top.classList.add("girada"); fuera = false; SON.gira();
+      pista.textContent = "Toca para ver el resumen"; top.onclick = () => final(cap, cartas); }); };
+    top.addEventListener("pointerdown", e => { if(fuera) return; x0 = e.clientX; y0 = e.clientY; dx = dy = 0; top.style.transition = "none"; try { top.setPointerCapture(e.pointerId); } catch(_){} });
+    top.addEventListener("pointermove", e => { if(x0 == null || fuera || top.classList.contains("oculta")) return; dx = e.clientX - x0; dy = e.clientY - y0;
+      top.style.transform = "translate(" + dx + "px," + dy + "px) rotate(" + (dx / 18) + "deg)"; });
+    top.addEventListener("pointerup", () => { if(x0 == null) return; x0 = null;
+      if(top.classList.contains("oculta")) return revela();
+      if(top.classList.contains("girada")) return;
+      const d = Math.hypot(dx, dy);
+      if(d > 70) tira(dx / d, dy / d);
+      else if(d < 8 && !ult) tira(-1, -.15);
+      else if(d < 8 && ult) final(cap, cartas);
+      else { top.style.transition = "transform .3s cubic-bezier(.3,1.5,.5,1)"; top.style.transform = ""; } });
+  }
+  /* 3. la presentación de la rara: el personaje a pantalla completa, su nombre y las estrellas */
+  function splash(cap, x, listo){
+    const t = tierDe(x), sp = cap.querySelector("#gvSplash"), cs = capasDe(x.c, x.v), nom = (G.CARTAS[x.c] || {}).n || "", [marca, est] = MARCAS[t];
+    cap.style.setProperty("--tier", TIER[t][0]); cap.style.setProperty("--cielo", CIELO[t]);
+    cap.classList.add("revela"); if(t >= 5 || t === "sec") cap.classList.add("flash");
+    SON.rara(t === "sec" ? 5 : t); vibra(t === "sec" ? [60, 120, 60, 120, 200] : t >= 4 ? [20, 50, 40] : 20);
+    if(t === "sec"){ try { G.secretaLatido && G.secretaLatido(3); } catch(e){} setTimeout(() => { try { G.secretaEstalla && G.secretaEstalla(sp); } catch(e){} }, 1500); }
+    sp.innerHTML = '<div class="gv-sp-fondo" style="background-image:url(' + ARTE("splash-" + SPLASH[t]) + ')"></div><div class="gv-sp-rayos"></div><div class="gv-sp-magia">' + circuloSVG() + '</div><div class="gv-sp-lineas"></div>' +
+      (cs && cs.pj ? '<img class="gv-sp-pj" src="' + cs.pj + '" alt="">' : cs && cs.fondo ? '<img class="gv-sp-cuadro" src="' + cs.fondo + '" alt="">' : '') +
+      '<div class="gv-sp-txt"><em>' + TIER[t][1] + ' · ' + G.nombreVer(x.c, x.v) + '</em><b>' + esc(nom) + '</b><div class="gv-sp-est m-' + marca + '">' + Array.from({length: est}, (_, k) => '<i style="--k:' + k + '">' + GEMA[marca] + '</i>').join("") + '</div>' +
+      (x.nueva ? '<span class="gx-nueva">Nueva</span>' : '') + '</div><div class="gv-sp-toca">Toca para continuar</div>';
+    sp.classList.add("on");
+    for(let k = 0; k < est; k++) setTimeout(() => SON.reparte(0), 900 + k * 160);
+    const q = gatoDe(x.c); if(q) setTimeout(() => SON.miau(), 700);
+    chispas(cap, sp, TIER[t][0], t >= 4 ? 60 : 36, 320);
+    setTimeout(() => { sp.onclick = () => { sp.onclick = null; sp.classList.remove("on"); sp.classList.add("sale"); cap.classList.remove("flash");
+      setTimeout(() => { sp.classList.remove("sale"); sp.innerHTML = ""; listo(); }, 450); }; }, 700);
+  }
+  function chispas(cap, el, color, n, fuerza, alto){
+    if(reduce()) return;
+    const r = el.getBoundingClientRect(), rc = cap.getBoundingClientRect();
+    for(let k = 0; k < n; k++){
+      const c = document.createElement("i"), ang = Math.random() * Math.PI * 2, d = (.4 + Math.random()) * (fuerza || 160);
+      c.className = "gx-chispa" + (k % 3 ? "" : " grande") + (k % 4 ? "" : " estela");
+      c.style.cssText = "left:" + (r.left - rc.left + r.width * (.2 + Math.random() * .6)) + "px;top:" + (r.top - rc.top + r.height * (alto == null ? .5 : alto)) + "px;--dx:" + (Math.cos(ang) * d).toFixed(0) + "px;--dy:" + (Math.sin(ang) * d - 70).toFixed(0) + "px;--c:" + color + ";animation-delay:" + (Math.random() * 160).toFixed(0) + "ms";
+      cap.appendChild(c); setTimeout(() => c.remove(), 1700);
+    }
+  }
+  /* partículas de cada sobre (atlas de Valeria, 4×4): gotas para Alberto, pétalos y flores para Cristina, huellas y brasas para los gatos */
+  const PART = {alberto: [6, 7, 6, 1], cristina: [4, 5, 4, 13], gatos: [12, 8, 9, 10]};
+  function particulas(cap, el, k, n){
+    if(reduce() || !el) return;
+    const r = el.getBoundingClientRect(), rc = cap.getBoundingClientRect(), celdas = PART[k] || PART.gatos;
+    for(let i = 0; i < n; i++){
+      const c = document.createElement("i"), cel = celdas[i % celdas.length], ang = -Math.PI / 2 + (Math.random() - .5) * 2.4, d = 160 + Math.random() * 260;
+      c.className = "gx-part";
+      c.style.cssText = "left:" + (r.left - rc.left + r.width * (.15 + Math.random() * .7)) + "px;top:" + (r.top - rc.top + r.height * .12) + "px;--dx:" + (Math.cos(ang) * d).toFixed(0) + "px;--dy:" + (Math.sin(ang) * d).toFixed(0) + "px;--g:" + (Math.random() * 540 - 270).toFixed(0) + "deg;--s:" + (.6 + Math.random() * .7).toFixed(2) +
+        ";background-position:" + (cel % 4) * 100 / 3 + "% " + Math.floor(cel / 4) * 100 / 3 + "%;animation-delay:" + (Math.random() * 200).toFixed(0) + "ms";
+      cap.appendChild(c); setTimeout(() => c.remove(), 2400);
+    }
+  }
+  /* 4. el resumen: las cinco a la vista (como en Pocket), cómo va el binder y dos botones iguales */
+  function final(cap, cartas){
+    if(cap.classList.contains("fin")) return;
+    if(cap._s3){ cap._s3.destruye(); cap._s3 = null; }
+    const nuevas = cartas.filter(x => x.nueva).length, col = coleccion(yo()), tengo = Object.keys(col).length, total = L.filter(e => e.ok && e.n !== "061").length;
+    cap.classList.remove("pilando", "revela"); cap.classList.add("fin"); G.luz.off();
+    const d = disponibles(yo()).total;
+    cap.querySelector("#gxPista").classList.add("fuera");
+    cap.querySelector("#gvPila").innerHTML = '<div class="gv-rejilla">' + cartas.map((x, k) => { const t = tierDe(x);
+      return '<div class="gv-mini" data-tier="' + t + '" style="--tc:' + TIER[t][0] + ';--k:' + k + '">' + G.carta(x.c, x.v) + (x.nueva ? '<span class="gx-nueva">Nueva</span>' : '') + (x.pe ? '<i class="gx-1a">' + SELLO + '</i>' : '') + '</div>'; }).join("") + '</div>';
+    cap.querySelector("#gxFinal").innerHTML = '<div class="gx-resumen"><b>' + (nuevas ? (nuevas === 1 ? "+1 carta nueva" : "+" + nuevas + " cartas nuevas") : "Todas repetidas") + '</b>' +
+      '<span>' + (nuevas === 5 ? "las cinco, estrenadas" : nuevas ? (5 - nuevas) + (5 - nuevas === 1 ? " repetida para cambiar" : " repetidas para cambiar") : "buenas para cambiar") + '</span>' +
+      '<div class="gx-barra"><i style="width:' + Math.round(tengo / total * 100) + '%"></i></div><em>Tu binder: ' + tengo + ' de ' + total + '</em></div>' +
+      '<div class="gx-botones"><button class="tg-btn sec" data-ab="fin">Al binder</button><button class="tg-btn" data-ab="otro"' + (d ? '' : ' disabled') + '>' + (d ? "Abrir otro (" + d + ")" : "No quedan") + '</button></div>';
+    cap.querySelector("#gxFinal").onclick = e => { const b = e.target.closest("[data-ab]"); if(!b || b.disabled) return; cap.className = "tg-capa"; cap.innerHTML = "";
+      if(b.dataset.ab === "otro") abreSobre(); else { tab = "binder"; quien = yo(); pinta(); } };
+  }
+
+  /* ── cambios ── */
+  let prop = {};
+  function propuesta(p){ prop = Object.assign({doy: "", pido: ""}, p); pintaProp(); document.getElementById("tgProp").classList.add("on"); }
+  function miniBol(x, sel, attr){
+    const e = entrada(x.c);
+    return '<div class="bd-bol' + (sel ? ' sel' : '') + '" ' + attr + '="' + x.id + '"><img src="' + e.th + '" alt="" loading="lazy"><span class="bd-num">' + e.n + '</span><span class="bd-v">' + G.nombreVer(x.c, x.v) + '</span></div>';
+  }
+  function pintaProp(){
+    const cap = document.getElementById("tgProp"), o = otro(), res = reservadas();
+    const mias = sobrantes(yo());
+    /* solo sus repetidas: su binder no se ve, y así nunca se le quita la única copia */
+    const vistas = {}, suyas = sobrantes(o).filter(x => { const k = x.c + "|" + x.v; if(vistas[k]) return false; vistas[k] = 1; return true; });
+    cap.innerHTML = '<button class="tg-x" data-p="cierra" aria-label="Cerrar">' + ICO.x + '</button>' +
+      '<div style="width:min(100%,720px);max-height:100%;overflow:auto;display:flex;flex-direction:column;gap:6px">' +
+      '<div class="tg-tit"><b>Proponer un cambio</b><span>Una repetida tuya por una repetida de ' + esc(nom(o)) + '</span></div>' +
+      '<div class="tg-h3">Tú das (tus repetidas)</div>' + (mias.length ? '<div class="tg-elige">' + mias.map(x => miniBol(x, x.id === prop.doy, "data-doy")).join("") + '</div>' : '<p class="tg-nota">Aún no tienes repetidas. Abre sobres y vuelve.</p>') +
+      '<div class="tg-h3">Te llevas (repetidas de ' + esc(nom(o)) + ')</div>' + (suyas.length ? '<div class="tg-elige">' + suyas.map(x => miniBol(x, x.id === prop.pido, "data-pido")).join("") + '</div>' : '<p class="tg-nota">' + esc(nom(o)) + ' aún no tiene repetidas.</p>') +
+      '<div class="tg-acc" style="margin-top:12px;position:sticky;bottom:0;padding:10px 0;background:rgba(6,5,10,.85)"><button class="tg-btn" data-p="manda"' + (prop.doy && prop.pido ? '' : ' disabled') + '>Proponer cambio</button></div></div>';
+  }
+  function clicProp(e){
+    const cap = document.getElementById("tgProp");
+    if(e.target === cap) return cap.classList.remove("on");
+    const b = e.target.closest("[data-p],[data-doy],[data-pido]"); if(!b) return;
+    if(b.dataset.doy){ prop.doy = b.dataset.doy; return pintaProp(); }
+    if(b.dataset.pido){ prop.pido = b.dataset.pido; return pintaProp(); }
+    if(b.dataset.p === "cierra") return cap.classList.remove("on");
+    if(b.dataset.p === "manda" && prop.doy && prop.pido){
+      const a = inst(prop.doy), z = inst(prop.pido), o = otro();
+      A.S.tcgCambios.push({id: uid(), de: yo(), para: o, doy: a.id, pido: z.id, estado: "pendiente", f: hoy(), t: ahora()});
+      save(); cap.classList.remove("on");
+      avisa(o, "Cambio de cartas", nom(yo()) + " te ofrece su " + desc(a) + " por tu " + desc(z) + ".");
+      toast("Propuesta enviada a " + nom(o)); tab = "cambios"; pinta();
+    }
+  }
+  const desc = x => x ? G.CARTAS[x.c].n + " " + G.nombreVer(x.c, x.v) + " (" + entrada(x.c).n + ")" : "carta";
+  function avisa(para, titulo, cuerpoTxt){ try { apiNube("/avisa", "POST", {de: yo(), para, titulo, cuerpo: cuerpoTxt}).catch(() => {}); } catch(e){} }
+  function cambiosHTML(){
+    const mios = cambVivos().filter(c => (c.de === yo() || c.para === yo())).sort((a, b) => a.t < b.t ? 1 : -1);
+    const ent = mios.filter(c => c.estado === "pendiente" && c.para === yo()), sal = mios.filter(c => c.estado === "pendiente" && c.de === yo()), his = mios.filter(c => c.estado !== "pendiente").slice(0, 12);
+    const fila = (c, pie) => {
+      const a = inst(c.doy), z = inst(c.pido), meDa = c.para === yo();
+      const izq = meDa ? z : a, der = meDa ? a : z;   /* a la izquierda lo que das, a la derecha lo que te llevas */
+      return '<div class="tg-cambio"><div class="que">' + (meDa ? '<b>' + esc(nom(c.de)) + '</b> te da su ' + esc(desc(a)) + ' por tu ' + esc(desc(z)) : 'Das tu ' + esc(desc(a)) + ' por su ' + esc(desc(z))) +
+        '<small>' + (c.estado === "pendiente" ? (meDa ? "Te toca decidir" : "Esperando a " + esc(nom(c.para))) : ({aceptado:"Hecho", rechazado:"Rechazado", cancelado:"Cancelado", caducado:"Ya no se podía"}[c.estado] || c.estado)) + ' · ' + c.f + '</small></div>' +
+        '<div class="par">' + (izq ? miniBol(izq, false, "data-x") : '<div></div>') + '<div class="flecha">' + ICO.cambio + '</div>' + (der ? miniBol(der, false, "data-x") : '<div></div>') + '</div>' +
+        '<div class="par-et"><span>Das</span><span></span><span>Te llevas</span></div>' +
+        (pie ? '<div class="pie">' + pie + '</div>' : '') + '</div>';
+    };
+    return (otro() ? '<div class="tg-acc" style="margin:2px 0 14px"><button class="tg-btn" data-acc="propon">' + ICO.cambio + ' Proponer un cambio</button></div>' : '') +
+      (ent.length ? '<div class="tg-h3">Te proponen</div><div class="tg-lista">' + ent.map(c => fila(c, '<button class="tg-btn mal" data-cb="rechaza" data-id="' + c.id + '">Rechazar</button><button class="tg-btn" data-cb="acepta" data-id="' + c.id + '">Aceptar</button>')).join("") + '</div>' : '') +
+      (sal.length ? '<div class="tg-h3">Has propuesto</div><div class="tg-lista">' + sal.map(c => fila(c, '<button class="tg-btn sec" data-cb="cancela" data-id="' + c.id + '">Cancelar</button>')).join("") + '</div>' : '') +
+      (his.length ? '<div class="tg-h3">Últimos</div><div class="tg-lista">' + his.map(c => fila(c, "")).join("") + '</div>' : '') +
+      (!ent.length && !sal.length && !his.length ? '<p class="tg-nota" style="text-align:center;margin-top:20px">Aún no hay cambios. Propón uno: una repetida tuya por una repetida del otro.</p>' : '');
+  }
+  function resuelve(id, que){
+    const c = A.S.tcgCambios.find(x => x.id === id); if(!c || c.estado !== "pendiente") return;
+    if(que === "acepta"){
+      const a = inst(c.doy), z = inst(c.pido);
+      if(!a || !z || a.d !== c.de || z.d !== c.para || borr()[a.id] || borr()[z.id]){ c.estado = "caducado"; c.t = ahora(); save(); toast("Ya no se puede: alguna de las cartas ha cambiado de dueño"); return pinta(); }
+      a.d = c.para; a.t = ahora(); a.o = "cambio"; z.d = c.de; z.t = ahora(); z.o = "cambio";
+      c.estado = "aceptado"; c.t = ahora(); save();
+      avisa(c.de, "Cambio hecho", nom(yo()) + " ha aceptado: ya tienes su " + desc(z) + ".");
+      toast("Hecho: ya está en tu binder");
+    } else {
+      c.estado = que === "rechaza" ? "rechazado" : "cancelado"; c.t = ahora(); save();
+      if(que === "rechaza") avisa(c.de, "Cambio rechazado", nom(yo()) + " prefiere quedarse su " + desc(inst(c.pido)) + ".");
+    }
+    pinta();
+  }
+
+  /* ── clics de la ventana principal ── */
+  function clic(e){
+    const b = e.target.closest("[data-elige],[data-acc],[data-tab],[data-yo],[data-quien],[data-tapa],[data-ir],[data-grupo],[data-filtro],[data-cb],.bd-bol[data-id]"); if(!b) return;
+    if(b.dataset.acc === "cierra") return cierra();
+    if(b.dataset.elige){   /* el sobre del centro se abre al tocarlo (si quedan); los de los lados se traen al centro */
+      if(b.dataset.elige === elegido){ const dd = disponibles(yo()); if(dd.total && nubeBase()) return abreSobre(); return; }
+      return eligeSobre(b.dataset.elige);
+    }
+    if(b.dataset.acc === "abrir") return abreSobre();
+    if(b.dataset.acc === "propon") return propuesta({});
+    if(b.dataset.tab){ tab = b.dataset.tab; return pinta(); }
+    if(b.dataset.yo){ A.S.yo = b.dataset.yo; save(); premia(); save(); quien = A.S.yo; return pinta(); }
+    if(b.dataset.quien){ quien = b.dataset.quien; return pinta(); }
+    if(b.dataset.tapa){ tapas[quien] = b.dataset.tapa; guarda("gremory-tcg-tapas", tapas); return pinta(); }
+    if(b.dataset.ir){ return pasa(+b.dataset.ir); }
+    if(b.dataset.grupo){ const k = L.findIndex(x => nDe(x.id) === +b.dataset.grupo), p = Math.floor(k / PAG); pag = movil() ? p : p - (p % 2); return pinta(); }
+    if(b.dataset.filtro){ filtro = b.dataset.filtro; return pinta(); }
+    if(b.dataset.cb) return resuelve(b.dataset.id, b.dataset.cb);
+    if(b.dataset.id) return abreVisor(b.dataset.id);
+  }
+  document.addEventListener("change", e => {
+    if(e.target.id !== "tgIr" || !e.target.value) return;
+    const k = L.findIndex(x => x.n === e.target.value), p = Math.floor(k / PAG); pag = movil() ? p : p - (p % 2); pinta();
+  });
+
+  /* con el juego abierto, la app de debajo se oculta (visibility): el móvil deja de pintarla y recalcularla */
+  const PROPIOS = ["tcg", "tgVisor", "tgAbre", "tgProp", "inm", "toast"];
+  function ocultaApp(si){
+    [...document.body.children].forEach(el => {
+      if(PROPIOS.indexOf(el.id) >= 0 || /^(SCRIPT|STYLE|LINK)$/.test(el.tagName)) return;
+      if(si){ if(!el.hasAttribute("data-tcg-oculto")){ el.setAttribute("data-tcg-oculto", el.style.visibility || ""); el.style.visibility = "hidden"; } }
+      else if(el.hasAttribute("data-tcg-oculto")){ el.style.visibility = el.getAttribute("data-tcg-oculto"); el.removeAttribute("data-tcg-oculto"); }
+    });
+  }
+  function cierra(){ raiz.classList.remove("on"); G.luz.off(); ocultaApp(false); document.body.style.overflow = ""; if(typeof render === "function") try { render(); } catch(e){} }
+  window.TCG = {
+    abre(t){
+      monta(); asegura(); const rs = aplicaResets(); if(premia() || rs) save();
+      if(t) tab = t; quien = yo() || ""; raiz.classList.add("on"); document.body.style.overflow = "hidden";
+      setTimeout(() => { if(raiz.classList.contains("on")) ocultaApp(true); }, 350);
+      cuerpo.innerHTML = '<p class="tg-nota" style="text-align:center;margin-top:30px">Abriendo el binder…</p>';
+      prepara().then(pinta);
+    },
+    premia, disponibles
+  };
+})();

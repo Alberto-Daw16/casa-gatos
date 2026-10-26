@@ -1,0 +1,717 @@
+{
+"001": {
+"aura": 110,
+"info": "Comandante en Manises",
+"hab": [
+"Aquí su comandante",
+"Al jugar esta carta, todas tus cartas de Lugar se quedan en juego un turno más. Despegue sin retrasos."
+],
+"atq": [
+[
+"agua",
+"comodin"
+],
+"Pista despejada",
+"50",
+"El próximo turno, tus Familiares pagan 1 menos de siesta."
+],
+"lore": "Gafas de sol, brazos cruzados y un avión detrás. Solo falta que le dejen subir."
+},
+"002": {
+"aura": 130,
+"info": "Valencia de noche",
+"hab": [
+"Modo turista",
+"Una vez por turno, foto con la Ciudad de las Artes. Obligatoria."
+],
+"atq": [
+[
+"agua",
+"agua",
+"comodin"
+],
+"Reflejo en el agua",
+"80",
+"Copia el último ataque del rival. Absol lo llama inspiración."
+],
+"lore": "Lo de que Absol trae desgracias es fake news. Mira qué foto."
+},
+"003": {
+"aura": 120,
+"info": "Bajo la lluvia",
+"hab": [
+"Orgullo de saiyan",
+"Mientras llueva, Alberto no puede quedarse dormido. Ni mirar hacia abajo."
+],
+"atq": [
+[
+"agua",
+"comodin"
+],
+"Mirada al cielo",
+"70",
+"El próximo turno, Alberto recibe 30 menos de daño."
+],
+"lore": "La lluvia cae, él mira arriba y nadie sabe en qué está pensando."
+},
+"004": {
+"rasgos": [
+"Valencia",
+"Ojitos"
+],
+"frase": "Ajá… cuéntame más."
+},
+"005": {
+"rasgos": [
+"Traje",
+"Oro"
+],
+"frase": "Flor en la solapa y los nervios bien escondidos."
+},
+"006": {
+"rasgos": [
+"Gremory",
+"Absol"
+],
+"frase": "Absol aparece cuando viene un desastre. Él: «nah, I'd win»."
+},
+"007": {
+"aura": 120,
+"info": "Programando de noche",
+"hab": [
+"Tres bots en la mesa",
+"Al empezar tu turno, mira 3 cartas y ordénalas. Shiro, Valeria y Aika votan; gana Shiro."
+],
+"atq": [
+[
+"agua",
+"comodin",
+"comodin"
+],
+"Commit a las 3:00",
+"90",
+"Funciona en local. En producción, ya veremos."
+],
+"lore": "Let him cook. Lleva cocinando desde las once."
+},
+"008": {
+"aura": 120,
+"info": "Chivito en el bar",
+"hab": [
+"Dieta de recorte",
+"Cada chivito le da 30 de aura. Es parte del plan, lo ha dicho el nutricionista. No."
+],
+"atq": [
+[
+"agua",
+"comodin"
+],
+"Bocado de +1000 aura",
+"70",
+"Si se lo acaba sin mancharse, hace 40 más. Nunca pasa."
+],
+"lore": "Día 335 a dieta de recorte."
+},
+"009": {
+"aura": 110,
+"info": "Noche de sobres",
+"hab": [
+"Last pack magic",
+"El último sobre siempre trae la buena. Siempre. Es ciencia."
+],
+"atq": [
+[
+"agua",
+"comodin"
+],
+"God pack",
+"60",
+"Si salen cinco holos, ganas la partida. Spoiler: no salen."
+],
+"lore": "«Uno más y lo dejo.» Él, hace catorce sobres."
+},
+"010": {
+"aura": 130,
+"info": "Noche de McDonald's",
+"hab": [
+"Es para nosotros",
+"Al jugar esta carta, roba 1. Si Cristina está en juego, roba 2: una es suya."
+],
+"atq": [
+[
+"agua",
+"comodin",
+"comodin"
+],
+"Big Mac",
+"100",
+"Alberto no puede atacar el próximo turno: modo digestión."
+],
+"lore": "«Es para nosotros», dijo. Día 336 a dieta de recorte."
+},
+"011": {
+"aura": 110,
+"info": "Ranked a las dos de la mañana",
+"hab": [
+"Clutch o kick",
+"Si es la última viva de su equipo, hace el doble. Si falla, la culpa es de la Jett."
+],
+"atq": [
+[
+"hada",
+"comodin"
+],
+"One tap",
+"70",
+"Si es el primer ataque de la partida, hace 30 más. A la cabeza, obvio."
+],
+"lore": "«Mis compis no saben jugar.» Literal, cada partida."
+},
+"012": {
+"aura": 130,
+"info": "Entre flores",
+"hab": [
+"Filtro natural",
+"Una vez por turno, quita un estado alterado. El filtro viene de serie."
+],
+"atq": [
+[
+"hada",
+"hada",
+"comodin"
+],
+"Lluvia de pétalos",
+"90",
+"Hace 10 de daño a cada carta del banco del rival."
+],
+"lore": "POV: estás en un anime romántico y ella es el opening."
+},
+"013": {
+"aura": 120,
+"info": "Corazón entre cerezos",
+"hab": [
+"Saranghae",
+"Hace un corazón con dos dedos y todas tus cartas recuperan 10 de aura."
+],
+"atq": [
+[
+"hada",
+"comodin"
+],
+"Fighting!",
+"60",
+"El rival se queda en shock y no ataca el próximo turno."
+],
+"lore": "Amiga de BTS sin confirmar. Pero tampoco desmentido."
+},
+"014": {
+"rasgos": [
+"Jardín",
+"Protagonista"
+],
+"frase": "Protagonista desde el capítulo uno."
+},
+"015": {
+"rasgos": [
+"Vestido",
+"Blanco"
+],
+"frase": "Cualquier pasillo es una pasarela si lo cruza ella."
+},
+"016": {
+"rasgos": [
+"Gremory",
+"Mimikyu"
+],
+"frase": "Las dos tipo Hada."
+},
+"017": {
+"aura": 120,
+"info": "Plaza Mayor, Madrid",
+"hab": [
+"Bocata de calamares",
+"Si tienes Madrid en juego, recupera 40 de aura cada turno. Con mayonesa, 60."
+],
+"atq": [
+[
+"hada",
+"comodin"
+],
+"Mordisco castizo",
+"70",
+"Si el rival tiene más cartas en la mano que tú, hace 30 más."
+],
+"lore": "Madrid tiene museos. Ella vino por el bocata, seamos serios."
+},
+"018": {
+"aura": 110,
+"info": "Compras en Kiwoko",
+"hab": [
+"Cesta llena",
+"Una vez por partida, busca 2 Objetos. Iba a por arena y sale con media tienda."
+],
+"atq": [
+[
+"hada",
+"comodin"
+],
+"Ticket largo",
+"40+",
+"Hace 10 más por cada Objeto en tu descarte. Gremory lo apunta todo."
+],
+"lore": "Los gatos no saben qué es Kiwoko. Saben que ella vuelve de ahí."
+},
+"019": {
+"aura": 130,
+"info": "Gran Vía de noche",
+"hab": [
+"Luces de la Gran Vía",
+"Mientras Cristina esté en juego, tus cartas de tipo Hada hacen 10 más de daño."
+],
+"atq": [
+[
+"hada",
+"hada",
+"comodin"
+],
+"Paso firme",
+"90",
+"El rival no puede retirarse el próximo turno."
+],
+"lore": "Madrid de noche, chupa de cuero y ninguna prisa."
+},
+"020": {
+"aura": 120,
+"info": "Jugando con los tres",
+"hab": [
+"Caña de plumas",
+"Una vez por turno, cambia tu Familiar activo por uno del banco sin pagar siesta."
+],
+"atq": [
+[
+"hada",
+"comodin",
+"comodin"
+],
+"Todos a por la pluma",
+"30×",
+"Hace 30 por cada gato que tengas en juego."
+],
+"lore": "Tres gatos, una pluma y cero fair play."
+},
+"021": {
+"aura": 160,
+"info": "Salto a por algo",
+"hab": [
+"Visto y no visto",
+"Si Kurama ha entrado en juego este turno, puede atacar sin pagar el coste."
+],
+"atq": [
+[
+"fuego",
+"fuego"
+],
+"Salto sin mirar",
+"110",
+"Kurama también recibe 20 de daño. Skill issue."
+],
+"lore": "Persigue algo invisible. Gato normal, aquí no hay nada que ver."
+},
+"022": {
+"aura": 180,
+"info": "Bola en el rascador",
+"hab": [
+"Bolita",
+"Mientras Kurama esté dormido, no recibe daño de ataques."
+],
+"atq": [
+[
+"fuego",
+"comodin"
+],
+"Ronroneo",
+"40",
+"Kurama recupera 40 de aura y se queda dormido."
+],
+"lore": "El rascador es de Sukuna. Hoy no ha venido."
+},
+"023": {
+"aura": 160,
+"info": "Asomando las patas",
+"hab": [
+"Curioso",
+"Una vez por turno, mira la primera carta del mazo del rival."
+],
+"atq": [
+[
+"fuego",
+"fuego"
+],
+"Zarpa por el borde",
+"100",
+"Además, hace 20 de daño a una carta del banco del rival."
+],
+"lore": "Ha oído abrir una lata. Aunque sea de tomate, se presenta."
+},
+"024": {
+"rasgos": [
+"Gato",
+"Neurona"
+],
+"frase": "Gato naranja, una neurona. Hoy le toca a él."
+},
+"025": {
+"rasgos": [
+"Gato",
+"Sol"
+],
+"frase": "Le dieron el sol de la tarde y se cree el dueño. Ni tan mal."
+},
+"026": {
+"rasgos": [
+"Gato",
+"Kyubi"
+],
+"frase": "Modo Kyubi: activado. Modo siesta: también."
+},
+"027": {
+"aura": 170,
+"info": "Despatarrado",
+"hab": [
+"Patas al aire",
+"Mientras Kurama esté despatarrado, nadie puede sentarse en el sofá. Nadie lo intenta."
+],
+"atq": [
+[
+"fuego",
+"fuego"
+],
+"Calor corporal",
+"80+",
+"Si tienes El sofá en juego, hace 40 más."
+],
+"lore": "Cero elegancia, cien por cien gato naranja. La neurona, de vacaciones."
+},
+"028": {
+"aura": 220,
+"info": "Postura imposible",
+"hab": [
+"Silla ocupada",
+"Mientras Sukuna esté en juego, Alberto no puede pasar al puesto activo."
+],
+"atq": [
+[
+"siniestro",
+"siniestro",
+"comodin"
+],
+"Peso pesado",
+"160",
+"Si está durmiendo en una postura imposible, este ataque no se puede evitar."
+],
+"lore": "Nadie sabe cómo duerme así. Ni el fisio."
+},
+"029": {
+"aura": 210,
+"info": "Debajo de la pantalla",
+"hab": [
+"Teclado caliente",
+"Si tienes El escritorio en juego, Sukuna recupera 30 de aura en cada uno de tus turnos."
+],
+"atq": [
+[
+"siniestro",
+"comodin"
+],
+"Todas las teclas a la vez",
+"70",
+"El rival descarta 1 carta al azar. Y tu código, también."
+],
+"lore": "Alberto programa. Sukuna hace el debugging con la tripa."
+},
+"030": {
+"aura": 220,
+"info": "Casi llega",
+"hab": [
+"De puntillas",
+"Si tienes La encimera en juego, Sukuna no vuelve a tu mano."
+],
+"atq": [
+[
+"siniestro",
+"siniestro"
+],
+"Zarpa larga",
+"120",
+"Si sale cruz, no llega. Como siempre."
+],
+"lore": "Mide casi lo que la encimera. Le sobra el casi."
+},
+"031": {
+"rasgos": [
+"Gato",
+"Maine Coon"
+],
+"frase": "Cuerpo de oso, maullido de llavero."
+},
+"032": {
+"rasgos": [
+"Rey",
+"Sartén"
+],
+"frase": "El Rey de las Maldiciones, coronado con una sartén. Respeta."
+},
+"033": {
+"rasgos": [
+"Gato",
+"Siniestro"
+],
+"frase": "Stand proud, estás dormido. Y aun así ganas."
+},
+"034": {
+"aura": 200,
+"info": "Entre las sábanas",
+"hab": [
+"Cinco minutos más",
+"Al final de tu turno, si Sukuna no ha atacado, recupera 50 de aura."
+],
+"atq": [
+[
+"siniestro",
+"comodin"
+],
+"Pata a cámara",
+"60",
+"Elige una carta de la mano del rival: no puede jugarla el próximo turno."
+],
+"lore": "Expansión de dominio: media cama. Negociable: no."
+},
+"035": {
+"aura": 190,
+"info": "Por encima del hombro",
+"hab": [
+"Ni caso",
+"Mientras Gyukki esté de espaldas, el rival no puede mirarla a los ojos. Ella a él, sí."
+],
+"atq": [
+[
+"psiquico",
+"comodin",
+"comodin"
+],
+"Mirada de reojo",
+"140",
+"El rival no puede jugar cartas de Objeto el próximo turno."
+],
+"lore": "Visto. No contestado. Muy de siamesa."
+},
+"036": {
+"aura": 180,
+"info": "Dormida en la ventana",
+"hab": [
+"Come, bebe, duerme",
+"Si este turno has jugado Hora de comer, Gyukki recupera todo su aura y se queda dormida."
+],
+"atq": [
+[
+"psiquico",
+"comodin"
+],
+"Sueño profundo",
+"60",
+"El Familiar activo del rival se queda dormido."
+],
+"lore": "Rutina de skincare: comer, beber, dormir. Repetir."
+},
+"037": {
+"aura": 180,
+"info": "Salto al frente",
+"hab": [
+"Aura farming",
+"Mientras está en el aire, gana 1000 de aura. Al aterrizar, lo devuelve todo."
+],
+"atq": [
+[
+"psiquico",
+"psiquico",
+"comodin"
+],
+"Salto de fe",
+"130",
+"Assassin's Creed lo hizo antes. Ella, con más estilo."
+],
+"lore": "Calculó el salto. Mentira, no calculó nada."
+},
+"038": {
+"rasgos": [
+"Gato",
+"Trampa"
+],
+"frase": "Panza arriba es una trampa. Lo sabe todo el mundo menos tú."
+},
+"039": {
+"rasgos": [
+"Cristal",
+"Slay"
+],
+"frase": "Slay. Literal: el zarpazo."
+},
+"040": {
+"rasgos": [
+"Gato",
+"Reina"
+],
+"frase": "Reina de los cristales. Y del comedero."
+},
+"041": {
+"aura": 190,
+"info": "Concentrada en el comedero",
+"hab": [
+"No molestar",
+"Mientras Gyukki esté en el puesto activo, el rival no puede usar habilidades."
+],
+"atq": [
+[
+"psiquico",
+"comodin"
+],
+"Plato limpio",
+"70",
+"Descarta un Objeto unido a cualquier carta del rival."
+],
+"lore": "Speedrun del comedero. Récord mundial, otra vez."
+},
+"042": {
+"aura": 250,
+"info": "Mañana de sofá",
+"hab": [
+"Calentito",
+"Una vez por turno, quita un estado alterado a esta carta."
+],
+"atq": [
+[
+"hada",
+"fuego",
+"comodin"
+],
+"Abrazo naranja",
+"180",
+"Esta carta recupera 30 de aura."
+],
+"lore": "Novio número dos. Alberto lo sabe y lo acepta."
+},
+"043": {
+"aura": 250,
+"info": "Noche de luna",
+"hab": [
+"Confidentes",
+"Una vez por turno, mira la mano del rival."
+],
+"atq": [
+[
+"hada",
+"psiquico",
+"comodin"
+],
+"Ronroneo lunar",
+"170",
+"Las dos se quedan mirando al rival hasta que se va. Funciona siempre."
+],
+"lore": "Besties. Hablan de ti, y lo sabes."
+},
+"044": {
+"aura": 260,
+"info": "Hechos una bola",
+"hab": [
+"Ovillo",
+"Mientras estén dormidos juntos, no hay quien sepa qué cola es de quién."
+],
+"atq": [
+[
+"fuego",
+"psiquico",
+"comodin"
+],
+"Despertar a la vez",
+"200",
+"Solo se puede usar si suena una lata. Entonces, siempre."
+],
+"lore": "Enemies to lovers, versión gato."
+},
+"045": {
+"aura": 300,
+"info": "Foto de clase",
+"hab": [
+"Por orden de tamaño",
+"Esta carta cuenta como Kurama, Sukuna y Gyukki a la vez."
+],
+"atq": [
+[
+"fuego",
+"siniestro",
+"psiquico"
+],
+"Triple amenaza",
+"240",
+"No se puede usar si alguno de los tres está dormido. O sea, casi nunca."
+],
+"lore": "La única foto con los tres quietos. Edición limitada."
+},
+"046": {
+"aura": 320,
+"info": "Foto de familia",
+"hab": [
+"Casa Gremory",
+"Mientras esta carta esté en juego, todas tus cartas cuentan como Casa."
+],
+"atq": [
+[
+"agua",
+"hada",
+"comodin"
+],
+"Todos en el sofá",
+"50×",
+"Hace 50 por cada miembro de la familia. Son cinco."
+],
+"lore": "La foto salió a la primera. Mentira: a la decimocuarta."
+},
+"047": {
+"aura": 270,
+"info": "Uno arriba, otro abajo",
+"hab": [
+"Desde arriba",
+"Si tienes La encimera en juego, el rival no puede atacar a esta carta."
+],
+"atq": [
+[
+"fuego",
+"siniestro",
+"comodin"
+],
+"Te espero arriba",
+"190",
+"Si sale cara, el próximo turno esta carta hace 60 más."
+],
+"lore": "Kurama arriba. Sukuna, casi."
+},
+"048": {
+"aura": 280,
+"info": "En brazos",
+"hab": [
+"No me sueltes",
+"Esta carta no puede volver a la mano ni barajarse en el mazo."
+],
+"atq": [
+[
+"agua",
+"siniestro",
+"comodin"
+],
+"Abrazo de oso",
+"200",
+"Esta carta no puede retirarse el próximo turno: pesa demasiado."
+],
+"lore": "Gym gratis: coger a Sukuna diez veces al día."
+}
+}
