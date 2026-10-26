@@ -164,6 +164,11 @@
     L1("sob10", "Sobres y cambios", "Diez sobres", "abiertos", "bronce", "sobre", abiertos, 10);
     L1("sob50", "Sobres y cambios", "Cincuenta sobres", "abiertos", "plata", "sobre", abiertos, 50);
     L1("sob100", "Sobres y cambios", "Cien sobres", "abiertos", "oro", "sobre", abiertos, 100);
+    /* coleccionista (26/10): las 1ª ediciones y el God Pack */
+    const pes = mias.filter(esPrimera).length, gods = A.S.tcgSobres.filter(x => x.d === pid && x.abierto && x.god && !borr()[x.id] && !antes(x.t, pid)).length;
+    L1("pe1", "Coleccionista", "Primera edición", "tu primera 1ª edición", "bronce", "sello", pes, 1);
+    L1("pe5", "Coleccionista", "Cinco primeras", "cinco 1ª ediciones", "plata", "sello", pes, 5);
+    L1("god", "Coleccionista", "God Pack", "un sobre con las cinco raras", "oro", "gremory", gods, 1);
     const camb = cambVivos().filter(c => c.estado === "aceptado" && (c.de === pid || c.para === pid)).length;
     L1("cam1", "Sobres y cambios", "Primer cambio", "entre los dos", "bronce", "cambio", camb, 1);
     L1("cam10", "Sobres y cambios", "Diez cambios", "negociando en casa", "plata", "cambio", camb, 10);
@@ -172,8 +177,11 @@
   function logrosHTML(){
     const ls = logrosTcg(yo()), hechos = ls.filter(l => l.dado).length, grupos = [...new Set(ls.map(l => l.g))];
     const base = baseTcg(yo());
-    const icoDe = k => k === "gema" ? GEMA.gema : k === "gremory" ? GEMA.gremory : ICO[k] || ICO.logro;
+    const icoDe = k => k === "gema" ? GEMA.gema : k === "gremory" ? GEMA.gremory : k === "sello" ? SELLO : ICO[k] || ICO.logro;
+    /* las 1ª ediciones de cada uno: solo hay una por carta en todo el juego, así que se pican entre los dos */
+    const peDe = pid => de(pid).filter(esPrimera).length, o = otro();
     return '<div class="lg-cab"><b>' + hechos + '</b> de ' + ls.length + ' logros · ' + (LOGROS_PREMIAN ? 'cada medalla da sobres: bronce 1, plata 2, oro 3' : 'prueba: aún no dan sobres') + '</div>' +
+      '<div class="lg-pe">' + SELLO + '<span>1ª ediciones</span><b>Tú ' + peDe(yo()) + '</b>' + (o ? '<b>' + esc(nom(o)) + ' ' + peDe(o) + '</b>' : '') + '</div>' +
       grupos.map(g => '<div class="lg-grupo"><h3>' + g + '</h3><div class="lg-rejilla">' + ls.filter(l => l.g === g).map(l =>
         '<div class="lg-item n-' + l.nivel + (l.dado ? ' on' : '') + '"><div class="lg-med" style="background-image:url(' + ARTE("medalla-" + l.nivel) + ')"><i>' + (LG[l.k] || icoDe(l.ico)) + '</i></div>' +
         '<b>' + l.label + '</b><small>' + l.sub + '</small>' + (l.dado ? (base.indexOf(l.k) >= 0 ? '<em class="antes">ya lo tenías</em>' : '<em>+' + PREMIO[l.nivel] + (PREMIO[l.nivel] > 1 ? ' sobres' : ' sobre') + '</em>') : '<div class="lg-barra"><i style="width:' + Math.round(l.a / l.z * 100) + '%"></i></div><span>' + l.a + ' / ' + l.z + '</span>') + '</div>').join("") + '</div></div>').join("");
@@ -232,7 +240,26 @@
     const suyas = tipo && DE[tipo] ? a.filter(id => DE[tipo](num(id))) : [];
     return suyas.length && r() < .45 ? elige(r, suyas) : elige(r, a);
   }
+  /* God Pack (26/10, lo pidió Alberto): de vez en cuando un sobre trae las cinco cartas raras. 2 % por sobre (uno de cada 50,
+     más fácil que una 1ª edición concreta y mucho más difícil que una rara normal). Va por semilla, como todo: los dos móviles
+     sacan lo mismo. Las cuatro primeras, raras de la tabla normal; la última, siempre muy rara (Firmada, Oro o Gremory) */
+  const GOD_P = .02;
+  const MUY = [["Firmada", 14, "SP"], ["Oro", 9, "HR"], ["Gremory", 3.5, "G1"], ["Gremory", 2, "G2"]];
+  function sorteo(r, tabla, tipo){
+    const tot = tabla.reduce((a, x) => a + x[1], 0), x = r() * tot; let acc = 0;
+    for(const [t, p, v] of tabla){ acc += p; if(x < acc) return hayPool(t) ? {c: elige2(r, POOL[t], tipo), v} : null; }
+    return null;
+  }
+  function godPack(id, tipo){
+    const g = rng(id + ":dioses"), out = [], vistos = {}, raras = RARA.filter(x => x[0] !== "Secreta");
+    for(let k = 0; k < 60 && out.length < 4; k++){ const c = sorteo(g, raras, tipo); if(c && !vistos[c.c + "|" + c.v]){ vistos[c.c + "|" + c.v] = 1; out.push(c); } }
+    let top = null; for(let k = 0; k < 30 && !top; k++){ const c = sorteo(g, MUY, tipo); if(c && !vistos[c.c + "|" + c.v]) top = c; }
+    if(out.length < 4 || !top) return null;
+    out.push(top); out.sort((a, b) => nivel(a.c, a.v) - nivel(b.c, b.v)); out.god = true;   /* de menos a más: la mejor, la última */
+    return out;
+  }
   function genera(id, tipo){
+    if(rng(id + ":god")() < GOD_P){ const gp = godPack(id, tipo); if(gp) return gp; }
     const r = rng(id + (tipo ? ":" + tipo : "")), out = [];
     for(let i = 0; i < 3; i++) out.push(r() < .7 && hayPool("Estándar") ? {c: elige2(r, POOL["Estándar"], tipo), v:"R"} : hayPool("Casa") ? {c: elige(r, POOL["Casa"]), v:"CASA"} : {c: elige2(r, POOL["Estándar"], tipo), v:"R"});
     out.push({c: elige2(r, POOL["Estándar"], tipo), v: r() < .85 ? "RH" : "RR"});
@@ -358,7 +385,7 @@
     const c = col[e.id];
     if(e.id === SEC_ID && !c) return '<div class="bd-bol falta secreta" title="???"><div class="tg-dorso"></div><span class="bd-num">???</span></div>';   /* la secreta no se enseña hasta tenerla */
     if(!c) return '<div class="bd-bol falta oculta" title="' + e.n + ' · ?"><div class="tg-dorso"></div><b class="bd-q">?</b><span class="bd-num">' + e.n + '</span></div>';   /* las que faltan no se ven hasta tenerlas */
-    return '<div class="bd-bol' + (c ? '' : ' no') + (c && c.n > 1 ? ' rep' : '') + '" data-id="' + e.id + '" title="' + esc(e.n + ' · ' + e.t) + '"><img src="' + e.th + '" alt="" loading="lazy">' +
+    return '<div class="bd-bol' + (c ? '' : ' no') + (c && c.n > 1 ? ' rep' : '') + (c && c.inst.some(esPrimera) ? ' pe' : '') + '" data-id="' + e.id + '" title="' + esc(e.n + ' · ' + e.t) + '"><img src="' + e.th + '" alt="" loading="lazy">' +
       '<span class="bd-num">' + e.n + '</span>' + (c && c.n > 1 ? '<span class="bd-n">×' + c.n + '</span>' : '') + (c && c.inst.some(esPrimera) ? '<i class="bd-1a">' + SELLO + '</i>' : '') + (extra || "") + '</div>';
   }
   function hoja(p, lado, col){
@@ -382,7 +409,7 @@
        ajustado al alto de la pantalla (ver encaja). Fuera la cuenta por familias y los colores de tapa */
     return '<div class="tg-cab" style="--tapa:' + t.tapa + '"><div class="tg-quien"><b class="tg-mio">Mi binder</b></div>' +
         '<div class="tg-cuenta"><b>' + tiene + '</b> de ' + L.filter(e => e.ok && (e.id !== SEC_ID || col[e.id])).length + (rep ? ' · <b>' + rep + '</b> repe' + (rep === 1 ? '' : 's') : '') + (prim ? ' · <b>' + prim + '</b> 1ª ed.' : '') + '</div></div>' +
-      '<div class="tg-barra"><div class="tg-filtro">' + [["todas", "Todas"], ["faltan", "Me faltan"], ["repes", "Repetidas"]].map(([k, nm]) => '<button data-filtro="' + k + '" class="' + (filtro === k ? "on" : "") + '">' + nm + '</button>').join("") + '</div>' +
+      '<div class="tg-barra"><div class="tg-filtro">' + [["todas", "Todas"], ["faltan", "Faltan"], ["repes", "Repes"], ["primera", "1ª ed."]].map(([k, nm]) => '<button data-filtro="' + k + '" class="' + (filtro === k ? "on" : "") + '">' + nm + '</button>').join("") + '</div>' +
         '<div class="tg-flechas"><button data-ir="-1" aria-label="Página anterior"' + (pag <= 0 ? " disabled" : "") + '>‹</button><button data-ir="1" aria-label="Página siguiente"' + (pag + paso >= NP ? " disabled" : "") + '>›</button></div></div>' +
       '<div class="bd f-' + filtro + '" id="tgBd" style="--tapa:' + t.tapa + ';--hoja:' + t.hoja + ';--tinta:' + t.tinta + '">' + hojas(pag, col) + '</div>';
   }
@@ -441,7 +468,8 @@
     const res = reservadas(), suya = !mia ? de(quien).filter(x => x.c === c && x.v === v && !res[x.id]) : [];
     cap.innerHTML = '<button class="tg-x" data-v-acc="cierra" aria-label="Cerrar">' + ICO.x + '</button>' +
       '<button class="tg-flecha izq" data-v-acc="ant" aria-label="Anterior">' + ICO.izq + '</button><button class="tg-flecha der" data-v-acc="sig" aria-label="Siguiente">' + ICO.der + '</button>' +
-      '<div class="tg-tit"><b>' + e.n + ' · ' + esc(G.CARTAS[c].n) + '</b><span>' + (n ? (mia ? "Tienes " : nom(quien) + " tiene ") + n + (n > 1 ? " copias" : " copia") : (mia ? "Aún no la tienes" : nom(quien) + " no la tiene")) + '</span></div>' +
+      '<div class="tg-tit"><b>' + e.n + ' · ' + esc(G.CARTAS[c].n) + '</b><span>' + (n ? (mia ? "Tienes " : nom(quien) + " tiene ") + n + (n > 1 ? " copias" : " copia") : (mia ? "Aún no la tienes" : nom(quien) + " no la tiene")) + '</span>' +
+        (c === SEC_ID ? '' : (() => { const p1 = vivas().find(x => x.c === c && esPrimera(x)); return '<span class="tg-pe-quien">' + SELLO + (p1 ? (p1.d === yo() ? "La 1ª edición es tuya" : "La 1ª edición la tiene " + esc(nom(p1.d))) : "La 1ª edición aún no ha salido") + '</span>'; })()) + '</div>' +
       '<div class="tg-esc' + (n ? '' : ' bloq') + '">' + G.carta(c, v) + (n ? '' : '<div class="tg-candado"><span>' + (mia ? "Te falta" : "No la tiene") + '</span></div>') +
         (de(quien).some(x => x.c === c && x.v === v && esPrimera(x)) ? '<i class="tg-1a" title="Primera edición">' + SELLO + '</i>' : '') + '</div>' +
       '<div class="tg-vers">' + G.versiones(c).map(x => '<button data-ver="' + x + '" class="' + (x === v ? "on" : "") + (col.v[x] ? "" : " no") + '">' + G.icono(c, x) + G.nombreVer(c, x) + (col.v[x] ? '<em>×' + col.v[x] + '</em>' : '') + '</button>').join("") + '</div>' +
@@ -727,6 +755,14 @@
     rara(t0){ const c = ac(); if(!c) return; const t = c.currentTime + .05, notas = t0 >= 5 ? [523.3, 659.3, 784, 1046.5, 1318.5, 1568] : t0 >= 4 ? [659.3, 784, 1046.5, 1318.5] : [784, 987.8, 1174.7];
       if(t0 >= 5){ const o = c.createOscillator(), og = c.createGain(); o.type = "sine"; o.frequency.setValueAtTime(110, t); o.frequency.exponentialRampToValueAtTime(40, t + 1.2); env(c, og, t, .02, .6, 1.4); o.connect(og).connect(c.destination); o.start(t); o.stop(t + 1.6); }
       notas.forEach((hz, k) => { const o = c.createOscillator(), og = c.createGain(); o.type = "sine"; o.frequency.value = hz; env(c, og, t + k * .085, .01, .16, 1.1); o.connect(og).connect(c.destination); o.start(t + k * .085); o.stop(t + k * .085 + 1.3); }); },
+    /* 1ª edición: campanitas agudas y un brillo de ruido */
+    primera(){ const c = ac(); if(!c) return; const t = c.currentTime + .02;
+      [1568, 2093, 2637, 3136].forEach((hz, k) => { const o = c.createOscillator(), og = c.createGain(); o.type = "sine"; o.frequency.value = hz; env(c, og, t + k * .06, .005, .12, .9); o.connect(og).connect(c.destination); o.start(t + k * .06); o.stop(t + k * .06 + 1); });
+      const n = ruido(c, .6), f = c.createBiquadFilter(), g = c.createGain(); f.type = "highpass"; f.frequency.value = 6000; env(c, g, t, .05, .06, .5); n.connect(f).connect(g).connect(c.destination); n.start(t); n.stop(t + .6); },
+    /* God Pack: un acorde que crece, con un golpe grave y la escalera de la rara más alta */
+    dios(){ const c = ac(); if(!c) return; const t = c.currentTime + .02;
+      [261.6, 329.6, 392, 523.3, 659.3].forEach((hz, k) => { const o = c.createOscillator(), og = c.createGain(); o.type = k % 2 ? "triangle" : "sine"; o.frequency.value = hz; env(c, og, t + k * .05, .5, .09, 1.8); o.connect(og).connect(c.destination); o.start(t + k * .05); o.stop(t + 2.6); });
+      setTimeout(() => SON.rara(5), 700); },
     cruje(){ const c = ac(); if(!c) return; const t = c.currentTime, n = ruido(c, .07), f = c.createBiquadFilter(), g = c.createGain();
       f.type = "highpass"; f.frequency.value = 3000 + Math.random() * 2500; env(c, g, t, .003, .12, .05); n.connect(f).connect(g).connect(c.destination); n.start(t); n.stop(t + .07); },
     miau(){ const c = ac(); if(!c) return; const t = c.currentTime, o = c.createOscillator(), g = c.createGain(), f = c.createBiquadFilter();
@@ -816,14 +852,16 @@
     const tenia = coleccion(pid), vistas = {};
     const yaPe = {}; vivas().forEach(x => { if(x.pe) yaPe[x.c] = 1; });
     const especial = /^secreta:/.test(s.id);
-    const cartas = (especial ? [{c: SEC_ID, v: SEC_V}] : genera(s.id)).map((x, i) => {   /* los tres sobres traen lo mismo: solo cambia la portada */
+    const lote = especial ? [{c: SEC_ID, v: SEC_V}] : genera(s.id), god = !!lote.god;
+    if(god){ s.god = 1; if(otro()) avisa(otro(), "God Pack", nom(yo()) + " acaba de abrir un God Pack: las cinco cartas, raras."); }
+    const cartas = lote.map((x, i) => {   /* los tres sobres traen lo mismo: solo cambia la portada */
       const k = x.c + "|" + x.v, nueva = !(tenia[x.c] && tenia[x.c].v[x.v]) && !vistas[k]; vistas[k] = 1;
       const pe = !especial && !yaPe[x.c] && rng(s.id + ":pe:" + i)() < PRIMERA_P; if(pe) yaPe[x.c] = 1;
       return Object.assign(x, {id: s.id + ":" + i, nueva, nivel: nivel(x.c, x.v)}, pe ? {pe: 1} : {});
     });
     cartas.forEach(x => { if(!inst(x.id)) A.S.tcgCartas.push(Object.assign({id: x.id, c: x.c, v: x.v, d: pid, t: ahora(), o: especial ? "secreta" : "sobre"}, x.pe ? {pe: 1} : {})); });
     premia(); save();
-    escena(cartas, s.sobre || elegido);
+    escena(cartas, s.sobre || elegido, god);
   }
 
   /* ══ la apertura (tercera versión: Pocket + gachas) ══
@@ -844,12 +882,12 @@
     if(a.casa && a.casa !== VACIA) return {fondo: a.casa};
     return null;
   }
-  function escena(cartas, k){
+  function escena(cartas, k, god){
     const cap = document.getElementById("tgAbre"), S = SOBRES[k];
     if(cap._s3){ cap._s3.destruye(); cap._s3 = null; }
     const mejor = cartas.reduce((m, x) => { const t = tierDe(x); return t === "sec" || (m !== "sec" && t > m) ? t : m; }, 1);
     cap.className = "tg-capa on gv"; cap.style.cssText = "--c:" + S.col + ";--c2:" + S.col2 + ";--tier:" + TIER[mejor][0] + ";--cielo:#2b3a8f";
-    cap.dataset.sobre = k;
+    cap.dataset.sobre = k; cap.classList.toggle("god", !!god);
     cap.innerHTML = '<div class="gv-cielo"></div><div class="gv-estrellas"></div><div class="gv-estrellas dos"></div><div class="gv-nubes"></div><div class="gv-tejados"></div><div class="gv-bruma"></div>' +
       '<div class="gv-rayos"></div><div class="gv-magia">' + circuloSVG() + '</div>' +
       '<button class="gx-mudo" data-mudo aria-label="Sonido">' + icoSon() + '</button>' +
@@ -908,11 +946,18 @@
   function estrella(cap, cartas, mejor){
     cap.style.setProperty("--cielo", CIELO[mejor]);
     cap.classList.add("noche", "t" + mejor);
-    const e = document.createElement("div"); e.className = "gv-fugaz" + (mejor >= 4 || mejor === "sec" ? " grande" : "");
+    const god = cap.classList.contains("god");
+    const e = document.createElement("div"); e.className = "gv-fugaz" + (mejor >= 4 || mejor === "sec" || god ? " grande" : "") + (god ? " dios" : "");
     cap.appendChild(e);
-    if(mejor >= 3 || mejor === "sec") setTimeout(() => SON.rara(mejor === "sec" ? 5 : mejor), 250);
+    if(god){
+      /* God Pack: estrella de arcoíris, cartel y un acorde propio antes de la pila */
+      cap.classList.add("dios");
+      const b = document.createElement("div"); b.className = "gv-god"; b.innerHTML = "<b>God Pack</b><span>Las cinco cartas son raras</span>";
+      cap.appendChild(b); setTimeout(() => SON.dios(), 200); vibra([40, 80, 40, 80, 120]);
+      setTimeout(() => b.remove(), 2900);
+    } else if(mejor >= 3 || mejor === "sec") setTimeout(() => SON.rara(mejor === "sec" ? 5 : mejor), 250);
     setTimeout(() => { cap.querySelector(".gx-sobre").classList.add("vacia"); if(cap._s3){ const s3 = cap._s3; cap._s3 = null; s3.vacia(); } }, 300);
-    setTimeout(() => { e.remove(); pila(cap, cartas, 0); }, 1500);
+    setTimeout(() => { e.remove(); pila(cap, cartas, 0); }, god ? 2700 : 1500);
   }
   /* 2. la pila: boca arriba, la de encima se pasa deslizando (o tocando); la rara, la última, sale boca abajo */
   function pila(cap, cartas, i){
@@ -948,13 +993,16 @@
     pista.textContent = rara && ult ? "La última brilla… tócala" : i === 0 ? "Desliza para pasar a la siguiente" : (ult ? "La última" : "Desliza para pasar");
     if(!(rara && ult)){ if(x.nueva) SON.reparte(0); const q = gatoDe(x.c); if(q && i > 0) {} }
     G.luz.on(top);
+    /* 1ª edición: destello dorado y su sonido al llegar arriba (26/10) */
+    const peSale = el => { el.classList.add("pe-sale"); setTimeout(() => SON.primera(), 120); vibra([15, 40, 15]); };
+    if(x.pe && !(rara && ult)) peSale(top);
     let x0 = null, y0 = null, dx = 0, dy = 0, fuera = false;
     const tira = (vx, vy) => {
       if(fuera) return; fuera = true; SON.gira();
       top.style.transition = "transform .38s ease-in, opacity .38s"; top.style.transform = "translate(" + (vx * 120) + "vw," + (vy * 60) + "vh) rotate(" + (vx * 28) + "deg)"; top.style.opacity = 0;
       setTimeout(() => pila(cap, cartas, i + 1), 260);
     };
-    const revela = () => { if(fuera) return; fuera = true; splash(cap, x, () => { top.classList.remove("oculta"); top.classList.add("girada"); fuera = false; SON.gira();
+    const revela = () => { if(fuera) return; fuera = true; splash(cap, x, () => { top.classList.remove("oculta"); top.classList.add("girada"); fuera = false; SON.gira(); if(x.pe) setTimeout(() => peSale(top), 350);
       pista.textContent = "Toca para ver el resumen"; top.onclick = () => final(cap, cartas); }); };
     top.addEventListener("pointerdown", e => { if(fuera) return; x0 = e.clientX; y0 = e.clientY; dx = dy = 0; top.style.transition = "none"; try { top.setPointerCapture(e.pointerId); } catch(_){} });
     top.addEventListener("pointermove", e => { if(x0 == null || fuera || top.classList.contains("oculta")) return; dx = e.clientX - x0; dy = e.clientY - y0;
@@ -978,7 +1026,7 @@
     sp.innerHTML = '<div class="gv-sp-fondo" style="background-image:url(' + ARTE("splash-" + SPLASH[t]) + ')"></div><div class="gv-sp-rayos"></div><div class="gv-sp-magia">' + circuloSVG() + '</div><div class="gv-sp-lineas"></div>' +
       (cs && cs.pj ? '<img class="gv-sp-pj" src="' + cs.pj + '" alt="">' : cs && cs.fondo ? '<img class="gv-sp-cuadro" src="' + cs.fondo + '" alt="">' : '') +
       '<div class="gv-sp-txt"><em>' + TIER[t][1] + ' · ' + G.nombreVer(x.c, x.v) + '</em><b>' + esc(nom) + '</b><div class="gv-sp-est m-' + marca + '">' + Array.from({length: est}, (_, k) => '<i style="--k:' + k + '">' + GEMA[marca] + '</i>').join("") + '</div>' +
-      (x.nueva ? '<span class="gx-nueva">Nueva</span>' : '') + '</div><div class="gv-sp-toca">Toca para continuar</div>';
+      (x.nueva ? '<span class="gx-nueva">Nueva</span>' : '') + (x.pe ? '<span class="gx-pe-sp">' + SELLO + '1ª edición</span>' : '') + '</div><div class="gv-sp-toca">Toca para continuar</div>';
     sp.classList.add("on");
     for(let k = 0; k < est; k++) setTimeout(() => SON.reparte(0), 900 + k * 160);
     const q = gatoDe(x.c); if(q) setTimeout(() => SON.miau(), 700);
@@ -1019,7 +1067,7 @@
     cap.querySelector("#gxPista").classList.add("fuera");
     cap.querySelector("#gvPila").innerHTML = '<div class="gv-rejilla">' + cartas.map((x, k) => { const t = tierDe(x);
       return '<div class="gv-mini" data-tier="' + t + '" style="--tc:' + TIER[t][0] + ';--k:' + k + '">' + G.carta(x.c, x.v) + (x.nueva ? '<span class="gx-nueva">Nueva</span>' : '') + (x.pe ? '<i class="gx-1a">' + SELLO + '</i>' : '') + '</div>'; }).join("") + '</div>';
-    cap.querySelector("#gxFinal").innerHTML = '<div class="gx-resumen"><b>' + (nuevas ? (nuevas === 1 ? "+1 carta nueva" : "+" + nuevas + " cartas nuevas") : "Todas repetidas") + '</b>' +
+    cap.querySelector("#gxFinal").innerHTML = '<div class="gx-resumen">' + (cap.classList.contains("god") ? '<span class="gx-godtag">God Pack</span><br>' : '') + '<b>' + (nuevas ? (nuevas === 1 ? "+1 carta nueva" : "+" + nuevas + " cartas nuevas") : "Todas repetidas") + '</b>' +
       '<span>' + (nuevas === 5 ? "las cinco, estrenadas" : nuevas ? (5 - nuevas) + (5 - nuevas === 1 ? " repetida para cambiar" : " repetidas para cambiar") : "buenas para cambiar") + '</span>' +
       '<div class="gx-barra"><i style="width:' + Math.round(tengo / total * 100) + '%"></i></div><em>Tu binder: ' + tengo + ' de ' + total + '</em></div>' +
       '<div class="gx-botones"><button class="tg-btn sec" data-ab="fin">Al binder</button><button class="tg-btn" data-ab="otro"' + (d ? '' : ' disabled') + '>' + (d ? "Abrir otro (" + d + ")" : "No quedan") + '</button></div>';
@@ -1140,6 +1188,7 @@
       cuerpo.innerHTML = '<p class="tg-nota" style="text-align:center;margin-top:30px">Abriendo el binder…</p>';
       prepara().then(pinta);
     },
-    premia, disponibles
+    premia, disponibles,
+    _prueba: {genera, rng}   /* para el arnés de pruebas: qué trae un sobre según su id */
   };
 })();

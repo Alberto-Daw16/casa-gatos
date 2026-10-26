@@ -1,0 +1,12 @@
+import { pg, b, logs, shot } from './harness.mjs';
+await pg.click('#navTcg'); await pg.waitForTimeout(3000);
+await pg.evaluate(() => { const A = window.GAPP, G = window.GTCG; const t = new Date().toISOString();
+  G.D1.LISTA.filter(e => e.ok).slice(0, 12).forEach((e, i) => A.S.tcgCartas.push({id: 'k' + i, c: e.id, v: G.versiones(e.id)[0], d: i % 3 ? 'p1' : 'p2', t, o: 'sobre', pe: i < 5 ? 1 : undefined})); });
+await pg.click('[data-tab="sobres"]'); await pg.waitForTimeout(500); await pg.click('[data-tab="binder"]'); await pg.waitForTimeout(1500);
+await pg.click('[data-filtro="primera"]'); await pg.waitForTimeout(1200); await shot('pe-binder');
+console.log(await pg.evaluate(() => { const b = document.querySelector('.tg-barra'); return b.scrollWidth + ' / ' + b.clientWidth; }));
+await pg.click('.bd-bol.pe'); await pg.waitForTimeout(1500); await shot('pe-visor');
+await pg.click('[data-v-acc="cierra"]'); await pg.waitForTimeout(500);
+await pg.click('[data-tab="logros"]'); await pg.waitForTimeout(1500); await shot('pe-logros');
+await pg.evaluate(() => document.getElementById('tgCuerpo').scrollTo(0, 99999)); await pg.waitForTimeout(500); await shot('pe-logros2');
+console.log(logs.filter(l=>/ERR/.test(l)).join('\n')); await b.close();
