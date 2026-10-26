@@ -771,3 +771,12 @@
 @keyframes godCartel{0%{opacity:0;transform:translate(-50%,-50%) scale(.7)}18%{opacity:1;transform:translate(-50%,-50%) scale(1.05)}30%{transform:translate(-50%,-50%) scale(1)}82%{opacity:1}100%{opacity:0;transform:translate(-50%,-60%) scale(1)}}
 .gx-resumen .gx-godtag{display:inline-block;align-self:center;width:auto;font-style:normal;margin-bottom:6px;padding:4px 10px;border-radius:999px;font:700 10.5px/1 "Space Mono",monospace;letter-spacing:.14em;text-transform:uppercase;color:#1a1030;
   background:linear-gradient(90deg,#ff9ee8,#ffe08a,#9ff5c4,#9fd6ff,#c7b6ff)}
+
+/* 26/10 · en el visor, la versión que no tienes sale boca abajo con «?» (no se puede ver antes de tiempo) */
+.tg-oculta-v{position:relative;overflow:hidden}
+.tg-oculta-v .tg-dorso{position:absolute;inset:0;width:100%;height:100%}
+.tg-oculta-v .bd-q{position:absolute;inset:auto;right:auto;bottom:auto;left:50%;top:50%;width:52%;height:auto;aspect-ratio:1;transform:translate(-50%,-50%);z-index:2;pointer-events:none;
+  display:grid;place-items:center;border-radius:50%;background:radial-gradient(circle at 50% 40%,#4a0c1c,#1a0409 72%);
+  box-shadow:0 0 0 2px rgba(232,182,76,.75),0 0 0 6px rgba(26,4,9,.85),0 6px 20px rgba(0,0,0,.55);
+  font:400 min(22vw,110px)/1 "Instrument Serif",Georgia,serif;color:#ffe7a3;text-shadow:0 0 16px rgba(232,182,76,.45);padding-top:4%;box-sizing:border-box}
+.tg-esc.bloq .tg-oculta-v{filter:none}

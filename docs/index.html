@@ -8,7 +8,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>Gremory</title>
-<meta name="build" content="2026-10-26.5">
+<meta name="build" content="2026-10-26.6">
 <!-- El cuadrado de la pantalla de inicio. iOS se guarda el icono por URL y no
      vuelve a pedirlo, así que si se cambia hay que darle un nombre de fichero
      nuevo. El manifest es lo que mira el iPhone moderno; los dos "apple-touch"
@@ -919,7 +919,7 @@ var DEF = {
   shops:["Mercadona","Lidl","Aldi","Carrefour","Alcampo","Dia","Consum","Eroski"],
   recurring:{expenses:[],incomes:[]},
   months:{}, care:{}, prices:[], tickets:[], shoplist:[], inv:[],
-  goals:{malta:1,cepillado:2,bano:1,arenero:15,v:2},
+  goals:{malta:1,cepillado:2,dientes:2,bano:1,arenero:15,v:2},
   useOffers:false, agrupar:true, catalogUrl:"", lastSync:"",
   syncUrl:"", syncPass:"", upd:"", lastNube:"", lastCat:"", lastAuto:"",
   /* quiénes sois; "yo" es de este móvil y no se sube nunca */
@@ -1030,15 +1030,8 @@ var S = load();
       return true;
     });
   });
-  /* cuidados: "dientes" y "cepillado" eran lo mismo; se queda cepillado */
-  Object.keys(S.care||{}).forEach(function(dk){
-    var d = S.care[dk]; if(!d || !d.cats) return;
-    Object.keys(d.cats).forEach(function(cid){
-      var c = d.cats[cid]; if(!c) return;
-      if(c.dientes){ c.cepillado = true; delete c.dientes; cambio = true; }
-    });
-  });
-  if(S.goals && S.goals.dientes!==undefined){ delete S.goals.dientes; cambio = true; }
+  /* 26/10: los dientes vuelven a ir aparte (antes se juntaron con el cepillado); 2 veces por semana si no se dice otra cosa */
+  if(S.goals && S.goals.dientes===undefined){ S.goals.dientes = 2; cambio = true; }
   /* 30/9: cepillado 2 veces por semana y malta 1 (antes 3 y 2); v marca que ya se aplicó */
   if(S.goals && S.goals.v!==2){ S.goals.cepillado = 2; S.goals.malta = 1; S.goals.v = 2; cambio = true; }
   /* los fijos son de los dos por definición: si algún día se marcaron de uno, se suelta */
@@ -2185,17 +2178,7 @@ function renderAhorro(){
     '<div class="ah-graf">' + graficaAhorro(P) + '</div>' +
     '<div class="ah-leg"><span><i style="background:var(--acc)"></i>La casa</span>' + (P.hay ? '<span><i style="background:var(--blue)"></i>Tu hucha</span>' : '') +
       '<span><i style="background:none;border-top:2px dashed var(--acc);height:0;margin-bottom:3px"></i>Si seguís así</span><span><i style="background:none;border-top:2px dotted var(--acc);height:0;opacity:.6;margin-bottom:3px"></i>Prudente</span></div>' +
-    '<div class="ah-fin">Si seguís así, en ' + nomFin + ' tendréis unos <b>' + moneyR(Math.round(finTotal / 100) * 100) + '</b>' +
-      ' (con 100 € más de gasto al mes, ' + moneyR(Math.round(finPru / 100) * 100) + ').' +
-      (cambio === null ? ' Se recalcula sola con cada gasto y cada mes nuevo.' : cambio === 0 ? ' El mismo ritmo que el mes pasado.' :
-        ' El mes pasado ibais a ' + moneyR(antes) + ' al mes: ahora ' + (cambio > 0 ? moneyR(cambio) + ' más.' : moneyR(-cambio) + ' menos.')) + '</div>' +
-    '<div class="ah-cuenta">' +
-      '<div><span>Entra al bote al mes (cuotas de Ajustes)</span><b>' + money(P.cuotas) + '</b></div>' +
-      '<div><span>Fijos de la casa</span><b>−' + money(P.fijos) + '</b></div>' +
-      '<div><span>Gasto normal (media de ' + (P.base.length === 1 ? mesCorto(P.base[0]) : P.base.map(mesCorto).join(", ")) + ')</span><b>−' + money(P.normal) + '</b></div>' +
-      (P.hay ? '<div><span>A tu hucha (tu media)</span><b>+' + money(P.miaMes) + '</b></div>' : '') +
-      (P.puntuales.length ? '<div class="ah-fuera">Fuera de la cuenta por puntuales: ' + P.puntuales.map(function(p){ return '<em>' + esc(p.x.name) + '</em> (' + money(p.x.amount) + ', ' + mesCorto(p.k) + ')'; }).join(", ") + '. Se marca al apuntar el gasto.</div>' : '') +
-    '</div>';
+    '';
   box.innerHTML = html;
 }
 function renderFin(){
@@ -3355,6 +3338,7 @@ function runOCR(file){
 /* =========== CUIDADOS =========== */
 var CAT_TASKS = [
   {k:"cepillado", label:"Cepillado"},
+  {k:"dientes",   label:"Dientes"},   /* 26/10: vuelve, Alberto lo quiere aparte del cepillado del pelo */
   {k:"malta",     label:"Malta"}
 ];
 var HOME_TASKS = [
@@ -3493,7 +3477,7 @@ function renderSet(){
     return '<div class="chip on" data-delshop="'+esc(s)+'">'+esc(s)+' ✕</div>'; }).join("")+'</div>';
 
   var g = [
-    {k:"cepillado",l:"Cepillado (veces/semana)"},{k:"malta",l:"Malta (veces/semana)"},
+    {k:"cepillado",l:"Cepillado (veces/semana)"},{k:"dientes",l:"Dientes (veces/semana)"},{k:"malta",l:"Malta (veces/semana)"},
     {k:"bano",l:"Baño (veces/semana)"},
     {k:"arenero",l:"Arenero (cada X días)"}
   ];
@@ -3699,6 +3683,7 @@ function fusiona(local, remoto){
     if(remoto.goals) out.goals = remoto.goals;
     /* si el otro móvil aún trae los objetivos viejos, se ponen los nuevos */
     if(out.goals && out.goals.v!==2){ out.goals.cepillado = 2; out.goals.malta = 1; out.goals.v = 2; }
+    if(out.goals && out.goals.dientes===undefined) out.goals.dientes = 2;
     if(remoto.shops) out.shops = remoto.shops;
     if(remoto.catalogUrl) out.catalogUrl = remoto.catalogUrl;
     if(remoto.useOffers!==undefined) out.useOffers = remoto.useOffers;
@@ -3924,6 +3909,10 @@ var F_CEPILLO = [
   "{G} ha puesto una queja formal: {p} cepillado{s} pendiente{s}.",
   "{G} empieza a parecer una alfombra. {P} cepillado{s} y lo arreglamos."
 ];
+var F_DIENTES = [
+  "Los dientes de {G}: {p} pendiente{s} esta semana. Sonrisa de anuncio, por favor.",
+  "{G} tiene cita con el cepillo de dientes: faltan {p}. No hay excusa que valga."
+];
 var F_MALTA = [
   "Malta para {G}: {p} pendiente{s}. Las bolas de pelo no se van solas.",
   "{G} pide su malta ({p} más esta semana). Por el bien del sofá."
@@ -3980,7 +3969,7 @@ function generaAvisos(){
       if(nUrg === 1){
         var u = unico, v = {G:G(u.cat), n:u.n, m:u.m, p:u.p, P:u.p, s:pl(u.p), d: restan===1 ? "solo hoy" : restan+" días"};
         titulo = G(u.cat)+" reclama";
-        cuerpo = [frase(u.x.k==="malta" ? F_MALTA : F_CEPILLO, dk+u.cat.id+u.x.k, v)].concat(casa).join(" ");
+        cuerpo = [frase(u.x.k==="malta" ? F_MALTA : u.x.k==="dientes" ? F_DIENTES : F_CEPILLO, dk+u.cat.id+u.x.k, v)].concat(casa).join(" ");
       } else if(nUrg > 1){
         var partes = [];
         CAT_TASKS.forEach(function(x){ if(urg[x.k]) partes.push(x.label+" pendiente: "+urg[x.k].join(", ")+"."); });

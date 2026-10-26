@@ -383,14 +383,15 @@
     if(!e) return '<div class="bd-bol" style="visibility:hidden"></div>';
     if(!e.ok) return '<div class="bd-bol falta" title="' + e.n + '"><div class="tg-dorso"></div><span class="bd-num">' + e.n + '</span></div>';
     const c = col[e.id];
-    if(e.id === SEC_ID && !c) return '<div class="bd-bol falta secreta" title="???"><div class="tg-dorso"></div><span class="bd-num">???</span></div>';   /* la secreta no se enseña hasta tenerla */
+    if(e.id === SEC_ID && !c) return '<div class="bd-bol" style="visibility:hidden"></div>';   /* 26/10: la secreta no existe en el binder hasta tenerla, ni como hueco */
     if(!c) return '<div class="bd-bol falta oculta" title="' + e.n + ' · ?"><div class="tg-dorso"></div><b class="bd-q">?</b><span class="bd-num">' + e.n + '</span></div>';   /* las que faltan no se ven hasta tenerlas */
     return '<div class="bd-bol' + (c ? '' : ' no') + (c && c.n > 1 ? ' rep' : '') + (c && c.inst.some(esPrimera) ? ' pe' : '') + '" data-id="' + e.id + '" title="' + esc(e.n + ' · ' + e.t) + '"><img src="' + e.th + '" alt="" loading="lazy">' +
       '<span class="bd-num">' + e.n + '</span>' + (c && c.n > 1 ? '<span class="bd-n">×' + c.n + '</span>' : '') + (c && c.inst.some(esPrimera) ? '<i class="bd-1a">' + SELLO + '</i>' : '') + (extra || "") + '</div>';
   }
   function hoja(p, lado, col){
     if(p < 0 || p >= NP) return '<div class="bd-hoja ' + lado + ' vacia"><div class="bd-cab"><span>&nbsp;</span></div><div class="bd-grid">' + '<div class="bd-bol"></div>'.repeat(PAG) + '</div></div>';
-    const a = L[p * PAG], z = L[Math.min(L.length, (p + 1) * PAG) - 1];
+    const a = L[p * PAG]; let z = L[Math.min(L.length, (p + 1) * PAG) - 1];
+    if(z.id === SEC_ID && !col[SEC_ID]) z = L[L.indexOf(z) - 1];   /* sin la secreta, la página acaba en la 060 */
     let g = ""; for(let k = 0; k < PAG; k++) g += bolsillo(p * PAG + k, col);
     return '<div class="bd-hoja ' + lado + '"><div class="bd-cab"><span>Página ' + (p + 1) + '</span><span>' + a.n + ' – ' + z.n + '</span></div><div class="bd-grid">' + g + '</div>' +
       ((lado === "der" || movil()) && p < NP - 1 ? '<div class="bd-esquina" data-ir="1"></div>' : '') +
@@ -409,7 +410,7 @@
        ajustado al alto de la pantalla (ver encaja). Fuera la cuenta por familias y los colores de tapa */
     return '<div class="tg-cab" style="--tapa:' + t.tapa + '"><div class="tg-quien"><b class="tg-mio">Mi binder</b></div>' +
         '<div class="tg-cuenta"><b>' + tiene + '</b> de ' + L.filter(e => e.ok && (e.id !== SEC_ID || col[e.id])).length + (rep ? ' · <b>' + rep + '</b> repe' + (rep === 1 ? '' : 's') : '') + (prim ? ' · <b>' + prim + '</b> 1ª ed.' : '') + '</div></div>' +
-      '<div class="tg-barra"><div class="tg-filtro">' + [["todas", "Todas"], ["faltan", "Faltan"], ["repes", "Repes"], ["primera", "1ª ed."]].map(([k, nm]) => '<button data-filtro="' + k + '" class="' + (filtro === k ? "on" : "") + '">' + nm + '</button>').join("") + '</div>' +
+      '<div class="tg-barra"><div class="tg-filtro">' + [["todas", "Todas"], ["repes", "Repes"], ["primera", "1ª ed."]].map(([k, nm]) => '<button data-filtro="' + k + '" class="' + (filtro === k ? "on" : "") + '">' + nm + '</button>').join("") + '</div>' +
         '<div class="tg-flechas"><button data-ir="-1" aria-label="Página anterior"' + (pag <= 0 ? " disabled" : "") + '>‹</button><button data-ir="1" aria-label="Página siguiente"' + (pag + paso >= NP ? " disabled" : "") + '>›</button></div></div>' +
       '<div class="bd f-' + filtro + '" id="tgBd" style="--tapa:' + t.tapa + ';--hoja:' + t.hoja + ';--tinta:' + t.tinta + '">' + hojas(pag, col) + '</div>';
   }
@@ -470,7 +471,8 @@
       '<button class="tg-flecha izq" data-v-acc="ant" aria-label="Anterior">' + ICO.izq + '</button><button class="tg-flecha der" data-v-acc="sig" aria-label="Siguiente">' + ICO.der + '</button>' +
       '<div class="tg-tit"><b>' + e.n + ' · ' + esc(G.CARTAS[c].n) + '</b><span>' + (n ? (mia ? "Tienes " : nom(quien) + " tiene ") + n + (n > 1 ? " copias" : " copia") : (mia ? "Aún no la tienes" : nom(quien) + " no la tiene")) + '</span>' +
         (c === SEC_ID ? '' : (() => { const p1 = vivas().find(x => x.c === c && esPrimera(x)); return '<span class="tg-pe-quien">' + SELLO + (p1 ? (p1.d === yo() ? "La 1ª edición es tuya" : "La 1ª edición la tiene " + esc(nom(p1.d))) : "La 1ª edición aún no ha salido") + '</span>'; })()) + '</div>' +
-      '<div class="tg-esc' + (n ? '' : ' bloq') + '">' + G.carta(c, v) + (n ? '' : '<div class="tg-candado"><span>' + (mia ? "Te falta" : "No la tiene") + '</span></div>') +
+      /* la versión que no tienes no se enseña (26/10): boca abajo con «?» hasta que te salga */
+      '<div class="tg-esc' + (n ? '' : ' bloq') + '">' + (n ? G.carta(c, v) : '<div class="carta tg-oculta-v"><div class="tg-dorso"></div><b class="bd-q">?</b></div>') + (n || mia ? '' : '<div class="tg-candado"><span>No la tiene</span></div>') +
         (de(quien).some(x => x.c === c && x.v === v && esPrimera(x)) ? '<i class="tg-1a" title="Primera edición">' + SELLO + '</i>' : '') + '</div>' +
       '<div class="tg-vers">' + G.versiones(c).map(x => '<button data-ver="' + x + '" class="' + (x === v ? "on" : "") + (col.v[x] ? "" : " no") + '">' + G.icono(c, x) + G.nombreVer(c, x) + (col.v[x] ? '<em>×' + col.v[x] + '</em>' : '') + '</button>').join("") + '</div>' +
       '<div class="tg-acc">' +
@@ -479,7 +481,9 @@
         (suya.length ? '<button class="tg-btn sec" data-v-acc="pide" data-inst="' + suya[0].id + '">' + ICO.cambio + ' Pedírsela a ' + esc(nom(quien)) + '</button>' : '') + '</div>';
   }
   function otraVisor(d){
-    const ok = L.filter(e => e.ok), i = ok.findIndex(e => e.id === vCarta), j = ok[(i + d + ok.length) % ok.length];
+    /* 26/10: solo se pasa por las que tienes: las que faltan no se pueden ver antes de tiempo */
+    const col = coleccion(quien), ok = L.filter(e => e.ok && col[e.id]); if(!ok.length) return;
+    const i = ok.findIndex(e => e.id === vCarta), j = ok[(i + d + ok.length) % ok.length];
     const k = L.indexOf(j), p = Math.floor(k / PAG); pag = movil() ? p : p - (p % 2);
     abreVisor(j.id); if(tab === "binder") pinta();
   }
