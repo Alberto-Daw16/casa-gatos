@@ -168,7 +168,7 @@
     const pes = mias.filter(esPrimera).length, gods = A.S.tcgSobres.filter(x => x.d === pid && x.abierto && x.god && !borr()[x.id] && !antes(x.t, pid)).length;
     L1("pe1", "Coleccionista", "Primera edición", "tu primera 1ª edición", "bronce", "sello", pes, 1);
     L1("pe5", "Coleccionista", "Cinco primeras", "cinco 1ª ediciones", "plata", "sello", pes, 5);
-    L1("god", "Coleccionista", "God Pack", "un sobre con las cinco raras", "oro", "gremory", gods, 1);
+    L1("god", "Coleccionista", "God Pack", "un sobre de cinco cartas buenas, con una Gremory al final", "oro", "gremory", gods, 1);
     const camb = cambVivos().filter(c => c.estado === "aceptado" && (c.de === pid || c.para === pid)).length;
     L1("cam1", "Sobres y cambios", "Primer cambio", "entre los dos", "bronce", "cambio", camb, 1);
     L1("cam10", "Sobres y cambios", "Diez cambios", "negociando en casa", "plata", "cambio", camb, 10);
@@ -240,9 +240,9 @@
     const suyas = tipo && DE[tipo] ? a.filter(id => DE[tipo](num(id))) : [];
     return suyas.length && r() < .45 ? elige(r, suyas) : elige(r, a);
   }
-  /* God Pack (26/10, lo pidió Alberto): de vez en cuando un sobre trae las cinco cartas raras. 2 % por sobre (uno de cada 50,
+  /* God Pack (26/10, lo pidió Alberto): de vez en cuando un sobre trae cinco cartas de las buenas. 2 % por sobre (uno de cada 50,
      más fácil que una 1ª edición concreta y mucho más difícil que una rara normal). Va por semilla, como todo: los dos móviles
-     sacan lo mismo. Las cuatro primeras, raras de la tabla normal; la última, siempre muy rara (Firmada, Oro o Gremory) */
+     sacan lo mismo. Nada por debajo de Firmada: las cuatro primeras, Firmada, Oro o Gremory; la última, siempre una Gremory */
   const GOD_P = .02;
   const MUY = [["Firmada", 14, "SP"], ["Oro", 9, "HR"], ["Gremory", 3.5, "G1"], ["Gremory", 2, "G2"]];
   function sorteo(r, tabla, tipo){
@@ -251,12 +251,26 @@
     return null;
   }
   function godPack(id, tipo){
-    const g = rng(id + ":dioses"), out = [], vistos = {}, raras = RARA.filter(x => x[0] !== "Secreta");
-    for(let k = 0; k < 60 && out.length < 4; k++){ const c = sorteo(g, raras, tipo); if(c && !vistos[c.c + "|" + c.v]){ vistos[c.c + "|" + c.v] = 1; out.push(c); } }
-    let top = null; for(let k = 0; k < 30 && !top; k++){ const c = sorteo(g, MUY, tipo); if(c && !vistos[c.c + "|" + c.v]) top = c; }
+    const g = rng(id + ":dioses2"), out = [], vistos = {}, GRE = MUY.filter(x => x[0] === "Gremory");
+    for(let k = 0; k < 80 && out.length < 4; k++){ const c = sorteo(g, MUY, tipo); if(c && !vistos[c.c + "|" + c.v]){ vistos[c.c + "|" + c.v] = 1; out.push(c); } }
+    let top = null; for(let k = 0; k < 40 && !top; k++){ const c = sorteo(g, GRE, tipo); if(c && !vistos[c.c + "|" + c.v]) top = c; }
     if(out.length < 4 || !top) return null;
     out.push(top); out.sort((a, b) => nivel(a.c, a.v) - nivel(b.c, b.v)); out.god = true;   /* de menos a más: la mejor, la última */
     return out;
+  }
+  /* los God Pack que salieron con la regla vieja (Grabadas y Estándar dentro: «troleada») se rehacen con la nueva.
+     Sale lo mismo en los dos móviles (misma semilla) y la carta rehecha lleva hora nueva para ganar al sincronizar */
+  function arreglaGod(){
+    let cambio = false;
+    A.S.tcgSobres.filter(s => s.god && s.god !== 2).forEach(s => {
+      const nuevo = godPack(s.id); if(!nuevo) return;
+      nuevo.forEach((x, i) => {
+        const c = A.S.tcgCartas.find(k => k.id === s.id + ":" + i);
+        if(c && (c.c !== x.c || c.v !== x.v)){ c.c = x.c; c.v = x.v; c.t = ahora(); cambio = true; }
+      });
+      s.god = 2; cambio = true;
+    });
+    return cambio;
   }
   function genera(id, tipo){
     if(rng(id + ":god")() < GOD_P){ const gp = godPack(id, tipo); if(gp) return gp; }
@@ -857,7 +871,7 @@
     const yaPe = {}; vivas().forEach(x => { if(x.pe) yaPe[x.c] = 1; });
     const especial = /^secreta:/.test(s.id);
     const lote = especial ? [{c: SEC_ID, v: SEC_V}] : genera(s.id), god = !!lote.god;
-    if(god){ s.god = 1; if(otro()) avisa(otro(), "God Pack", nom(yo()) + " acaba de abrir un God Pack: las cinco cartas, raras."); }
+    if(god){ s.god = 2; if(otro()) avisa(otro(), "God Pack", nom(yo()) + " acaba de abrir un God Pack: cinco cartas de las buenas."); }
     const cartas = lote.map((x, i) => {   /* los tres sobres traen lo mismo: solo cambia la portada */
       const k = x.c + "|" + x.v, nueva = !(tenia[x.c] && tenia[x.c].v[x.v]) && !vistas[k]; vistas[k] = 1;
       const pe = !especial && !yaPe[x.c] && rng(s.id + ":pe:" + i)() < PRIMERA_P; if(pe) yaPe[x.c] = 1;
@@ -956,7 +970,7 @@
     if(god){
       /* God Pack: estrella de arcoíris, cartel y un acorde propio antes de la pila */
       cap.classList.add("dios");
-      const b = document.createElement("div"); b.className = "gv-god"; b.innerHTML = "<b>God Pack</b><span>Las cinco cartas son raras</span>";
+      const b = document.createElement("div"); b.className = "gv-god"; b.innerHTML = "<b>God Pack</b><span>Cinco de las buenas, y la última una Gremory</span>";
       cap.appendChild(b); setTimeout(() => SON.dios(), 200); vibra([40, 80, 40, 80, 120]);
       setTimeout(() => b.remove(), 2900);
     } else if(mejor >= 3 || mejor === "sec") setTimeout(() => SON.rara(mejor === "sec" ? 5 : mejor), 250);
@@ -1186,13 +1200,13 @@
   function cierra(){ raiz.classList.remove("on"); G.luz.off(); ocultaApp(false); document.body.style.overflow = ""; if(typeof render === "function") try { render(); } catch(e){} }
   window.TCG = {
     abre(t){
-      monta(); asegura(); const rs = aplicaResets(); if(premia() || rs) save();
+      monta(); asegura(); const rs = aplicaResets(), ag = arreglaGod(); if(premia() || rs || ag) save();
       if(t) tab = t; quien = yo() || ""; raiz.classList.add("on"); document.body.style.overflow = "hidden";
       setTimeout(() => { if(raiz.classList.contains("on")) ocultaApp(true); }, 350);
       cuerpo.innerHTML = '<p class="tg-nota" style="text-align:center;margin-top:30px">Abriendo el binder…</p>';
       prepara().then(pinta);
     },
     premia, disponibles,
-    _prueba: {genera, rng}   /* para el arnés de pruebas: qué trae un sobre según su id */
+    _prueba: {genera, rng, arreglaGod}   /* para el arnés de pruebas: qué trae un sobre según su id */
   };
 })();
