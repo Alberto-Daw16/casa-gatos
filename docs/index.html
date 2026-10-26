@@ -8,7 +8,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>Gremory</title>
-<meta name="build" content="2026-10-26.7">
+<meta name="build" content="2026-10-26.8">
 <!-- El cuadrado de la pantalla de inicio. iOS se guarda el icono por URL y no
      vuelve a pedirlo, así que si se cambia hay que darle un nombre de fichero
      nuevo. El manifest es lo que mira el iPhone moderno; los dos "apple-touch"
@@ -2168,7 +2168,9 @@ function fotoPrevision(alMes){
 }
 function renderAhorro(){
   var box = document.getElementById("ahorroBox"); if(!box) return;
-  var P = previsionAhorro(), fin = P.futuro[P.futuro.length - 1], total = P.casa + (P.hay ? P.mia : 0);
+  /* 26/10: el total es lo ahorrado en la casa (el bote); tu hucha va aparte y no entra en la gráfica */
+  var P = previsionAhorro(); P.hay = false; P.puntos.forEach(function(p){ p.mia = 0; }); P.futuro.forEach(function(p){ p.mia = 0; });
+  var fin = P.futuro[P.futuro.length - 1], total = P.casa;
   var finTotal = fin.casa + fin.mia, finPru = fin.casaPr + fin.mia, alMes = (finTotal - total) / 12;
   var antes = fotoPrevision(alMes), cambio = antes === null ? null : Math.round(alMes) - antes;
   var nomFin = nombreMes(fin.k);
@@ -2176,7 +2178,7 @@ function renderAhorro(){
   var html = '<h2><span class="tick" style="background:var(--acc)"></span>Vuestro ahorro</h2>' +
     '<div class="ah-sub" style="margin-bottom:4px">Total ahorrado hoy</div>' +
     '<div class="ah-cab"><div class="ah-num tab">' + money(total) + '</div>' +
-      '<div class="ah-sub">La casa <b>' + money(P.casa) + '</b>' + (P.hay ? ' · Tu hucha <b>' + money(P.mia) + '</b>' : '') + '</div></div>' +
+      (P.mia > 0 ? '<div class="ah-sub">Aparte, tu hucha <b>' + money(P.mia) + '</b></div>' : '') + '</div>' +
     '<div class="ah-graf">' + graficaAhorro(P) + '</div>' +
     '<div class="ah-leg"><span><i style="background:var(--acc)"></i>La casa</span>' + (P.hay ? '<span><i style="background:var(--blue)"></i>Tu hucha</span>' : '') +
       '<span><i style="background:none;border-top:2px dashed var(--acc);height:0;margin-bottom:3px"></i>Si seguís así</span><span><i style="background:none;border-top:2px dotted var(--acc);height:0;opacity:.6;margin-bottom:3px"></i>Prudente</span></div>' +

@@ -316,7 +316,7 @@
   function monta(){
     if(raiz) return;
     raiz = document.createElement("div"); raiz.id = "tcg";
-    raiz.innerHTML = '<div class="tg-top"><h2>Gremory · Set 1</h2><button class="tg-x" data-acc="cierra" aria-label="Cerrar">' + ICO.x + '</button></div>' +
+    raiz.innerHTML = '<div class="tg-top"><h2>' + SET.nombre + '</h2><button class="tg-x" data-acc="cierra" aria-label="Cerrar">' + ICO.x + '</button></div>' +
       '<div class="tg-cuerpo" id="tgCuerpo"></div><div class="tg-tabs" id="tgTabs"></div>';   /* 26/10: el menú abajo, como en la app */
     document.body.appendChild(raiz);
     cuerpo = raiz.querySelector("#tgCuerpo");

@@ -2448,6 +2448,22 @@
 #tcg.en-sobres .gx-tienda{padding-bottom:14px}
 .bd-cab .bd-cuenta{color:var(--txt,#f4f2ee);opacity:.85}
 
+/* 26/10 · el juego con el estilo de la app: nada de píldoras ni cajas redondeadas en la interfaz (las cartas y el binder sí,
+   que son objetos). El filtro como las pestañas de la app (texto con subrayado) y las flechas como las de cambiar de mes */
+.tg-barra{border-bottom:1px solid var(--line,#252a36);margin-bottom:12px;align-items:stretch}
+.tg-barra .tg-filtro{flex:1;gap:0;justify-content:flex-start}
+.tg-filtro button,.tg-barra .tg-filtro button{flex:1;border:0;border-bottom:2px solid transparent;margin-bottom:-1px;border-radius:0;background:none;color:var(--dim,#8f94a2);
+  font:italic 400 17px/1 "Instrument Serif",Georgia,serif;padding:10px 4px}
+.tg-filtro button.on{background:none;color:var(--acc,#c9f24a);border-bottom-color:var(--acc,#c9f24a)}
+.tg-flechas{gap:2px;align-items:center}
+.tg-flechas button{width:30px;height:30px;border:0;border-radius:0;background:none;color:var(--dim,#8f94a2);font:400 24px/1 -apple-system,system-ui,sans-serif;padding:0}
+.tg-flechas button:not(:disabled){color:var(--txt,#f4f2ee)}
+.tg-x,.tg-flecha{border-radius:0}
+.tg-btn,.tg-btn.sec{border-radius:0}
+.tg-btn{font:700 11px/1 "Space Mono",monospace;letter-spacing:1.5px;text-transform:uppercase;padding:14px 18px}
+.tg-aviso,.tg-quien,.tg-quien button,.tg-vers button,.gx-resumen,.gx-contador,.lg-item,.lg-pe,.gx-godtag,.gx-resumen .gx-godtag,.gx-pe-sp,.tg-candado span,.lg-barra,.lg-barra i,.gx-barra,.gx-barra i{border-radius:0}
+.gx-contador{padding:9px 14px}
+
 /* Manga anatomy is opt-in; premium materials stay in motor.css. */
 .carta.mg:where(:not(.mg-premium)){--g-tinta:#17151b;--g-panel:#eee9dc;--g-linea:#b9a8a3;--g-txt:#20171c;--g-dim:#68505a;--g-lima:#ab1934;background:#17151b;color:#eee9dc}
 .carta.mg:where(:not(.mg-premium)) .mb-bg{background:#17151b}
