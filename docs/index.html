@@ -8,7 +8,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>Gremory</title>
-<meta name="build" content="2026-10-26.9">
+<meta name="build" content="2026-10-26.10">
 <!-- El cuadrado de la pantalla de inicio. iOS se guarda el icono por URL y no
      vuelve a pedirlo, así que si se cambia hay que darle un nombre de fichero
      nuevo. El manifest es lo que mira el iPhone moderno; los dos "apple-touch"
@@ -2108,12 +2108,10 @@ function previsionAhorro(){
   });
   /* la de delante: doce meses */
   var casaP = ahorradoCasa(), casaPr = casaP, miaP = mia, k = hoyK, futuro = [];
-  /* 26/10: las cuotas de delante son las que de verdad estáis poniendo (las del último mes apuntado),
-     no las de por defecto de Ajustes */
-  var cuotaFut = gente().reduce(function(a,p){
-    var ks = Object.keys(S.months||{}).filter(function(m){ var c = (S.months[m]||{}).cuotas; return m <= hoyK && c && c[p.id] && c[p.id].v !== undefined; }).sort();
-    return a + (ks.length ? cuotaDe(ks[ks.length-1], p.id) : cuotaDe(hoyK, p.id));
-  }, 0);
+  /* 26/10: las cuotas cambian de un mes a otro: lo de delante usa la media de lo que habéis puesto
+     los mismos meses que el gasto normal (los que tienen cuota), y se recalcula en cuanto cambiáis una */
+  var conCuota = base.filter(function(x){ return cuotasMes(x) > 0; });
+  var cuotaFut = conCuota.length ? conCuota.reduce(function(a,x){ return a + cuotasMes(x); }, 0) / conCuota.length : cuotasMes(hoyK);
   for(var i = 1; i <= 12; i++){
     k = mesRelativo(hoyK, i);
     var cm = S.months[k] && S.months[k].cuotas;
