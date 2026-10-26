@@ -1,0 +1,11 @@
+{"people":[{"id":"p1","name":"Persona A"},{"id":"p2","name":"Persona B"}],"yo":"p1","syncUrl":"https://worker.test/?k=x","syncPass":"",
+ "cats":[{"id":"c1","name":"Gato"}],"care":{},"goals":{},
+ "cuotas":{"p1":1000,"p2":1000},
+ "botes":[{"id":"casa","nombre":"la casa","tipo":"casa","objetivo":0,"desde":"2026-09"}],
+ "recurring":{"expenses":[{"id":"r1","name":"Suscripción","amount":10,"cat":"Ocio","from":"2026-08"}],"incomes":[]},
+ "months":{
+  "2026-09":{"expenses":[{"id":"e1","name":"Compra","amount":200,"date":"2026-09-10","cat":"Comida"}],"incomes":[],"paid":{},"received":{}},
+  "2026-10":{"expenses":[{"id":"e3","name":"Lavadora","amount":400,"date":"2026-10-15","cat":"Casa"},{"id":"e4","name":"Compra","amount":220,"date":"2026-10-12","cat":"Comida"}],"incomes":[],"paid":{},"received":{}}
+ },
+ "mio":{"listo":true,"nominas":{"2026-09":1500,"2026-10":1500},"fijos":[],"gastos":[],"aportes":[],"objetivo":0}
+}

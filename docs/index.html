@@ -8,7 +8,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>Gremory</title>
-<meta name="build" content="2026-10-26.2">
+<meta name="build" content="2026-10-26.3">
 <!-- El cuadrado de la pantalla de inicio. iOS se guarda el icono por URL y no
      vuelve a pedirlo, así que si se cambia hay que darle un nombre de fichero
      nuevo. El manifest es lo que mira el iPhone moderno; los dos "apple-touch"
@@ -522,6 +522,27 @@
   .sheet{overflow-x:hidden}
 /* 26/10: el TCG va en la barra de abajo (en el sitio de las cartas de mercado, que se quitaron) con los sobres por abrir */
   nav button{position:relative}
+  /* 26/10: el ahorro de un vistazo, con la previsión */
+  .copia-aviso{display:flex;align-items:center;gap:12px;margin:0 0 12px;padding:12px 14px;border:1px solid rgba(57,135,229,.45);background:rgba(57,135,229,.1)}
+  .copia-aviso div{flex:1;display:flex;flex-direction:column;gap:3px}
+  .copia-aviso b{font-size:14px}
+  .copia-aviso span{font-size:12.5px;color:var(--dim);line-height:1.4}
+  .copia-aviso button{border:0;background:var(--blue);color:#fff;font:700 13px/1 -apple-system,system-ui,sans-serif;padding:10px 12px;white-space:nowrap}
+  .ah-cab{display:flex;align-items:baseline;justify-content:space-between;gap:10px;flex-wrap:wrap}
+  .ah-num{font:400 40px/1 "Instrument Serif",Georgia,serif;color:var(--acc)}
+  .ah-sub{font:700 10.5px/1.5 "Space Mono",monospace;letter-spacing:.08em;text-transform:uppercase;color:var(--dim)}
+  .ah-sub b{color:var(--txt);font-weight:700}
+  .ah-graf{margin:10px -4px 6px;position:relative}
+  .ah-graf svg{display:block;width:100%;height:auto;overflow:visible}
+  .ah-leg{display:flex;flex-wrap:wrap;gap:6px 14px;font:700 10px/1.3 "Space Mono",monospace;letter-spacing:.06em;text-transform:uppercase;color:var(--dim);margin-bottom:8px}
+  .ah-leg i{display:inline-block;width:10px;height:10px;margin-right:6px;vertical-align:-1px}
+  .ah-fin{font-size:14.5px;line-height:1.45;margin:4px 0 8px}
+  .ah-fin b{color:var(--acc);font-weight:700}
+  .ah-cuenta{font-size:12.5px;line-height:1.5;color:var(--dim);border-top:1px solid var(--line);padding-top:8px}
+  .ah-cuenta div{display:flex;justify-content:space-between;gap:10px}
+  .ah-cuenta b{color:var(--txt);font-weight:600;white-space:nowrap}
+  .ah-cuenta .ah-fuera{display:block;margin-top:4px;color:var(--dim)}
+  .ah-cuenta .ah-fuera em{font-style:normal;color:var(--txt)}
   nav button .navBadge{position:absolute;top:-2px;left:calc(50% + 6px);min-width:17px;height:17px;padding:0 5px;border-radius:99px;background:#ff4d5e;color:#fff;
     font:700 10.5px/17px -apple-system,system-ui,sans-serif;font-style:normal;text-align:center}
   nav button .navBadge[hidden]{display:none}
@@ -565,6 +586,9 @@
     </div>
 
     <div id="retoBox" class="pase" data-pase></div>
+
+    <div class="sec pase" id="ahorroBox" data-pase></div>
+    <div id="copiaAviso"></div>
 
     <div class="tiles pase" data-pase>
       <div class="tile i"><span>Entra</span><b id="tIng" class="tab">0 &euro;</b><small id="tIngSub"></small></div>
@@ -806,7 +830,7 @@
       <button class="add" id="btnImport">Importar copia</button>
       <input type="file" id="fileIn" accept="application/json" style="display:none">
       <button class="add" id="btnReset" style="color:var(--neg)">Borrar todo</button>
-      <div class="mini">Los datos se guardan en este dispositivo. Exporta de vez en cuando para tener copia.</div>
+      <div class="mini" id="copiaInfo">Los datos se guardan en este dispositivo. Exporta de vez en cuando para tener copia: en el iPhone sale la hoja de compartir (Guardar en Archivos).</div>
     </div>
     <div class="card">
       <h2>Cómo usarlo</h2>
@@ -2032,6 +2056,133 @@ function renderMia(){
   document.getElementById("miaAdd").onclick = function(){ openMio(null); };
   document.getElementById("miaObj").onclick = openMiObj;
 }
+/* =========== EL AHORRO DE UN VISTAZO (26/10/2026) ===========
+   Cuánto lleváis ahorrado (la casa y tu hucha, que solo vive en este móvil) y hacia dónde va con el gasto de ahora.
+   La previsión usa: las cuotas normales de Ajustes (o las puestas a mano en un mes futuro), los fijos activos de cada
+   mes (si un fijo tiene fecha de fin, como unos plazos, deja de contar solo) y el gasto variable normal de los últimos
+   meses SIN los gastos puntuales: los que se marcan así al apuntarlos o, si no se dice nada, los de 250 € o más
+   (la castración de Sukuna, por ejemplo). Versión prudente: 100 € más de gasto al mes. */
+var PUNTUAL_DESDE = 250;
+function esPuntual(x){ return x.puntual === true || (x.puntual !== false && (+x.amount||0) >= PUNTUAL_DESDE); }
+function gastoNormalMes(k){
+  var m = S.months[k] || {};
+  return sum((m.expenses||[]).filter(esComun).filter(function(x){ var b = x.bote && boteDe(x.bote); return !(b && b.tipo==="ahorro") && !esPuntual(x); }));
+}
+function puntualesCasa(){
+  var out = [];
+  mesesCasa().forEach(function(k){ ((S.months[k]||{}).expenses||[]).filter(esComun).forEach(function(x){ if(esPuntual(x)) out.push({k:k, x:x}); }); });
+  return out;
+}
+/* tu hucha al final de un mes (para la parte de atrás de la gráfica) */
+function huchaHasta(k){
+  if(!MIA) return 0;
+  var fin = k + "-31", a = 0;
+  (MIA.aportes||[]).forEach(function(x){ if(String(x.date||"0000") <= fin) a += +x.amount||0; });
+  (MIA.fijos||[]).filter(function(f){ return f.tipo==="ahorro"; }).forEach(function(f){ var from = (f.from||k).slice(0,7); if(from <= k) a += (+f.amount||0) * mesesEntre(from, k); });
+  Object.keys(MIA.nominas||{}).forEach(function(m){ if(m <= k){ var q = quedaMio(m); if(q !== null) a += q; } });
+  (MIA.gastos||[]).forEach(function(g){ if(g.de==="hucha" && String(g.date||"") <= fin) a -= +g.amount||0; });
+  return a;
+}
+function previsionAhorro(){
+  if(S.mio && miId()) abreMio();
+  var hoyK = mKey(today), meses = mesesCasa(), desde = meses[0];
+  /* gasto normal: los últimos (hasta 3) meses cerrados; el de ahora también si ya va por el día 20 */
+  var base = meses.filter(function(k){ return k < hoyK; }).slice(-3);
+  if(today.getDate() >= 20 || !base.length) base = base.concat([hoyK]).slice(-3);
+  var normal = base.length ? base.reduce(function(a,k){ return a + gastoNormalMes(k); }, 0) / base.length : 0;
+  /* tu hucha: lo que te ha ido quedando de media los últimos meses con nómina, más tus fijos de ahorro */
+  var hay = !!(MIA && miId()), mia = 0, miaMes = 0;
+  if(hay){
+    var qs = Object.keys(MIA.nominas||{}).filter(function(m){ return m <= hoyK; }).sort().slice(-3).map(quedaMio).filter(function(q){ return q !== null; });
+    var fijoAh = (MIA.fijos||[]).filter(function(f){ return f.tipo==="ahorro" && (f.from||"").slice(0,7) <= hoyK; }).reduce(function(a,f){ return a + (+f.amount||0); }, 0);
+    miaMes = (qs.length ? qs.reduce(function(a,q){ return a+q; }, 0) / qs.length : 0) + fijoAh;
+    mia = totalMia();
+    if(!qs.length && !mia) hay = false;
+  }
+  /* la parte de atrás: cómo iba al final de cada mes */
+  var puntos = [], acum = 0;
+  meses.forEach(function(k){
+    acum += casaMes(k);
+    var ext = (S.aportes||[]).filter(function(a){ return (a.bote||"casa")==="casa" && String(a.date||"").slice(0,7) === k; }).reduce(function(x,a){ return x + (+a.amount||0); }, 0);
+    acum += ext;
+    puntos.push({k:k, casa: k === hoyK ? ahorradoCasa() : acum, mia: hay ? (k === hoyK ? mia : huchaHasta(k)) : 0, fut:false});
+  });
+  /* la de delante: doce meses */
+  var casaP = ahorradoCasa(), casaPr = casaP, miaP = mia, k = hoyK, futuro = [];
+  for(var i = 1; i <= 12; i++){
+    k = mesRelativo(hoyK, i);
+    var ing = cuotasMes(k), fij = sum(activeRec(S.recurring.expenses, k));
+    casaP += ing - fij - normal; casaPr += ing - fij - normal - 100; miaP += miaMes;
+    futuro.push({k:k, casa:casaP, casaPr:casaPr, mia: hay ? miaP : 0, ing:ing, fij:fij, fut:true});
+  }
+  return {puntos:puntos, futuro:futuro, normal:normal, base:base, hay:hay, mia:mia, miaMes:miaMes, casa:ahorradoCasa(),
+    cuotas:cuotasMes(mesRelativo(hoyK,1)), fijos:sum(activeRec(S.recurring.expenses, mesRelativo(hoyK,1))), puntuales:puntualesCasa(), desde:desde};
+}
+function moneyR(n){ return money(Math.round(n)).replace(/,00(?=\s*€)/, ""); }
+function kEur(v){ var a = Math.abs(v); return (v < 0 ? "−" : "") + (a >= 1000 ? (Math.round(a / 100) / 10).toString().replace(".", ",").replace(/,0$/, "") + " k" : Math.round(a) + ""); }
+function mesCorto(k){ return MONTHS[parseD(k+"-01").getMonth()].slice(0,3); }
+function graficaAhorro(P){
+  var todos = P.puntos.concat(P.futuro), n = todos.length, W = 340, H = 150, L = 6, R = 6, T = 14, B = 20;
+  var max = 1; todos.forEach(function(p){ max = Math.max(max, p.casa + p.mia, p.casaPr != null ? p.casaPr + p.mia : 0); });
+  var min = 0; todos.forEach(function(p){ min = Math.min(min, p.casa, p.casaPr != null ? p.casaPr : 0); });
+  var x = function(i){ return L + (n === 1 ? 0 : i * (W - L - R) / (n - 1)); }, y = function(v){ return T + (H - T - B) * (1 - (v - min) / (max - min || 1)); };
+  var iHoy = P.puntos.length - 1;
+  function linea(pts){ return pts.map(function(p, j){ return (j ? "L" : "M") + p[0].toFixed(1) + " " + p[1].toFixed(1); }).join(""); }
+  function area(arriba, abajo){ return linea(arriba) + linea(abajo.slice().reverse()).replace(/^M/, "L") + "Z"; }
+  var pasado = P.puntos.map(function(p, i){ return i; }), fut = [iHoy].concat(P.futuro.map(function(p, j){ return iHoy + 1 + j; }));
+  var val = function(i, que){ var p = todos[i]; return que === "casa" ? p.casa : que === "total" ? p.casa + p.mia : que === "pru" ? (p.casaPr != null ? p.casaPr : p.casa) + p.mia : 0; };
+  var cero = function(idx){ return idx.map(function(i){ return [x(i), y(0)]; }); };
+  var serie = function(idx, que){ return idx.map(function(i){ return [x(i), y(val(i, que))]; }); };
+  var svg = '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Ahorro y previsión">';
+  /* líneas de guía */
+  [0, .5, 1].forEach(function(f){ var v = min + (max - min) * f; svg += '<line x1="' + L + '" x2="' + (W - R) + '" y1="' + y(v).toFixed(1) + '" y2="' + y(v).toFixed(1) + '" stroke="var(--line)" stroke-width="1"/>' +
+    (f ? '<text x="' + (W - R - 12) + '" y="' + (y(v) - 4).toFixed(1) + '" text-anchor="end" font-size="8.5" font-family="Space Mono, monospace" fill="var(--dim)">' + kEur(v) + ' €</text>' : ''); });
+  /* pasado: la casa y encima tu hucha, rellenos */
+  if(pasado.length > 1){
+    svg += '<path d="' + area(serie(pasado, "casa"), cero(pasado)) + '" fill="var(--acc)" fill-opacity=".85"/>';
+    if(P.hay) svg += '<path d="' + area(serie(pasado, "total"), serie(pasado, "casa")) + '" fill="var(--blue)" fill-opacity=".9"/>';
+  }
+  /* futuro: banda entre la prudente y la probable, y las dos líneas */
+  svg += '<path d="' + area(serie(fut, "total"), serie(fut, "pru")) + '" fill="var(--acc)" fill-opacity=".12"/>';
+  svg += '<path d="' + area(serie(fut, "casa"), cero(fut)) + '" fill="var(--acc)" fill-opacity=".14"/>';
+  if(P.hay) svg += '<path d="' + area(serie(fut, "total"), serie(fut, "casa")) + '" fill="var(--blue)" fill-opacity=".16"/>';
+  svg += '<path d="' + linea(serie(fut, "total")) + '" fill="none" stroke="var(--acc)" stroke-width="2" stroke-dasharray="5 4"/>';
+  svg += '<path d="' + linea(serie(fut, "pru")) + '" fill="none" stroke="var(--acc)" stroke-width="1.2" stroke-dasharray="2 3" opacity=".6"/>';
+  /* hoy */
+  svg += '<line x1="' + x(iHoy).toFixed(1) + '" x2="' + x(iHoy).toFixed(1) + '" y1="' + T + '" y2="' + (H - B) + '" stroke="var(--txt)" stroke-width="1" opacity=".5"/>';
+  svg += '<circle cx="' + x(iHoy).toFixed(1) + '" cy="' + y(val(iHoy, "total")).toFixed(1) + '" r="4" fill="var(--acc)" stroke="var(--bg)" stroke-width="2"/>';
+  svg += '<text x="' + x(iHoy).toFixed(1) + '" y="' + (T - 4) + '" text-anchor="middle" font-size="9" font-family="Space Mono, monospace" fill="var(--dim)">HOY</text>';
+  /* el final */
+  var iFin = n - 1, vFin = val(iFin, "total");
+  svg += '<circle cx="' + x(iFin).toFixed(1) + '" cy="' + y(vFin).toFixed(1) + '" r="3.5" fill="var(--acc)"/>';
+  /* meses abajo: uno de cada dos (o tres si hay muchos) */
+  var paso = n > 14 ? 3 : 2;
+  todos.forEach(function(p, i){ if(i % paso && i !== iHoy && i !== iFin) return; if(i !== iHoy && i !== iFin && (Math.abs(i - iHoy) < paso || iFin - i < paso)) return;
+    svg += '<text x="' + x(i).toFixed(1) + '" y="' + (H - 6) + '" text-anchor="' + (i === 0 ? "start" : i === iFin ? "end" : "middle") + '" font-size="9" font-family="Space Mono, monospace" fill="' + (i === iHoy ? "var(--txt)" : "var(--dim)") + '">' + mesCorto(p.k).toUpperCase() + (p.k.slice(5) === "01" || i === iFin ? " " + p.k.slice(2, 4) : "") + '</text>'; });
+  return svg + '</svg>';
+}
+function renderAhorro(){
+  var box = document.getElementById("ahorroBox"); if(!box) return;
+  var P = previsionAhorro(), fin = P.futuro[P.futuro.length - 1], total = P.casa + (P.hay ? P.mia : 0);
+  var finTotal = fin.casa + fin.mia, finPru = fin.casaPr + fin.mia, alMes = (finTotal - total) / 12;
+  var nomFin = nombreMes(fin.k);
+  var html = '<h2><span class="tick" style="background:var(--acc)"></span>Vuestro ahorro <span class="sum">' + (alMes >= 0 ? "+" : "−") + moneyR(Math.abs(alMes)) + ' al mes</span></h2>' +
+    '<div class="ah-cab"><div class="ah-num tab">' + money(total) + '</div>' +
+      '<div class="ah-sub">La casa <b>' + money(P.casa) + '</b>' + (P.hay ? ' · Tu hucha <b>' + money(P.mia) + '</b>' : '') + '</div></div>' +
+    '<div class="ah-graf">' + graficaAhorro(P) + '</div>' +
+    '<div class="ah-leg"><span><i style="background:var(--acc)"></i>La casa</span>' + (P.hay ? '<span><i style="background:var(--blue)"></i>Tu hucha</span>' : '') +
+      '<span><i style="background:none;border-top:2px dashed var(--acc);height:0;margin-bottom:3px"></i>Si seguís así</span><span><i style="background:none;border-top:2px dotted var(--acc);height:0;opacity:.6;margin-bottom:3px"></i>Prudente</span></div>' +
+    '<div class="ah-fin">Si seguís así, en ' + nomFin + ' tendréis unos <b>' + moneyR(Math.round(finTotal / 100) * 100) + '</b>' +
+      ' (con 100 € más de gasto al mes, ' + moneyR(Math.round(finPru / 100) * 100) + ').</div>' +
+    '<div class="ah-cuenta">' +
+      '<div><span>Entra al bote al mes (cuotas de Ajustes)</span><b>' + money(P.cuotas) + '</b></div>' +
+      '<div><span>Fijos de la casa</span><b>−' + money(P.fijos) + '</b></div>' +
+      '<div><span>Gasto normal (media de ' + (P.base.length === 1 ? mesCorto(P.base[0]) : P.base.map(mesCorto).join(", ")) + ')</span><b>−' + money(P.normal) + '</b></div>' +
+      (P.hay ? '<div><span>A tu hucha (tu media)</span><b>+' + money(P.miaMes) + '</b></div>' : '') +
+      (P.puntuales.length ? '<div class="ah-fuera">Fuera de la cuenta por puntuales: ' + P.puntuales.map(function(p){ return '<em>' + esc(p.x.name) + '</em> (' + money(p.x.amount) + ', ' + mesCorto(p.k) + ')'; }).join(", ") + '. Se marca al apuntar el gasto.</div>' : '') +
+    '</div>';
+  box.innerHTML = html;
+}
 function renderFin(){
   var k = mKey(cur);
   var esteMes = (k === mKey(today));
@@ -2064,6 +2215,8 @@ function renderFin(){
   document.getElementById("balDelta").innerHTML =
     '<div class="delta '+cls+'">'+flecha(cls==="flat"?0:(dif>0?1:-1))+txt+'</div>';
   try { renderReto(k); } catch(e){ console.error("reto", e); }
+  try { renderAhorro(); } catch(e){ console.error("ahorro", e); }
+  try { renderCopia(); } catch(e){ console.error("copia", e); }
 
   /* fichas */
   var tAnt = totalesMes(kAnt);
@@ -3391,7 +3544,8 @@ function renderAvisos(){
     (pref ? fila("gatos","Los gatos","A las 19:00 si algo va con retraso")+
             fila("mes","El mes","Resumen el día 1 y un aviso a mitad de mes")+
             fila("entre","Entre vosotros","Cuando el otro mete un extra o un gasto de 100 € o más")+
-            fila("tcg","Sobres del TCG","A las "+TCG_HORA+":00, cuando ya están los dos sobres del día") : '<div class="mini">Dime arriba quién usa este móvil para elegir qué avisos quieres.</div>')+
+            fila("tcg","Sobres del TCG","A las "+TCG_HORA+":00, cuando ya están los dos sobres del día")+
+            fila("copia","Copia de seguridad","El día 1 de cada mes, para guardar lo de Mío") : '<div class="mini">Dime arriba quién usa este móvil para elegir qué avisos quieres.</div>')+
     '<div class="mini" style="margin-top:8px">Los avisos los programa el móvil con lo que sabe en ese momento; la nube no lee vuestros datos. '+
     (esApp() ? "" : "En iPhone solo llegan si la app está en la pantalla de inicio.")+'</div>';
   var b;
@@ -3664,7 +3818,7 @@ function hayPush(){
 function esApp(){ return window.navigator.standalone === true || (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches); }
 function prefAvisos(pid){
   var p = (S.avisos||{})[pid];
-  return {gatos: !p || p.gatos!==false, mes: !p || p.mes!==false, entre: !p || p.entre!==false, tcg: !p || p.tcg!==false};
+  return {gatos: !p || p.gatos!==false, mes: !p || p.mes!==false, entre: !p || p.entre!==false, tcg: !p || p.tcg!==false, copia: !p || p.copia!==false};
 }
 function ponPref(pid, k, v){
   if(!S.avisos) S.avisos = {};
@@ -3845,6 +3999,14 @@ function generaAvisos(){
         url:CONTACTO_APP+"#sobres"});
     }
   });
+
+  /* ---- copia de seguridad: el día 1 de cada mes a las 20:30 (Mío solo vive en cada móvil) ---- */
+  var pcop = quiere("copia");
+  if(pcop.length){
+    var d1 = new Date(ahora.getFullYear(), ahora.getMonth()+1, 1, 20, 30, 0);
+    out.push({id:"copia:"+mKey(d1), cuando:d1.toISOString(), para:pcop, titulo:"Copia de seguridad",
+      cuerpo:frase(["Mes nuevo, copia nueva: Ajustes → Datos → Exportar copia. Lo de Mío solo vive en tu móvil.", "Treinta segundos: Ajustes → Datos → Exportar copia, y lo tuyo queda a salvo."], mKey(d1))});
+  }
 
   /* ---- resumen de la semana: domingo a las 20:00 ---- */
   var pr = ids.filter(function(id){ var p = prefAvisos(id); return p.gatos || p.mes; });
@@ -4111,6 +4273,11 @@ function openMoney(type, id){
     html += '<label>Fecha</label><input id="f_date" type="date" value="'+esc(item&&item.date?item.date:defDate)+'">';
     if(!t.inc) html += '<label>Categoría</label><select id="f_cat">'+CATS.map(function(c){
       return '<option'+(item&&item.cat===c?" selected":"")+'>'+c+'</option>'; }).join("")+'</select>';
+    /* puntual: no cuenta en la previsión del ahorro (una castración, una lavadora…) */
+    if(!t.inc) html += '<label>¿Se repite?</label><div class="depick" id="f_punt">'+
+      '<button data-punt="0" class="'+(item && esPuntual(item) ? "" : "on")+'">Gasto normal</button>'+
+      '<button data-punt="1" class="'+(item && esPuntual(item) ? "on" : "")+'">Puntual, no se repite</button></div>'+
+      '<div class="mini">Los puntuales no cuentan para la previsión del ahorro. Los de '+PUNTUAL_DESDE+' € o más se toman como puntuales si no dices nada.</div>';
   }
   /* de quién es: solo tiene sentido en lo variable. Un fijo (la nómina, el
      alquiler) es de la casa aunque lo cobre o lo pague uno de los dos. */
@@ -4137,6 +4304,12 @@ function openMoney(type, id){
     Array.prototype.forEach.call(cajaDesde.children, function(x){
       x.className = (x.dataset.desde===desdeSel) ? "on" : "";
     });
+  };
+  var puntSel = null, cajaPunt = document.getElementById("f_punt");
+  if(cajaPunt) cajaPunt.onclick = function(e){
+    var b = e.target.closest("[data-punt]"); if(!b) return;
+    puntSel = b.dataset.punt === "1";
+    Array.prototype.forEach.call(cajaPunt.children, function(x){ x.className = (x.dataset.punt === (puntSel ? "1" : "0")) ? "on" : ""; });
   };
   var cajaDe = document.getElementById("f_de");
   if(cajaDe) cajaDe.onclick = function(e){
@@ -4184,6 +4357,7 @@ function openMoney(type, id){
     } else {
       obj.date = document.getElementById("f_date").value || defDate;
       if(!t.inc) obj.cat = document.getElementById("f_cat").value;
+      if(!t.inc && puntSel !== null) obj.puntual = puntSel;
       var tgt = mData(obj.date.slice(0,7));
       var dst = t.inc ? tgt.incomes : tgt.expenses;
       var src = loc ? loc.arr : null;
@@ -4781,14 +4955,39 @@ Array.prototype.forEach.call(document.querySelectorAll("#shopSeg button"), funct
 
 /* datos */
 document.getElementById("btnVer").onclick = function(){ miraVersion(true); };
-document.getElementById("btnExport").onclick = function(){
-  var blob = new Blob([JSON.stringify(S,null,2)],{type:"application/json"});
-  var a = document.createElement("a");
-  a.href = URL.createObjectURL(blob);
-  a.download = "gremory-" + dKey(new Date()) + ".json";
-  document.body.appendChild(a); a.click(); document.body.removeChild(a);
-  setTimeout(function(){ URL.revokeObjectURL(a.href); }, 2000);
-};
+/* copia de seguridad (26/10): en el iPhone sale la hoja de compartir para guardarla en Archivos o mandarla;
+   si no se puede, se descarga. Se apunta cuándo fue la última (en este móvil) para recordarla una vez al mes */
+function ultimaCopia(){ try { return localStorage.getItem("gremory-ultima-copia") || ""; } catch(e){ return ""; } }
+function hazCopia(){
+  var nombre = "gremory-" + dKey(new Date()) + ".json", texto = JSON.stringify(S, null, 2);
+  var marca = function(){ try { localStorage.setItem("gremory-ultima-copia", dKey(new Date())); } catch(e){} try { renderCopia(); } catch(e){} };
+  var baja = function(){
+    var blob = new Blob([texto], {type:"application/json"}), a = document.createElement("a");
+    a.href = URL.createObjectURL(blob); a.download = nombre;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(function(){ URL.revokeObjectURL(a.href); }, 2000);
+    marca(); toast("Copia descargada");
+  };
+  try {
+    var f = new File([texto], nombre, {type:"application/json"});
+    if(navigator.canShare && navigator.canShare({files:[f]})){
+      navigator.share({files:[f], title:"Copia de Gremory"}).then(function(){ marca(); toast("Copia guardada"); }).catch(function(e){ if(e && e.name !== "AbortError") baja(); });
+      return;
+    }
+  } catch(e){}
+  baja();
+}
+/* el recordatorio: si hace más de un mes (o nunca) y hay algo en Mío, que solo vive en este móvil */
+function renderCopia(){
+  var box = document.getElementById("copiaAviso"); if(!box) return;
+  var u = ultimaCopia(), dias = u ? Math.floor((today - parseD(u)) / 864e5) : null;
+  var hayMio = !!(S.mio && ((S.mio.aportes||[]).length || Object.keys(S.mio.nominas||{}).length || (S.mio.gastos||[]).length));
+  if(!hayMio || (dias !== null && dias < 31)){ box.innerHTML = ""; return; }
+  box.innerHTML = '<div class="copia-aviso"><div><b>' + (dias === null ? "Aún no has hecho ninguna copia" : "Tu última copia es de hace " + dias + " días") + '</b>' +
+    '<span>Lo de Mío solo vive en este móvil: si se pierde el móvil, se pierde con él.</span></div><button id="copiaYa">Hacer copia</button></div>';
+  document.getElementById("copiaYa").onclick = hazCopia;
+}
+document.getElementById("btnExport").onclick = hazCopia;
 document.getElementById("btnImport").onclick = function(){ document.getElementById("fileIn").click(); };
 document.getElementById("fileIn").onchange = function(e){
   var f = e.target.files[0]; if(!f) return;

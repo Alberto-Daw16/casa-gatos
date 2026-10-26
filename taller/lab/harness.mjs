@@ -4,7 +4,7 @@ import fs from 'fs'; import path from 'path';
 const DOCS = process.env.DOCS || '/home/claude/casa-gatos/docs';
 const IMG = '/home/claude/lab/img', OUT = '/home/claude/lab/shots';
 const W = +(process.env.W||390), H = +(process.env.H||844);
-const estado = {people:[{id:"p1",name:"Alberto"},{id:"p2",name:"Cristina"}], yo:"p1", syncUrl:"https://worker.test/?k=x", syncPass:"",
+const estado = process.env.ESTADO ? JSON.parse(fs.readFileSync(process.env.ESTADO, "utf8")) : {people:[{id:"p1",name:"Alberto"},{id:"p2",name:"Cristina"}], yo:"p1", syncUrl:"https://worker.test/?k=x", syncPass:"",
   cats:[{id:"c1",name:"Kurama"}], months:{}, care:{}, goals:{}};
 const b = await chromium.launch({args:['--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader','--ignore-gpu-blocklist']});
 const pg = await b.newPage({viewport:{width:W,height:H}, deviceScaleFactor:+(process.env.DPR||2), hasTouch:!!process.env.MOBILE, isMobile:!!process.env.MOBILE, userAgent: process.env.MOBILE ? 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1' : undefined});

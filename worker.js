@@ -10,14 +10,10 @@
         PUT  /cola?k=…         → {avisos:[{id, cuando, para, titulo, cuerpo}]} la cola programada
         POST /avisa?k=…        → {de, titulo, cuerpo} aviso inmediato al otro
         cron (cada 15 min)     → manda los avisos de la cola cuyo momento ha llegado
-     3) Cartas (mercado):
-        GET  /cm/indice?k=…    → índice de precios de Cardmarket (gzip), lo sube GitHub Actions
-        GET  /cm/hist/N?k=…    → trozo N del histórico de precios (gzip)
-        GET  /cm/meta?k=…      → de cuándo es la guía que hay guardada
-        GET|PUT /cm/vigila?k=… → las cartas vigiladas {lista:[{id, n, exp, obj, q}]}
-        GET  /ebay?k=…&q=…     → anuncios de eBay en ese momento (España y Alemania, envío a España)
-        cron (una vez por hora)→ mira en eBay las vigiladas y avisa si alguna baja del objetivo
-        Secretos nuevos del Worker: EBAY_ID y EBAY_SECRETO (las claves de producción de eBay)
+     3) Imágenes privadas del TCG:
+        GET  /img/<nombre>?k=…       → la imagen (caché privada de 7 días)
+        PUT  /img/<nombre>?up=SUBIDA → subirla (el secreto SUBIDA del Worker)
+     (26/10/2026: fuera las rutas del mercado de cartas /cm/* y /ebay y su cron, que ya no se usaban)
    Todo va con ?k=vuestra-clave (el secreto CLAVE del Worker). Los datos se
    guardan en el KV que tenga enlazado el Worker, se llame como se llame el binding.
    ───────────────────────────────────────────────────────────────────────── */
@@ -46,7 +42,7 @@ export default {
   async fetch(req, env, ctx){
     if (req.method === "OPTIONS") return new Response(null, {headers: CORS});
     const url = new URL(req.url), k = url.searchParams.get("k") || "";
-    const esSubida = req.method === "PUT" && (url.pathname.startsWith("/img/") || url.pathname.startsWith("/cm/indice") || url.pathname.startsWith("/cm/hist/")) && env.SUBIDA && url.searchParams.get("up") === env.SUBIDA;
+    const esSubida = req.method === "PUT" && url.pathname.startsWith("/img/") && env.SUBIDA && url.searchParams.get("up") === env.SUBIDA;
     if (!esSubida && !claveOk(env, k)) return json({error:"clave"}, 403);
     const kv = kvDe(env), ruta = url.pathname.replace(/\/+$/,"");
     try {
@@ -67,48 +63,6 @@ export default {
           await kv.put("img:" + nombre, buf, {metadata:{tipo: req.headers.get("content-type") || "image/webp"}});
           return json({ok:true, bytes: buf.byteLength});
         }
-      }
-      // ── cartas: índice e histórico de Cardmarket (van ya comprimidos; el Worker solo los guarda y los sirve) ──
-      if (ruta === "/cm/indice" || /^\/cm\/hist\/\d{1,2}$/.test(ruta)){
-        const clv = ruta === "/cm/indice" ? "cm:indice" : "cm:hist:" + ruta.split("/").pop();
-        if (req.method === "GET"){
-          const v = await kv.get(clv, {type:"arrayBuffer"});
-          if (!v) return json({error:"aún no hay datos"}, 404);
-          return new Response(v, {encodeBody:"manual", headers:{"content-type":"application/json", "content-encoding":"gzip",
-            "cache-control":"private, max-age=600", ...CORS}});
-        }
-        if (req.method === "PUT"){
-          // se sube con la misma clave de sincronización (o con el secreto SUBIDA)
-          const okSubida = env.SUBIDA && url.searchParams.get("up") === env.SUBIDA;
-          if (!okSubida && !claveOk(env, k)) return json({error:"subida"}, 403);
-          const buf = await req.arrayBuffer();
-          if (buf.byteLength > 20 * 1024 * 1024) return json({error:"demasiado grande"}, 413);
-          await kv.put(clv, buf);
-          const meta = url.searchParams.get("meta");
-          if (meta && clv === "cm:indice") await kv.put("cm:meta", meta);
-          return json({ok:true, bytes: buf.byteLength});
-        }
-      }
-      if (ruta === "/cm/meta" && req.method === "GET"){
-        return json(JSON.parse((await kv.get("cm:meta")) || "{}"));
-      }
-      if (ruta === "/cm/vigila"){
-        if (req.method === "GET") return json(JSON.parse((await kv.get(`cm:vigila:${k}`)) || '{"lista":[]}'));
-        if (req.method === "PUT"){
-          const b = await req.json();
-          const lista = (Array.isArray(b.lista) ? b.lista : []).slice(0, 300).map(v => ({
-            id: +v.id, n: String(v.n || "").slice(0, 120), exp: String(v.exp || "").slice(0, 80),
-            obj: v.obj ? +v.obj : null, q: String(v.q || "").slice(0, 120), t: v.t || new Date().toISOString()}));
-          await kv.put(`cm:vigila:${k}`, JSON.stringify({lista, t: new Date().toISOString()}));
-          return json({ok:true, n: lista.length});
-        }
-      }
-      if (ruta === "/ebay" && req.method === "GET"){
-        if (!env.EBAY_ID || !env.EBAY_SECRETO) return json({error:"faltan las claves de eBay en el Worker (EBAY_ID y EBAY_SECRETO)"}, 501);
-        const q = (url.searchParams.get("q") || "").trim();
-        if (!q) return json({error:"q"}, 400);
-        const r = await ebayBusca(env, kv, q, {max: +url.searchParams.get("max") || 0, n: Math.min(40, +url.searchParams.get("n") || 25)});
-        return json(r);
       }
       if (ruta === "/vapid" && req.method === "GET"){
         const v = await vapid(kv); return json({pub: v.pub});
@@ -169,11 +123,6 @@ export default {
       const k = name.slice(5);
       ctx.waitUntil(despacha(kv, k));
     }
-    // una vez por hora (la primera pasada de cada hora): eBay para las cartas vigiladas
-    if (new Date(ev.scheduledTime || Date.now()).getUTCMinutes() < 15 && env.EBAY_ID && env.EBAY_SECRETO){
-      const vs = await kv.list({prefix:"cm:vigila:"});
-      for (const {name} of vs.keys) ctx.waitUntil(vigilaEbay(env, kv, name.slice("cm:vigila:".length)));
-    }
   }
 };
 
@@ -220,71 +169,6 @@ async function manda(kv, k, a, menosPid){
     } catch (e) { /* un móvil caído no debe parar al otro */ }
   }
   return n;
-}
-
-/* ═══════════ eBay (API oficial Browse, gratis hasta 5.000 consultas al día) ═══════════ */
-async function ebayToken(env, kv){
-  const g = JSON.parse((await kv.get("ebay:token")) || "null");
-  if (g && g.hasta > Date.now() + 60e3) return g.t;
-  const r = await fetch("https://api.ebay.com/identity/v1/oauth2/token", {
-    method: "POST",
-    headers: {"content-type":"application/x-www-form-urlencoded", "authorization": "Basic " + btoa(env.EBAY_ID + ":" + env.EBAY_SECRETO)},
-    body: "grant_type=client_credentials&scope=" + encodeURIComponent("https://api.ebay.com/oauth/api_scope"),
-  });
-  const d = await r.json();
-  if (!d.access_token) throw new Error("eBay no da token: " + (d.error_description || d.error || r.status));
-  await kv.put("ebay:token", JSON.stringify({t: d.access_token, hasta: Date.now() + (d.expires_in || 7200) * 1000}));
-  return d.access_token;
-}
-/* busca en eBay España y Alemania (el mercado más grande de Europa), solo lo que se envía a España,
-   y ordena por precio total (anuncio + envío) */
-async function ebayBusca(env, kv, q, o){
-  const t = await ebayToken(env, kv);
-  const una = async (mk, conCategoria) => {
-    const p = new URLSearchParams({q, limit: "50", sort: "price",
-      filter: "deliveryCountry:ES,priceCurrency:EUR" + (o.max ? ",price:[.." + o.max + "]" : "")});
-    if (conCategoria) p.set("category_ids", "183454");       // cartas sueltas de juegos de cartas coleccionables
-    const r = await fetch("https://api.ebay.com/buy/browse/v1/item_summary/search?" + p, {headers:{
-      "authorization": "Bearer " + t, "x-ebay-c-marketplace-id": mk,
-      "x-ebay-c-enduserctx": "contextualLocation=country%3DES", "accept-language": "es-ES"}});
-    if (!r.ok) return {error: mk + " HTTP " + r.status, items: []};
-    const d = await r.json();
-    return {items: (d.itemSummaries || []).map(i => {
-      const precio = +((i.price && i.price.value) || (i.currentBidPrice && i.currentBidPrice.value) || 0);
-      const envio = i.shippingOptions && i.shippingOptions[0] && i.shippingOptions[0].shippingCost ? +i.shippingOptions[0].shippingCost.value : null;
-      return {id: i.itemId, titulo: i.title, precio, envio, total: +(precio + (envio || 0)).toFixed(2),
-        url: i.itemWebUrl, img: i.image && i.image.imageUrl || (i.thumbnailImages && i.thumbnailImages[0] && i.thumbnailImages[0].imageUrl) || "",
-        pais: i.itemLocation && i.itemLocation.country || "", estado: i.condition || "",
-        subasta: (i.buyingOptions || []).includes("AUCTION"), acaba: i.itemEndDate || "", mk};
-    }), total: d.total || 0};
-  };
-  let res = await Promise.all([una("EBAY_ES", true), una("EBAY_DE", true)]);
-  if (!res[0].items.length && !res[1].items.length) res = await Promise.all([una("EBAY_ES", false), una("EBAY_DE", false)]);
-  const vistos = new Set(), items = [];
-  for (const it of res.flatMap(r => r.items)) { if (vistos.has(it.id)) continue; vistos.add(it.id); items.push(it); }
-  items.sort((a, b) => a.total - b.total);
-  return {q, cuando: new Date().toISOString(), items: items.slice(0, o.n || 25), errores: res.map(r => r.error).filter(Boolean)};
-}
-/* las vigiladas con precio objetivo: si en eBay hay una por debajo, aviso (una vez por anuncio) */
-async function vigilaEbay(env, kv, k){
-  const v = JSON.parse((await kv.get(`cm:vigila:${k}`)) || '{"lista":[]}').lista.filter(x => x.obj);
-  if (!v.length) return;
-  const hora = new Date().getUTCHours(), POR_HORA = 18;          // límite de peticiones por pasada
-  const tanda = v.length <= POR_HORA ? v : v.slice((hora * POR_HORA) % v.length).concat(v).slice(0, POR_HORA);
-  const hechos = JSON.parse((await kv.get(`hechos:${k}`)) || "{}");
-  let cambio = false;
-  for (const c of tanda){
-    try {
-      const r = await ebayBusca(env, kv, c.q || c.n.split(" [")[0], {max: c.obj, n: 5});
-      const it = r.items.find(i => i.total <= c.obj);
-      if (!it || hechos["eb-" + it.id]) continue;
-      hechos["eb-" + it.id] = Date.now(); cambio = true;
-      await manda(kv, k, {para: "todos", titulo: "En eBay por debajo: " + c.n.split(" [")[0],
-        cuerpo: `${it.titulo.slice(0, 80)} · ${it.total.toFixed(2).replace(".", ",")} € con envío (objetivo ${String(c.obj).replace(".", ",")} €)`,
-        tag: "eb-" + it.id, url: it.url}, null);
-    } catch (e) { /* una carta que falla no para a las demás */ }
-  }
-  if (cambio) await kv.put(`hechos:${k}`, JSON.stringify(hechos));
 }
 
 /* ═══════════ Web Push: VAPID (RFC 8292) + cifrado aes128gcm (RFC 8291/8188) ═══════════ */
