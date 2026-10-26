@@ -16,6 +16,7 @@ Aquí no hay nada privado: ni claves, ni ilustraciones con caras, ni la dedicato
 
 ## Ojo
 
-- `tcg_build.py` necesita `inject.js` y `album-data-app.json`, que están en el archivo privado del Mac (no aquí).
-- `docs/tcg/motor.js` y `docs/tcg/sobre3d.js` tienen cambios hechos a mano después del último `tcg_build.py` (luz que se para sola, frases de las Cosmic, capas v2, tratamientos manga, sobre 3D ligero en móvil). Si se regenera, hay que volver a meterlos.
-- La documentación completa del proyecto está en el Project de Claude «CrisyAlberto» (`claude/gremory-documentacion.md`).
+- **Fuente de verdad del código (26/10/2026):** los archivos publicados `docs/tcg/motor.js`, `juego.js`, `sobre3d.js` e `inmersiva.js` se editan directamente. `tcg_build.py` queda como historia: generó el motor del Set 1, necesita `inject.js` y `album-data-app.json` (privados, no están todos) y no lleva los cambios hechos después a mano. Para un set nuevo, sus datos se añaden al motor actual (un bloque `D2` junto a `D1`).
+- **CSS:** se edita `proyecto/album/juego.css` (y `manga.css`) y se monta con `python3 taller/proyecto/album/regen_css.py` desde la raíz del repo; `--check` dice si `docs/tcg/motor.css` está al día.
+- **Pruebas:** `lab/harness.mjs` necesita Playwright y una carpeta `lab/img` con imágenes de prueba (no se sube: llevan caras). `tgod.mjs` y `tpe.mjs` prueban el God Pack y la 1ª edición usando `window.TCG._prueba`.
+- La documentación completa del proyecto está en el Project de Claude «CrisyAlberto» (`claude/gremory-documentacion.md`) y en `gremory-archivo` del Mac.
