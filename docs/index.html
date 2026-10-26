@@ -8,7 +8,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>Gremory</title>
-<meta name="build" content="2026-10-26.3">
+<meta name="build" content="2026-10-26.4">
 <!-- El cuadrado de la pantalla de inicio. iOS se guarda el icono por URL y no
      vuelve a pedirlo, así que si se cambia hay que darle un nombre de fichero
      nuevo. El manifest es lo que mira el iPhone moderno; los dos "apple-touch"
@@ -523,11 +523,6 @@
 /* 26/10: el TCG va en la barra de abajo (en el sitio de las cartas de mercado, que se quitaron) con los sobres por abrir */
   nav button{position:relative}
   /* 26/10: el ahorro de un vistazo, con la previsión */
-  .copia-aviso{display:flex;align-items:center;gap:12px;margin:0 0 12px;padding:12px 14px;border:1px solid rgba(57,135,229,.45);background:rgba(57,135,229,.1)}
-  .copia-aviso div{flex:1;display:flex;flex-direction:column;gap:3px}
-  .copia-aviso b{font-size:14px}
-  .copia-aviso span{font-size:12.5px;color:var(--dim);line-height:1.4}
-  .copia-aviso button{border:0;background:var(--blue);color:#fff;font:700 13px/1 -apple-system,system-ui,sans-serif;padding:10px 12px;white-space:nowrap}
   .ah-cab{display:flex;align-items:baseline;justify-content:space-between;gap:10px;flex-wrap:wrap}
   .ah-num{font:400 40px/1 "Instrument Serif",Georgia,serif;color:var(--acc)}
   .ah-sub{font:700 10.5px/1.5 "Space Mono",monospace;letter-spacing:.08em;text-transform:uppercase;color:var(--dim)}
@@ -588,7 +583,6 @@
     <div id="retoBox" class="pase" data-pase></div>
 
     <div class="sec pase" id="ahorroBox" data-pase></div>
-    <div id="copiaAviso"></div>
 
     <div class="tiles pase" data-pase>
       <div class="tile i"><span>Entra</span><b id="tIng" class="tab">0 &euro;</b><small id="tIngSub"></small></div>
@@ -2161,10 +2155,21 @@ function graficaAhorro(P){
     svg += '<text x="' + x(i).toFixed(1) + '" y="' + (H - 6) + '" text-anchor="' + (i === 0 ? "start" : i === iFin ? "end" : "middle") + '" font-size="9" font-family="Space Mono, monospace" fill="' + (i === iHoy ? "var(--txt)" : "var(--dim)") + '">' + mesCorto(p.k).toUpperCase() + (p.k.slice(5) === "01" || i === iFin ? " " + p.k.slice(2, 4) : "") + '</text>'; });
   return svg + '</svg>';
 }
+/* la previsión se recalcula sola cada vez que cambia algo (un gasto, una cuota, un mes nuevo). Además, cada mes se guarda
+   en este móvil lo que decía (a cuánto llegaríais al mes de ritmo), para enseñar cómo se ha movido desde el mes pasado */
+function fotoPrevision(alMes){
+  var hoyK = mKey(today), fotos = {};
+  try { fotos = JSON.parse(localStorage.getItem("gremory-prevision") || "{}") || {}; } catch(e){}
+  if(fotos[hoyK] === undefined){ fotos[hoyK] = Math.round(alMes); var ks = Object.keys(fotos).sort(); while(ks.length > 24) delete fotos[ks.shift()];
+    try { localStorage.setItem("gremory-prevision", JSON.stringify(fotos)); } catch(e){} }
+  var ant = fotos[mesRelativo(hoyK, -1)];
+  return ant === undefined ? null : ant;
+}
 function renderAhorro(){
   var box = document.getElementById("ahorroBox"); if(!box) return;
   var P = previsionAhorro(), fin = P.futuro[P.futuro.length - 1], total = P.casa + (P.hay ? P.mia : 0);
   var finTotal = fin.casa + fin.mia, finPru = fin.casaPr + fin.mia, alMes = (finTotal - total) / 12;
+  var antes = fotoPrevision(alMes), cambio = antes === null ? null : Math.round(alMes) - antes;
   var nomFin = nombreMes(fin.k);
   var html = '<h2><span class="tick" style="background:var(--acc)"></span>Vuestro ahorro <span class="sum">' + (alMes >= 0 ? "+" : "−") + moneyR(Math.abs(alMes)) + ' al mes</span></h2>' +
     '<div class="ah-cab"><div class="ah-num tab">' + money(total) + '</div>' +
@@ -2173,7 +2178,9 @@ function renderAhorro(){
     '<div class="ah-leg"><span><i style="background:var(--acc)"></i>La casa</span>' + (P.hay ? '<span><i style="background:var(--blue)"></i>Tu hucha</span>' : '') +
       '<span><i style="background:none;border-top:2px dashed var(--acc);height:0;margin-bottom:3px"></i>Si seguís así</span><span><i style="background:none;border-top:2px dotted var(--acc);height:0;opacity:.6;margin-bottom:3px"></i>Prudente</span></div>' +
     '<div class="ah-fin">Si seguís así, en ' + nomFin + ' tendréis unos <b>' + moneyR(Math.round(finTotal / 100) * 100) + '</b>' +
-      ' (con 100 € más de gasto al mes, ' + moneyR(Math.round(finPru / 100) * 100) + ').</div>' +
+      ' (con 100 € más de gasto al mes, ' + moneyR(Math.round(finPru / 100) * 100) + ').' +
+      (cambio === null ? ' Se recalcula sola con cada gasto y cada mes nuevo.' : cambio === 0 ? ' El mismo ritmo que el mes pasado.' :
+        ' El mes pasado ibais a ' + moneyR(antes) + ' al mes: ahora ' + (cambio > 0 ? moneyR(cambio) + ' más.' : moneyR(-cambio) + ' menos.')) + '</div>' +
     '<div class="ah-cuenta">' +
       '<div><span>Entra al bote al mes (cuotas de Ajustes)</span><b>' + money(P.cuotas) + '</b></div>' +
       '<div><span>Fijos de la casa</span><b>−' + money(P.fijos) + '</b></div>' +
@@ -2216,7 +2223,6 @@ function renderFin(){
     '<div class="delta '+cls+'">'+flecha(cls==="flat"?0:(dif>0?1:-1))+txt+'</div>';
   try { renderReto(k); } catch(e){ console.error("reto", e); }
   try { renderAhorro(); } catch(e){ console.error("ahorro", e); }
-  try { renderCopia(); } catch(e){ console.error("copia", e); }
 
   /* fichas */
   var tAnt = totalesMes(kAnt);
@@ -3544,8 +3550,7 @@ function renderAvisos(){
     (pref ? fila("gatos","Los gatos","A las 19:00 si algo va con retraso")+
             fila("mes","El mes","Resumen el día 1 y un aviso a mitad de mes")+
             fila("entre","Entre vosotros","Cuando el otro mete un extra o un gasto de 100 € o más")+
-            fila("tcg","Sobres del TCG","A las "+TCG_HORA+":00, cuando ya están los dos sobres del día")+
-            fila("copia","Copia de seguridad","El día 1 de cada mes, para guardar lo de Mío") : '<div class="mini">Dime arriba quién usa este móvil para elegir qué avisos quieres.</div>')+
+            fila("tcg","Sobres del TCG","A las "+TCG_HORA+":00, cuando ya están los dos sobres del día") : '<div class="mini">Dime arriba quién usa este móvil para elegir qué avisos quieres.</div>')+
     '<div class="mini" style="margin-top:8px">Los avisos los programa el móvil con lo que sabe en ese momento; la nube no lee vuestros datos. '+
     (esApp() ? "" : "En iPhone solo llegan si la app está en la pantalla de inicio.")+'</div>';
   var b;
@@ -3818,7 +3823,7 @@ function hayPush(){
 function esApp(){ return window.navigator.standalone === true || (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches); }
 function prefAvisos(pid){
   var p = (S.avisos||{})[pid];
-  return {gatos: !p || p.gatos!==false, mes: !p || p.mes!==false, entre: !p || p.entre!==false, tcg: !p || p.tcg!==false, copia: !p || p.copia!==false};
+  return {gatos: !p || p.gatos!==false, mes: !p || p.mes!==false, entre: !p || p.entre!==false, tcg: !p || p.tcg!==false};
 }
 function ponPref(pid, k, v){
   if(!S.avisos) S.avisos = {};
@@ -3999,14 +4004,6 @@ function generaAvisos(){
         url:CONTACTO_APP+"#sobres"});
     }
   });
-
-  /* ---- copia de seguridad: el día 1 de cada mes a las 20:30 (Mío solo vive en cada móvil) ---- */
-  var pcop = quiere("copia");
-  if(pcop.length){
-    var d1 = new Date(ahora.getFullYear(), ahora.getMonth()+1, 1, 20, 30, 0);
-    out.push({id:"copia:"+mKey(d1), cuando:d1.toISOString(), para:pcop, titulo:"Copia de seguridad",
-      cuerpo:frase(["Mes nuevo, copia nueva: Ajustes → Datos → Exportar copia. Lo de Mío solo vive en tu móvil.", "Treinta segundos: Ajustes → Datos → Exportar copia, y lo tuyo queda a salvo."], mKey(d1))});
-  }
 
   /* ---- resumen de la semana: domingo a las 20:00 ---- */
   var pr = ids.filter(function(id){ var p = prefAvisos(id); return p.gatos || p.mes; });
@@ -4960,7 +4957,7 @@ document.getElementById("btnVer").onclick = function(){ miraVersion(true); };
 function ultimaCopia(){ try { return localStorage.getItem("gremory-ultima-copia") || ""; } catch(e){ return ""; } }
 function hazCopia(){
   var nombre = "gremory-" + dKey(new Date()) + ".json", texto = JSON.stringify(S, null, 2);
-  var marca = function(){ try { localStorage.setItem("gremory-ultima-copia", dKey(new Date())); } catch(e){} try { renderCopia(); } catch(e){} };
+  var marca = function(){ try { localStorage.setItem("gremory-ultima-copia", dKey(new Date())); } catch(e){} };
   var baja = function(){
     var blob = new Blob([texto], {type:"application/json"}), a = document.createElement("a");
     a.href = URL.createObjectURL(blob); a.download = nombre;
@@ -4976,16 +4973,6 @@ function hazCopia(){
     }
   } catch(e){}
   baja();
-}
-/* el recordatorio: si hace más de un mes (o nunca) y hay algo en Mío, que solo vive en este móvil */
-function renderCopia(){
-  var box = document.getElementById("copiaAviso"); if(!box) return;
-  var u = ultimaCopia(), dias = u ? Math.floor((today - parseD(u)) / 864e5) : null;
-  var hayMio = !!(S.mio && ((S.mio.aportes||[]).length || Object.keys(S.mio.nominas||{}).length || (S.mio.gastos||[]).length));
-  if(!hayMio || (dias !== null && dias < 31)){ box.innerHTML = ""; return; }
-  box.innerHTML = '<div class="copia-aviso"><div><b>' + (dias === null ? "Aún no has hecho ninguna copia" : "Tu última copia es de hace " + dias + " días") + '</b>' +
-    '<span>Lo de Mío solo vive en este móvil: si se pierde el móvil, se pierde con él.</span></div><button id="copiaYa">Hacer copia</button></div>';
-  document.getElementById("copiaYa").onclick = hazCopia;
 }
 document.getElementById("btnExport").onclick = hazCopia;
 document.getElementById("btnImport").onclick = function(){ document.getElementById("fileIn").click(); };
