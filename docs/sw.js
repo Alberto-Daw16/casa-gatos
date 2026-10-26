@@ -46,8 +46,12 @@ self.addEventListener("push", function(e){
 self.addEventListener("notificationclick", function(e){
   e.notification.close();
   e.waitUntil(self.clients.matchAll({type:"window", includeUncontrolled:true}).then(function(cs){
-    /* los avisos de eBay traen el anuncio: se abre directamente */
     var u = e.notification.data && e.notification.data.url;
+    /* el aviso de los sobres del TCG: si la app ya está abierta, se le pide que abra los sobres; si no, se abre con #sobres */
+    if(u && /#sobres$/.test(u)){
+      for(var j=0;j<cs.length;j++){ if("focus" in cs[j]){ cs[j].postMessage({tcg:"sobres"}); return cs[j].focus(); } }
+      return self.clients.openWindow(u);
+    }
     if(u && /^https?:/.test(u)) return self.clients.openWindow(u);
     for(var i=0;i<cs.length;i++){ if("focus" in cs[i]) return cs[i].focus(); }
     return self.clients.openWindow("./");

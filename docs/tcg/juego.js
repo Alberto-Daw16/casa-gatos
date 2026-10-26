@@ -283,7 +283,8 @@
   /* ── montaje de la interfaz ── */
   let raiz, cuerpo, tab = "binder", quien = "", pag = 0, girando = false;
   const tapas = Object.assign({}, lee("gremory-tcg-tapas", {}));
-  const tapaDe = pid => TAPAS[tapas[pid]] || (gente()[1] && gente()[1].id === pid ? TAPAS.rosa : TAPAS.oceano);
+  /* 26/10: el binder de Alberto, azul; el de Cristina, rosa. Sin elegir color */
+  const tapaDe = pid => /^cris/i.test(String((gente().find(p => p.id === pid) || {}).name || "").trim()) ? TAPAS.rosa : TAPAS.oceano;
   const movil = () => matchMedia("(max-width:760px)").matches;
   function monta(){
     if(raiz) return;
@@ -307,7 +308,7 @@
       else if(v.classList.contains("on") && (e.key === "ArrowLeft" || e.key === "ArrowRight")) otraVisor(e.key === "ArrowLeft" ? -1 : 1);
       else if(tab === "binder" && (e.key === "ArrowLeft" || e.key === "ArrowRight")) pasa(e.key === "ArrowLeft" ? -1 : 1);
     });
-    let era = movil(); addEventListener("resize", () => { if(movil() !== era){ era = movil(); if(tab === "binder") pinta(); } });
+    let era = movil(); addEventListener("resize", () => { if(movil() !== era){ era = movil(); if(tab === "binder") pinta(); } else if(tab === "binder" && raiz.classList.contains("on")) encaja(); });
   }
 
   function pinta(){
@@ -333,7 +334,20 @@
     else if(tab === "logros") h += logrosHTML();
     else h += cambiosHTML();
     cuerpo.innerHTML = h;
-    if(tab === "sobres") deslizaCarrusel();
+    raiz.classList.toggle("en-sobres", tab === "sobres"); cuerpo.classList.toggle("lleno", tab === "sobres");
+    if(tab === "sobres"){ raiz.style.setProperty("--c", SOBRES[elegido].col); deslizaCarrusel(); }
+    if(tab === "binder"){ encaja(); requestAnimationFrame(encaja); }
+  }
+  /* el binder entero en pantalla, sin bajar: si no cabe de alto, se estrecha (las cartas guardan su proporción) */
+  function encaja(){
+    const bd = document.getElementById("tgBd"); if(!bd) return;
+    bd.style.maxWidth = "";
+    const pie = parseFloat(getComputedStyle(cuerpo).paddingBottom) || 0;
+    for(let k = 0; k < 2; k++){
+      const r = bd.getBoundingClientRect(), cabe = cuerpo.getBoundingClientRect().bottom - pie + 18 - r.top;
+      if(r.height <= cabe + 1) break;
+      bd.style.maxWidth = Math.max(220, Math.floor(r.width * cabe / r.height)) + "px";
+    }
   }
 
   /* ── binder ── */
@@ -364,15 +378,12 @@
     const col = coleccion(quien), t = tapaDe(quien);
     const tiene = L.filter(e => e.ok && col[e.id]).length, rep = sobrantes(quien).length, prim = L.filter(e => e.ok && col[e.id] && col[e.id].inst.some(esPrimera)).length;
     const paso = movil() ? 1 : 2;
+    /* 26/10: todo a un golpe de vista en el móvil: una línea con el nombre y la cuenta, otra con el filtro y las flechas, y el binder
+       ajustado al alto de la pantalla (ver encaja). Fuera la cuenta por familias y los colores de tapa */
     return '<div class="tg-cab" style="--tapa:' + t.tapa + '"><div class="tg-quien"><b class="tg-mio">Mi binder</b></div>' +
-        '<div class="tg-cuenta"><b>' + tiene + '</b> de ' + L.filter(e => e.ok && (e.id !== SEC_ID || col[e.id])).length + ' cartas · <b>' + rep + '</b> repetidas' + (prim ? ' · <b>' + prim + '</b> de 1ª edición' : '') + '</div>' +
-        (quien === yo() ? '<div class="tg-acab">' + Object.entries(TAPAS).map(([k, a]) => '<button data-tapa="' + k + '" title="' + a.n + '" aria-label="Tapa ' + a.n + '" class="' + (tapaDe(quien) === a ? "on" : "") + '" style="--c:' + a.tapa + '"></button>').join("") + '</div>' : '') + '</div>' +
-      '<div class="tg-nav"><button data-ir="-1"' + (pag <= 0 ? " disabled" : "") + '>‹ Anterior</button><b>' + (movil() ? "Página " + (pag + 1) : "Páginas " + (pag + 1) + "–" + Math.min(NP, pag + 2)) + ' de ' + NP + '</b>' +
-        '<button data-ir="1"' + (pag + paso >= NP ? " disabled" : "") + '>Siguiente ›</button></div>' +
-      /* las familias, con lo que llevas de cada una (tocar una te lleva a su página), y el filtro */
-      '<div class="tg-fams">' + GRUPOS.map(([nm, a, z]) => { const n = L.filter(e => e.ok && nDe(e.id) >= a && nDe(e.id) <= z && col[e.id]).length, tot = z - a + 1;
-        return '<button data-grupo="' + a + '" class="' + (n === tot ? "llena" : "") + '"><b>' + nm + '</b><span>' + n + '/' + tot + '</span><i style="width:' + Math.round(n / tot * 100) + '%"></i></button>'; }).join("") + '</div>' +
-      '<div class="tg-filtro">' + [["todas", "Todas"], ["faltan", "Me faltan"], ["repes", "Repetidas"]].map(([k, nm]) => '<button data-filtro="' + k + '" class="' + (filtro === k ? "on" : "") + '">' + nm + '</button>').join("") + '</div>' +
+        '<div class="tg-cuenta"><b>' + tiene + '</b> de ' + L.filter(e => e.ok && (e.id !== SEC_ID || col[e.id])).length + (rep ? ' · <b>' + rep + '</b> repe' + (rep === 1 ? '' : 's') : '') + (prim ? ' · <b>' + prim + '</b> 1ª ed.' : '') + '</div></div>' +
+      '<div class="tg-barra"><div class="tg-filtro">' + [["todas", "Todas"], ["faltan", "Me faltan"], ["repes", "Repetidas"]].map(([k, nm]) => '<button data-filtro="' + k + '" class="' + (filtro === k ? "on" : "") + '">' + nm + '</button>').join("") + '</div>' +
+        '<div class="tg-flechas"><button data-ir="-1" aria-label="Página anterior"' + (pag <= 0 ? " disabled" : "") + '>‹</button><button data-ir="1" aria-label="Página siguiente"' + (pag + paso >= NP ? " disabled" : "") + '>›</button></div></div>' +
       '<div class="bd f-' + filtro + '" id="tgBd" style="--tapa:' + t.tapa + ';--hoja:' + t.hoja + ';--tinta:' + t.tinta + '">' + hojas(pag, col) + '</div>';
   }
   function pasa(dir){
@@ -779,7 +790,7 @@
     if(!c) return pinta();
     const i0 = ORDEN.indexOf(k), S = SOBRES[k], t = cuerpo.querySelector(".gx-tienda");
     c.querySelectorAll(".gx-elige").forEach(b => { const p = ORDEN.indexOf(b.dataset.elige) - i0; b.classList.toggle("on", !p); b.style.cssText = posCarrusel(p); });
-    if(t){ t.style.setProperty("--c", S.col); t.style.setProperty("--c2", S.col2); }
+    if(t){ t.style.setProperty("--c", S.col); t.style.setProperty("--c2", S.col2); } raiz.style.setProperty("--c", S.col);
     lienzos(k);
   }
   /* cuando llega la portada compuesta de un sobre, se cambia solo ese sobre */

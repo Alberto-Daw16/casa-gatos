@@ -2380,6 +2380,20 @@
    clip-path sí lo recorta todo; en el resumen y en la pila el brillo de alrededor lo pone el contenedor, así que no se pierde nada */
 .gv-mini .carta,.gv-carta .carta{clip-path:inset(0 round 3.7% / 2.6%)}
 
+/* 26/10 · binder a un golpe de vista: cabecera en dos líneas cortas y el binder centrado (encaja() lo estrecha si no cabe de alto) */
+.tg-cab{flex-wrap:nowrap;margin-bottom:8px}
+.tg-cab .tg-cuenta{text-align:right}
+.tg-barra{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:0 0 10px}
+.tg-barra .tg-filtro{margin:0;justify-content:flex-start}
+.tg-flechas{display:flex;gap:6px;flex:0 0 auto}
+.tg-flechas button{width:38px;height:34px;border-radius:999px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.06);color:inherit;font:600 20px/1 -apple-system,system-ui,sans-serif;cursor:pointer}
+.tg-flechas button:disabled{opacity:.3;cursor:default}
+#tgBd{margin:0 auto}
+/* 26/10 · los sobres a pantalla completa: el cielo de la tienda ocupa todo, también detrás del título y las pestañas */
+#tcg.en-sobres{background:radial-gradient(130% 75% at 50% 18%,color-mix(in srgb,var(--c,#ff8a3d) 45%,#1a1f4a),#0e1130 72%);transition:background .5s}
+#tcg.en-sobres .tg-cuerpo.lleno{padding:0;display:flex;flex-direction:column;overflow:hidden}
+#tcg.en-sobres .gx-tienda{flex:1;margin:0;border-radius:0;background:none;justify-content:center;padding:6px 0 calc(env(safe-area-inset-bottom) + 18px)}
+
 /* Manga anatomy is opt-in; premium materials stay in motor.css. */
 .carta.mg:where(:not(.mg-premium)){--g-tinta:#17151b;--g-panel:#eee9dc;--g-linea:#b9a8a3;--g-txt:#20171c;--g-dim:#68505a;--g-lima:#ab1934;background:#17151b;color:#eee9dc}
 .carta.mg:where(:not(.mg-premium)) .mb-bg{background:#17151b}
