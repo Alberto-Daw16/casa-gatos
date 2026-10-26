@@ -317,7 +317,7 @@
     if(raiz) return;
     raiz = document.createElement("div"); raiz.id = "tcg";
     raiz.innerHTML = '<div class="tg-top"><h2>Gremory · Set 1</h2><button class="tg-x" data-acc="cierra" aria-label="Cerrar">' + ICO.x + '</button></div>' +
-      '<div class="tg-tabs" id="tgTabs"></div><div class="tg-cuerpo" id="tgCuerpo"></div>';
+      '<div class="tg-cuerpo" id="tgCuerpo"></div><div class="tg-tabs" id="tgTabs"></div>';   /* 26/10: el menú abajo, como en la app */
     document.body.appendChild(raiz);
     cuerpo = raiz.querySelector("#tgCuerpo");
     ["tgVisor", "tgAbre", "tgProp"].forEach(id => { const c = document.createElement("div"); c.className = "tg-capa"; c.id = id; document.body.appendChild(c); });
@@ -393,13 +393,13 @@
     const a = L[p * PAG]; let z = L[Math.min(L.length, (p + 1) * PAG) - 1];
     if(z.id === SEC_ID && !col[SEC_ID]) z = L[L.indexOf(z) - 1];   /* sin la secreta, la página acaba en la 060 */
     let g = ""; for(let k = 0; k < PAG; k++) g += bolsillo(p * PAG + k, col);
-    return '<div class="bd-hoja ' + lado + '"><div class="bd-cab"><span>Página ' + (p + 1) + '</span><span>' + a.n + ' – ' + z.n + '</span></div><div class="bd-grid">' + g + '</div>' +
+    return '<div class="bd-hoja ' + lado + '"><div class="bd-cab"><span>Página ' + (p + 1) + '</span>' + (cuentaBd && lado === "izq" ? '<span class="bd-cuenta">' + cuentaBd + '</span>' : '') + '<span>' + a.n + ' – ' + z.n + '</span></div><div class="bd-grid">' + g + '</div>' +
       ((lado === "der" || movil()) && p < NP - 1 ? '<div class="bd-esquina" data-ir="1"></div>' : '') +
       (lado === "izq" && !movil() && p > 0 ? '<div class="bd-esquina ant" data-ir="-1"></div>' : '') + '</div>';
   }
   const lomo = () => '<div class="bd-lomo">' + '<div class="bd-anilla"></div>'.repeat(3) + '</div>';
   function hojas(p, col){ return movil() ? lomo() + hoja(p, "izq", col) : hoja(p, "izq", col) + lomo() + hoja(p + 1, "der", col); }
-  let filtro = "todas";
+  let filtro = "todas", cuentaBd = "";
   function binderHTML(){
     quien = yo();   /* cada uno ve solo su binder (el del otro, no) */
     if(!movil() && pag % 2) pag--;
@@ -408,9 +408,9 @@
     const paso = movil() ? 1 : 2;
     /* 26/10: todo a un golpe de vista en el móvil: una línea con el nombre y la cuenta, otra con el filtro y las flechas, y el binder
        ajustado al alto de la pantalla (ver encaja). Fuera la cuenta por familias y los colores de tapa */
-    return '<div class="tg-cab" style="--tapa:' + t.tapa + '"><div class="tg-quien"><b class="tg-mio">Mi binder</b></div>' +
-        '<div class="tg-cuenta"><b>' + tiene + '</b> de ' + L.filter(e => e.ok && (e.id !== SEC_ID || col[e.id])).length + (rep ? ' · <b>' + rep + '</b> repe' + (rep === 1 ? '' : 's') : '') + (prim ? ' · <b>' + prim + '</b> 1ª ed.' : '') + '</div></div>' +
-      '<div class="tg-barra"><div class="tg-filtro">' + [["todas", "Todas"], ["repes", "Repes"], ["primera", "1ª ed."]].map(([k, nm]) => '<button data-filtro="' + k + '" class="' + (filtro === k ? "on" : "") + '">' + nm + '</button>').join("") + '</div>' +
+    /* 26/10: sin la cabecera «Mi binder · N de 60»: la cuenta va en la cabecera de la hoja */
+    cuentaBd = tiene + " / " + L.filter(e => e.ok && (e.id !== SEC_ID || col[e.id])).length;
+    return '<div class="tg-barra"><div class="tg-filtro">' + [["todas", "Todas"], ["repes", "Repes"], ["primera", "1ª ed."]].map(([k, nm]) => '<button data-filtro="' + k + '" class="' + (filtro === k ? "on" : "") + '">' + nm + '</button>').join("") + '</div>' +
         '<div class="tg-flechas"><button data-ir="-1" aria-label="Página anterior"' + (pag <= 0 ? " disabled" : "") + '>‹</button><button data-ir="1" aria-label="Página siguiente"' + (pag + paso >= NP ? " disabled" : "") + '>›</button></div></div>' +
       '<div class="bd f-' + filtro + '" id="tgBd" style="--tapa:' + t.tapa + ';--hoja:' + t.hoja + ';--tinta:' + t.tinta + '">' + hojas(pag, col) + '</div>';
   }
