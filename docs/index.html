@@ -8,7 +8,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>Gremory</title>
-<meta name="build" content="2026-10-26.8">
+<meta name="build" content="2026-10-26.9">
 <!-- El cuadrado de la pantalla de inicio. iOS se guarda el icono por URL y no
      vuelve a pedirlo, así que si se cambia hay que darle un nombre de fichero
      nuevo. El manifest es lo que mira el iPhone moderno; los dos "apple-touch"
@@ -1270,6 +1270,9 @@ function totalesMes(k, hastaDia){
 function cuotaDe(k, pid){
   var m = S.months[k], c = m && m.cuotas && m.cuotas[pid];
   if(c && c.v !== undefined) return +c.v || 0;
+  /* 26/10: un mes sin cuota apuntada hereda la del último mes que la tenga (si no, la de Ajustes) */
+  var ks = Object.keys(S.months||{}).filter(function(x){ var q = (S.months[x]||{}).cuotas; return x < k && q && q[pid] && q[pid].v !== undefined; }).sort();
+  if(ks.length) return +S.months[ks[ks.length-1]].cuotas[pid].v || 0;
   return +((S.cuotas||{})[pid]) || 0;
 }
 function cuotasMes(k){
@@ -1316,7 +1319,19 @@ function mesesBote(b){
   while(k <= fin && n < 240){ out.push(k); k = mesRelativo(k,1); n++; }
   return out;
 }
-function mesesCasa(){ var m = mesesBote(boteCasa()); return m.length ? m : [mKey(today)]; }
+/* 26/10: lo ahorrado es el acumulado de todos los meses, desde el primero con apuntes (agosto),
+   aunque alguien cambie la fecha de la casa */
+function primerMesDatos(){
+  var ks = Object.keys(S.months||{}).filter(function(k){
+    var m = S.months[k]||{}; return /^\d{4}-\d{2}$/.test(k) && ((m.expenses||[]).length || (m.incomes||[]).length);
+  }).sort();
+  return ks[0] || null;
+}
+function mesesCasa(){
+  var b = boteCasa(), p = primerMesDatos(), d = (b.desde||"").slice(0,7);
+  var ini = (p && (!d || p < d)) ? p : (d || mKey(today));
+  var m = mesesBote({desde:ini, hasta:b.hasta}); return m.length ? m : [mKey(today)];
+}
 function sobranteMes(k){ var t = totalesMes(k); return t.ing - t.gas; }
 /* lo que le toca a la casa un mes: lo que sobra menos lo apartado para los otros botes */
 function casaMes(k){ return sobranteMes(k) - apartadosMes(k); }
@@ -1699,15 +1714,12 @@ function openMeta(){
   openSheet('<h3>La casa</h3>'+
     '<label>Para qué es</label><input id="mt_n" placeholder="la casa" value="'+esc(m.nombre||"")+'">'+
     '<label>Objetivo (€)</label><input id="mt_o" type="number" inputmode="decimal" step="100" value="'+(m.objetivo||"")+'">'+
-    '<label>Cuenta desde</label><input id="mt_d" type="month" value="'+esc((m.desde||"").slice(0,7))+'">'+
-    '<div class="mini">Lo ahorrado se calcula solo: desde ese mes, lo que sobra del bote cada mes (si un mes falta, resta). Los hitos salen solos: un cuarto, la mitad, tres cuartos y todo.</div>'+
+    '<div class="mini">Lo ahorrado se calcula solo: lo que sobra del bote cada mes desde el primero, todo sumado (si un mes falta, resta). Los hitos salen solos: un cuarto, la mitad, tres cuartos y todo.</div>'+
     '<div class="btns"><button class="b-no" id="mt_no">Cancelar</button><button class="b-ok" id="mt_ok">Guardar</button></div>');
   document.getElementById("mt_no").onclick = closeSheet;
   document.getElementById("mt_ok").onclick = function(){
     m.nombre = document.getElementById("mt_n").value.trim() || "la casa";
     m.objetivo = num(document.getElementById("mt_o").value) || 0;
-    var d = document.getElementById("mt_d").value;
-    if(/^\d{4}-\d{2}$/.test(d)) m.desde = d;
     toca(m);
     save(); closeSheet(); render(); toast("Guardado");
   };
@@ -2096,14 +2108,21 @@ function previsionAhorro(){
   });
   /* la de delante: doce meses */
   var casaP = ahorradoCasa(), casaPr = casaP, miaP = mia, k = hoyK, futuro = [];
+  /* 26/10: las cuotas de delante son las que de verdad estáis poniendo (las del último mes apuntado),
+     no las de por defecto de Ajustes */
+  var cuotaFut = gente().reduce(function(a,p){
+    var ks = Object.keys(S.months||{}).filter(function(m){ var c = (S.months[m]||{}).cuotas; return m <= hoyK && c && c[p.id] && c[p.id].v !== undefined; }).sort();
+    return a + (ks.length ? cuotaDe(ks[ks.length-1], p.id) : cuotaDe(hoyK, p.id));
+  }, 0);
   for(var i = 1; i <= 12; i++){
     k = mesRelativo(hoyK, i);
-    var ing = cuotasMes(k), fij = sum(activeRec(S.recurring.expenses, k));
+    var cm = S.months[k] && S.months[k].cuotas;
+    var ing = (cm && Object.keys(cm).length) ? cuotasMes(k) : cuotaFut, fij = sum(activeRec(S.recurring.expenses, k));
     casaP += ing - fij - normal; casaPr += ing - fij - normal - 100; miaP += miaMes;
     futuro.push({k:k, casa:casaP, casaPr:casaPr, mia: hay ? miaP : 0, ing:ing, fij:fij, fut:true});
   }
   return {puntos:puntos, futuro:futuro, normal:normal, base:base, hay:hay, mia:mia, miaMes:miaMes, casa:ahorradoCasa(),
-    cuotas:cuotasMes(mesRelativo(hoyK,1)), fijos:sum(activeRec(S.recurring.expenses, mesRelativo(hoyK,1))), puntuales:puntualesCasa(), desde:desde};
+    cuotas:cuotaFut, fijos:sum(activeRec(S.recurring.expenses, mesRelativo(hoyK,1))), puntuales:puntualesCasa(), desde:desde};
 }
 function moneyR(n){ return money(Math.round(n)).replace(/,00(?=\s*€)/, ""); }
 function kEur(v){ var a = Math.abs(v); return (v < 0 ? "−" : "") + (a >= 1000 ? (Math.round(a / 100) / 10).toString().replace(".", ",").replace(/,0$/, "") + " k" : Math.round(a) + ""); }
